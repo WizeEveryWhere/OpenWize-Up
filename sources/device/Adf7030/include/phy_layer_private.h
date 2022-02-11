@@ -122,7 +122,7 @@ int32_t Phy_GetCal(uint8_t *pBuf);
 int32_t Phy_SetCal(uint8_t *pBuf);
 int32_t Phy_ClrCal(void);
 int32_t Phy_AutoCalibrate(phydev_t *pPhydev);
-int32_t Phy_RssiCalibrate(phydev_t *pPhydev);
+int32_t Phy_RssiCalibrate(phydev_t *pPhydev, int8_t i8RssiRefLevel);
 
 #ifdef PHY_USE_POWER_RAMP
 	extern pa_ramp_rate_e pa_ramp_rate;

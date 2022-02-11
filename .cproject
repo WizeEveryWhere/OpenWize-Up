@@ -183,10 +183,10 @@
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>
 			</target>
-			<target name="wize_app" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+			<target name="WizeUp" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>xargs</buildCommand>
-				<buildArguments>${ProjDirPath}/../../tools/build_support/prep_app.sh</buildArguments>
-				<buildTarget>wize_app</buildTarget>
+				<buildArguments>${ProjDirPath}/tools/build_support/prep_app.sh</buildArguments>
+				<buildTarget>WizeUp</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>false</useDefaultCommand>
 				<runAllBuilders>false</runAllBuilders>

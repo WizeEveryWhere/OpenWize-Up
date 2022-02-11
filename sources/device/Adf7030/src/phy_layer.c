@@ -128,8 +128,6 @@ pa_ramp_rate_e pa_ramp_rate __attribute__(( weak )) = RAMP_OFF;
  */
 int16_t i16RssiOffsetCal __attribute__(( weak )) = 0;
 
-
-
 #define DEFAULT_CAL_CFG  ( 0 \
 		| ANAFILT_RC_CAL \
 		| ADC_NOTCH_CAL \
@@ -337,36 +335,20 @@ int32_t Phy_adf7030_setup(
 /*!
  * @brief  This function set the RF part power to ON/OFF
  *
+ * @param [in]  pPhydev   Pointer on the Phy device instance
  * @param [in]  bOn   On / Off the RF power
  *
  */
-void Phy_OnOff(phydev_t *pPhydev, uint8_t bOn)
+inline void Phy_OnOff(phydev_t *pPhydev, uint8_t bOn)
 {
-	//const phy_if_t *pIf;
-	//adf7030_1_device_t* pDevice;
-	//p_spi_dev_t hSPIDevice;
-	//phy_cmd_e eCmd;
-	if(pPhydev)
+	if(pPhydev && pPhydev->pIf)
 	{
-		//pDevice = pPhydev->pCxt;
-		//hSPIDevice = (p_spi_dev_t)(pDevice->SPIInfo.hSPIDevice);
-		//pIf = pPhydev->pIf;
 		if(bOn)
 		{
-			/*
-			eCmd = PHY_CTL_CMD_PWR_ON;
-			BSP_Spi_Open(hSPIDevice);
-			pIf->pfIoctl(pPhydev, eCmd, 0);
-			*/
 			pPhydev->pIf->pfInit(pPhydev);
 		}
-		else {
-			/*
-			eCmd = PHY_CTL_CMD_PWR_OFF;
-			pIf->pfIoctl(pPhydev, eCmd, 0);
-			BSP_Spi_Close(hSPIDevice);
-	        BSP_Gpio_SetLow(pDevice->ResetGPIOInfo.u32Port, pDevice->ResetGPIOInfo.u16Pin);
-			*/
+		else
+		{
 			pPhydev->pIf->pfUnInit(pPhydev);
 		}
 	}
@@ -378,7 +360,7 @@ void Phy_OnOff(phydev_t *pPhydev, uint8_t bOn)
  * @param [in]  bEnable   Enable / Disable the PA
  *
  */
-void Phy_SetPa(uint8_t bEnable)
+inline void Phy_SetPa(uint8_t bEnable)
 {
 	if (bEnable)
 	{
@@ -399,7 +381,7 @@ void Phy_SetPa(uint8_t bEnable)
  * - 1          PA is enable
  *
  */
-int32_t Phy_GetPa(void)
+inline int32_t Phy_GetPa(void)
 {
 	if (BSP_PwrLine_Get(PA_EN_MSK))
 		return 1;
@@ -540,7 +522,7 @@ int32_t Phy_SetCal(uint8_t *pBuf)
  * - PHY_STATUS_OK   Requested sequence has been successfully executed
  *
  */
-int32_t Phy_ClrCal(void)
+inline int32_t Phy_ClrCal(void)
 {
 	*(uint64_t*)(RF_CFG[PHY_RADIO_CAL].cf) = 0x0;
 	*(uint64_t*)(RF_CFG[PHY_VCO_CAL].cf) = 0x0;
@@ -638,7 +620,8 @@ int32_t Phy_AutoCalibrate(phydev_t *pPhydev)
  *         that a carrier at mid band frequency with -77dbm level must externally
  *         be applied during calibration.
  *
- * @param [in]  pPhydev Pointer on the Phy device instance
+ * @param [in]  pPhydev        Pointer on the Phy device instance
+ * @param [in]  i8RssiRefLevel RSSI reference input level (dbm) during calibration.
  *
  * @return      Status
  * - PHY_STATUS_OK     Requested sequence has been successfully executed
@@ -646,7 +629,7 @@ int32_t Phy_AutoCalibrate(phydev_t *pPhydev)
  * - PHY_STATUS_ERROR  Enable to communicate with the device (communication or state failure)
  *
  */
-int32_t Phy_RssiCalibrate(phydev_t *pPhydev)
+int32_t Phy_RssiCalibrate(phydev_t *pPhydev, int8_t i8RssiRefLevel)
 {
 	// Power On
 	// Configuration
@@ -691,7 +674,7 @@ int32_t Phy_RssiCalibrate(phydev_t *pPhydev)
 			u32Sum += adf7030_1__GetRawRSSI( pSPIDevInfo );
 		}
 		// Calculate error (dbm) = Average (dbm) - Power input (dbm)
-		u16Avg = u32Sum/20 - ( ( (-77 >>2) ^0x7FF) +1 );
+		u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
 		// Write offset value to NB_OFFSET in rssi_cfg_t
 		adf7030_1__WRITE_FIELD(PROFILE_RSSI_CFG_NB_OFFSET, u16Avg);
 
@@ -1824,6 +1807,9 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 						// run-time configure TX power is required
 						((adf7030_1_device_t*)pPhydev->pCxt)->bTxPwrDone = 0;
 					}
+					break;
+				case PHY_CTL_GET_PA:
+					*(uint8_t*)args = (BSP_PwrLine_Get(PA_EN_MSK))?(1):(0);
 					break;
 				case PHY_CTL_GET_TX_FREQ_OFF:
 					*(uint8_t*)args = pPhydev->i16TxFreqOffset;

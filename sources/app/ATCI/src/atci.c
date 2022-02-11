@@ -1003,6 +1003,14 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 
 					*(atciCmdData->params[1].val8) = (uint8_t) Phy_GetPa();
 
+					// S1 :
+					//uint32_t tmp;
+					//sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_PA, (uint32_t)&tmp);
+					//*(atciCmdData->params[1].val8) = (uint8_t)tmp;
+
+					// S2 :
+					//sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_PA, (uint32_t)(atciCmdData->params[1].val8));
+
 					Atci_Resp_Data("ATFC", atciCmdData);
 				}
 				else if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)//write command
@@ -1019,6 +1027,8 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 						Phy_SetPa(0);
 					else
 						Phy_SetPa(1);
+					//sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_PA, (uint32_t)(*(atciCmdData->params[1].val8)));
+
 				}
 				else
 					return ATCI_ERR_INV_NB_PARAM;
@@ -1033,7 +1043,7 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 				{
 					Atci_Debug_Param_Data("Set Fact Cfg. (CAL RSSI)", atciCmdData);/////////
 
-					if(Phy_RssiCalibrate(&sPhyDev) != PHY_STATUS_OK)
+					if(Phy_RssiCalibrate(&sPhyDev, -77) != PHY_STATUS_OK)
 						return ATCI_ERR;
 				}
 				else

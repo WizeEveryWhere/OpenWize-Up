@@ -43,15 +43,16 @@ extern "C" {
 #include "parameters.h"
 
 #include "bsp.h"
-#include "bsp_pwrlines.h"
 
 #include "crypto.h"
-
 #include "time_evt.h"
+#include "phy_layer.h"
 
 #include "phy_layer_private.h"
+
 #include "wize_api.h"
 
+#include "bsp_pwrlines.h"
 #include "storage.h"
 
 extern const adf7030_1_gpio_reset_info_t DEFAULT_GPIO_RESET;
@@ -59,6 +60,7 @@ extern const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN];
 
 static adf7030_1_device_t adf7030_1_ctx;
 phydev_t sPhyDev;
+
 
 void Sys_Init(void)
 {
@@ -69,11 +71,20 @@ void Sys_Init(void)
 	setvbuf(stdout, NULL, _IONBF, 0);
 	// Do not buffer stdin, so that single chars are output without any delay to the console.
 	setvbuf(stdin, NULL, _IONBF, 0);
-	// setup timezone
-	//tzset();
+
+  	/* Show the welcome message */
+#ifndef HAS_NO_BANNER
+  	printf("\n###########################################################\n");
+  	printf("%s\n", WIZE_ALLIANCE_BANNER);
+  	printf("\n###########################################################\n");
+#endif
 
 	// Init Logger
+#ifdef LOGGER_USE_FWRITE
+  	Logger_Setup((int32_t (*)(const char*, size_t, size_t, FILE*))fwrite, stdout);
+#else
 	Logger_Setup((int32_t (*)(const char*, FILE*))fputs, stdout);
+#endif
 
 	// Change logger level
 	if ( Param_Access(LOGGER_LEVEL, (uint8_t*)(&u8LogLevel), 0) == 0 )
@@ -107,15 +118,16 @@ void Sys_Init(void)
   	TimeEvt_Setup();
 	// setup wize device
   	WizeApi_Setup(&sPhyDev);
-
-	// Init wize device
-	//WizeApi_Init(&sPhyDev);
-
-
   	WizeApi_Enable(1);
 }
 
-__attribute__ (( noreturn, always_inline )) void Sys_Start(void)
+void Sys_Fini(void)
+{
+	WizeApi_CtxSave();
+}
+
+
+__attribute__ (( always_inline )) void Sys_Start(void)
 {
     /* Start scheduler */
 	vTaskStartScheduler();

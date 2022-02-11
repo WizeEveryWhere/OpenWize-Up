@@ -5,8 +5,9 @@ cmake_minimum_required( VERSION 3.12 )
 set(BOARD_NAME "Alciom Wize'Up Board")
 set(APP_NAME "OpenwWizeUp App")
 
-#add_compile_definitions("HAS_NO_BANNER=1")
+add_compile_definitions(HAS_NO_BANNER=1)
 add_compile_definitions(USE_RTOS_TRACE=1)
+add_compile_definitions(HAS_BSP_PWRLINE=1)
 add_compile_definitions(LOGGER_HAS_COLOR=1)
 add_compile_definitions(LOGGER_USE_FWRITE=1)
 add_compile_definitions(DUMP_CORE_HAS_TRACE=1)
@@ -54,7 +55,7 @@ endif(USE_FREERTOS)
 set(MOD_DIR_LST 
     "sources/bsp" 
     "sources/board" 
-    "third-party/libraries/demo/Nucleo-L476/device/FlashStorage" 
+    "sources/device/FlashStorage" 
     "sources/device/Adf7030" 
     "sources/app" 
     )
