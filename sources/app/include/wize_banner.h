@@ -1,9 +1,10 @@
 /**
   * @file: wize_banner.h
-  * @brief: // TODO This file ...
+  * @brief: This file define the Wize'Up banner
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,20 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/10/25[TODO: your name]
+  * @par Revision history
+  *
+  * 1.0.0 : 2020/10/25 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _WIZE_BANNER_H_
 #define _WIZE_BANNER_H_
 #ifdef __cplusplus
@@ -34,23 +40,22 @@ extern "C" {
 
 /*
 #define WIZE_ALLIANCE_BANNER \
-"__      _ _            _   _ _ _" \
-"\ \    / (_)__ ___    /_\ | | (_) __ _ _ _   __ ___" \
-" \ \/\/ /| |_ / -_)  / _ \| | | |/ _` | ' \ / _/ -_)" \
-"  \_/\_/ |_/__\___| /_/ \_\_|_|_|\__,_|_||_|\__\___|"
+"__      _ _         _  _   _" \
+"\ \    / (_)__ ___ |/ | | | | ___" \
+" \ \/\/ /| |_ / -_)   | |_| || -_|" \
+"  \_/\_/ |_/__\___|   |_____||_|"
 */
 
-
 #define WIZE_ALLIANCE_BANNER \
-"__      _ _            _   _ _ _\n" \
-"\\ \\    / (_)__ ___    /_\\ | | (_) __ _ _ _   __ ___\n" \
-" \\ \\/\\/ /| |_ / -_)  / _ \\| | | |/ _` | ' \\ / _/ -_)\n" \
-"  \\_/\\_/ |_/__\\___| /_/ \\_\\_|_|_|\\__,_|_||_|\\__\\___|\n"
-
-
+"__      _ _         _  _   _\n" \
+"\\ \\    / (_)__ ___ |/ | | | | ___\n" \
+" \\ \\/\\/ /| |_ / -_)   | |_| || -_|\n" \
+"  \\_/\\_/ |_/__\\___|   |_____||_|\n"
 
 
 #ifdef __cplusplus
 }
 #endif
 #endif /* _WIZE_BANNER_H_ */
+
+/*! @} */

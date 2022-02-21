@@ -26,6 +26,12 @@
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _ADF7030_PHY_PACKET_H_
 #define _ADF7030_PHY_PACKET_H_
 
@@ -415,3 +421,5 @@ typedef struct { /*!< GENERIC_PKT Structure */
 }
 #endif
 #endif /* _ADF7030_PHY_PACKET_H_ */
+
+/*! @} */

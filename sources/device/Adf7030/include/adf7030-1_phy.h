@@ -27,6 +27,11 @@
   *
   */
 
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _ADF7030_1_PHY_H_
 #define _ADF7030_1_PHY_H_
 
@@ -271,3 +276,5 @@ uint8_t adf7030_1_HostSPI_UnInit(
 #endif
 
 #endif /* _ADF7030_1_PHY_H_ */
+
+/*! @} */

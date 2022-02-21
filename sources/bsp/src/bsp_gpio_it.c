@@ -1,9 +1,10 @@
 /*!
-  * @file: BSP_GpioIt_it.c
-  * @brief: This file contains functions to deal with external interrupt lines.
+  * @file bsp_gpio_it.c
+  * @brief This file contains functions to deal with external interrupt lines.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,19 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2019/12/14[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2019/12/14 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup OpenWize'Up_bsp
+ * @{
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,8 +38,11 @@ extern "C" {
 
 #include "bsp_gpio_it.h"
 #include "platform.h"
+#include <stm32l4xx_hal.h>
 
-/*! \enum gpio_port_e GPIO port enumerations */
+/*!
+ * @brief This enum define GPIO port
+ */
 typedef enum {
     GPIO_PORTA,      /*!< Port 000 */
     GPIO_PORTB,      /*!< Port 001 */
@@ -45,20 +53,27 @@ typedef enum {
     GPIO_NUM_PORTS   /*!< maximum number of ports */
 } gpio_port_e;
 
+/*!
+ * @brief This struct define the gpio interrupt
+ */
 typedef struct {
-	pf_cb_t pf_cb;
-	void *p_CbParam;
+	pf_cb_t pf_cb;          /*!< Interruption callback */
+	void *p_CbParam;        /*!< Pointer on Callback parameter */
 	union
 	{
-		pf_cb_t pf_cpy_cb;
+		pf_cb_t pf_cpy_cb; /*!< Callback for gpio copy */
 		struct
 		{
-			uint32_t port;
-			uint16_t pin;
+			uint32_t port; /*!< Gpio copy on port */
+			uint16_t pin;  /*!< Gpio copy on pin */
 		};
 	};
-
 }gpio_it_t;
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 #define INIT_GPIO_CB() .pf_cb = (pf_cb_t)NULL, .p_CbParam = NULL, .port = 0, .pin = 0
 static gpio_it_t aGpioCb[16] = {
@@ -84,9 +99,23 @@ static gpio_it_t aGpioCb[16] = {
 #define GET_MODE(GPIOx, pin)  ((GPIOx->MODER >> (pin << 2) ) & 0b11)
 #define GET_GPIO_PIN(pin) ((uint32_t)(1 << pin))
 
+/*!
+ * @}
+ * @endcond
+ */
+
 static uint32_t _bsp_gpioit_getport_(uint32_t u32Line);
 static gpio_port_e _bsp_gpioit_getnumport_(const uint32_t u32Port);
 
+/*!
+  * @static
+  * @brief Retrieve GPIO port address from exti line
+  *
+  * @param [in] u32Line EXTI line number
+  *
+  * @return the gpio port address
+  *
+  */
 static uint32_t _bsp_gpioit_getport_(uint32_t u32Line)
 {
 	uint32_t port;
@@ -116,6 +145,15 @@ static uint32_t _bsp_gpioit_getport_(uint32_t u32Line)
 	return port;
 }
 
+/*!
+  * @static
+  * @brief Retrieve GPIO port number from port address
+  *
+  * @param [in] u32Port Gpio port address
+  *
+  * @return the gpio port number
+  *
+  */
 static gpio_port_e _bsp_gpioit_getnumport_(const uint32_t u32Port)
 {
 	gpio_port_e gpio_port;
@@ -142,6 +180,14 @@ static gpio_port_e _bsp_gpioit_getnumport_(const uint32_t u32Port)
 	return gpio_port;
 }
 
+/*!
+  * @brief Get EXTI line id from gpio pin number
+  *
+  * @param [in] u16Pin Gpio pin number
+  *
+  * @return the corresponding exti line
+  *
+  */
 int8_t BSP_GpioIt_GetLineId(const uint16_t u16Pin)
 {
 	int8_t i8_ItLineId;
@@ -159,6 +205,17 @@ int8_t BSP_GpioIt_GetLineId(const uint16_t u16Pin)
 	return i8_ItLineId;
 }
 
+/*!
+  * @brief Configure the gpio interruption
+  *
+  * @param [in] u32Port Gpio port
+  * @param [in] u16Pin  Gpio pin
+  * @param [in] ePol    Interrupt polarity
+  *
+  * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+  *
+  */
 uint8_t BSP_GpioIt_ConfigLine (const uint32_t u32Port, const uint16_t u16Pin, const gpio_irq_trg_cond_e ePol)
 {
 	int8_t i8_ItLineId;
@@ -184,6 +241,17 @@ uint8_t BSP_GpioIt_ConfigLine (const uint32_t u32Port, const uint16_t u16Pin, co
 	return e_ret;
 }
 
+/*!
+  * @brief Enable the gpio interruption
+  *
+  * @param [in] u32Port Gpio port
+  * @param [in] u16Pin  Gpio pin
+  * @param [in] bEnable Enable/Disable interrupt
+  *
+  * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+  *
+  */
 uint8_t BSP_GpioIt_SetLine (const uint32_t u32Port, const uint16_t u16Pin, const bool bEnable)
 {
 	UNUSED(u32Port);
@@ -200,6 +268,17 @@ uint8_t BSP_GpioIt_SetLine (const uint32_t u32Port, const uint16_t u16Pin, const
 	return e_ret;
 }
 
+/*!
+  * @brief Set the gpio interruption callback
+  *
+  * @param [in] u32Port  Gpio port
+  * @param [in] u16Pin   Gpio pin
+  * @param [in] pfCb     Pointer on the Callback function
+  * @param [in] pCbParam Pointer on the Callback parameter
+  *
+  * @retval DEV_SUCCESS (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_GpioIt_SetCallback (const uint32_t u32Port, const uint16_t u16Pin, pf_cb_t const pfCb, void *const pCbParam )
 {
 	UNUSED(u32Port);
@@ -210,6 +289,16 @@ uint8_t BSP_GpioIt_SetCallback (const uint32_t u32Port, const uint16_t u16Pin, p
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Set/Enable the gpio as copy of interrupt of the given exti line
+  *
+  * @param [in] u8ItLineId EXTI line to copy
+  * @param [in] u32Port    Gpio port on which to copy
+  * @param [in] u16Pin     Gpio pin on which to copy
+  *
+  * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_GpioIt_SetGpioCpy( const uint8_t u8ItLineId, const uint32_t u32Port, const uint16_t u16Pin)
 {
 	uint8_t u8_ItLineId;
@@ -220,6 +309,14 @@ uint8_t BSP_GpioIt_SetGpioCpy( const uint8_t u8ItLineId, const uint32_t u32Port,
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Clr/Disable the gpio as copy of interrupt of the given exti line
+  *
+  * @param [in] u8ItLineId EXTI line to disable the copy
+  *
+  * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_GpioIt_ClrGpioCpy( const uint8_t u8ItLineId)
 {
 	uint8_t u8_ItLineId;
@@ -230,6 +327,12 @@ uint8_t BSP_GpioIt_ClrGpioCpy( const uint8_t u8ItLineId)
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief This is the gpio (exti) interrupt handler
+  *
+  * @param [in] i8_ItLineId The "interrupted" exti line
+  *
+  */
 void BSP_GpioIt_Handler(int8_t i8_ItLineId)
 {
 	uint8_t u8_ItLineId;
@@ -255,3 +358,5 @@ void BSP_GpioIt_Handler(int8_t i8_ItLineId)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

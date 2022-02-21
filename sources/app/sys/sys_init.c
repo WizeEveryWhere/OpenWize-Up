@@ -1,10 +1,10 @@
-
 /**
-  * @file: sys_init.c
-  * @brief: // TODO This file ...
+  * @file sys_init.c
+  * @brief This file implement (just for convenient) some "system" initialization
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,15 +18,20 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/11/04[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/11/04 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup OpenWize'Up
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -52,16 +57,27 @@ extern "C" {
 
 #include "wize_api.h"
 
-#include "bsp_pwrlines.h"
 #include "storage.h"
+#include "bsp_pwrlines.h"
+
+extern boot_state_t gBootState;
 
 extern const adf7030_1_gpio_reset_info_t DEFAULT_GPIO_RESET;
 extern const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN];
 
+/*!
+ * @brief This is the context for the ADF7030-1 device
+ */
 static adf7030_1_device_t adf7030_1_ctx;
+
+/*!
+ * @brief This store the phy device structure
+ */
 phydev_t sPhyDev;
 
-
+/*!
+ * @brief This function initialize the "system part"
+ */
 void Sys_Init(void)
 {
 	uint8_t u8LogLevel;
@@ -114,19 +130,25 @@ void Sys_Init(void)
 
   	// Init Time Mgr
 	WizeApi_CtxRestore();
-	// Init Time Event
+   	// Setup Time Event
   	TimeEvt_Setup();
 	// setup wize device
   	WizeApi_Setup(&sPhyDev);
   	WizeApi_Enable(1);
 }
 
+/*!
+ * @brief This function finalize the "system part"
+ */
 void Sys_Fini(void)
 {
 	WizeApi_CtxSave();
 }
 
 
+/*!
+ * @brief Start the RTOS scheduler
+ */
 __attribute__ (( always_inline )) void Sys_Start(void)
 {
     /* Start scheduler */
@@ -136,3 +158,5 @@ __attribute__ (( always_inline )) void Sys_Start(void)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

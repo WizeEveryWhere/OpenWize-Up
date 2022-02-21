@@ -26,6 +26,12 @@
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _ADF7030_PHY_CONV_H_
 #define _ADF7030_PHY_CONV_H_
 #ifdef __cplusplus
@@ -60,3 +66,5 @@ float PHY_CONV_AfcFreqErrToFloat(int16_t i16AfcFreqErr);
 }
 #endif
 #endif /* _ADF7030_PHY_CONV_H_ */
+
+/*! @} */

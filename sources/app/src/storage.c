@@ -1,9 +1,10 @@
 /**
-  * @file: storage.c
-  * @brief: // TODO This file ...
+  * @file storage.c
+  * @brief This file implement storage functions
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,20 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2021/02/07[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2021/02/07 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup OpenWize'Up
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,8 +40,23 @@ extern "C" {
 #include <string.h>
 #include "storage.h"
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
+#ifndef PERM_SECTION
 #define PERM_SECTION(psection) __attribute__(( section(psection) )) __attribute__((used))
+#endif
+
+#ifndef KEY_SECTION
 #define KEY_SECTION(ksection) __attribute__(( section(ksection) )) __attribute__((used))  __attribute__(( aligned (2048) ))
+#endif
+
+/*!
+ * @}
+ * @endcond
+ */
 
 /******************************************************************************/
 #include "parameters_cfg.h"
@@ -43,9 +64,25 @@ extern "C" {
 
 extern const uint8_t a_ParamDefault[];
 
+/*!
+  * @brief The parameters values table size
+  */
 const uint16_t u16_ParamValueSz = PARAM_DEFAULT_SZ;
+
+/*!
+  * @brief The parameters access table size
+  */
 const uint8_t u8_ParamAccessCfgSz = PARAM_ACCESS_CFG_SZ;
+
+/*!
+  * @brief The restriction table size
+  */
 const uint8_t u8_ParamRestrCfgSz = PARAM_RESTR_CFG_SZ;
+
+
+/*!
+  * @brief Table of parameters values
+  */
 PERM_SECTION(".param") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
 
 /******************************************************************************/
@@ -55,6 +92,9 @@ PERM_SECTION(".param") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
 extern phy_power_t aPhyPower[PHY_NB_PWR];
 extern int16_t i16RssiOffsetCal;
 
+/*!
+ * @brief This define hard-coded default device id
+ */
 const device_id_t sDefaultDevId =
 {
 //==========================================================================
@@ -92,6 +132,9 @@ const device_id_t sDefaultDevId =
 	.u8Type = 0x00
 };
 
+/*!
+ * @brief This hold (hard-coded) the default phy power settings
+ */
 const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 {
 	[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
@@ -99,13 +142,22 @@ const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 	[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
 };
 
+/*!
+ * @brief This hold (hard-coded) the default phy rssi offset
+ */
 const int16_t i16DefaultRssiOffsetCal = 0;
 
+/*!
+ * @brief This hold (hard-coded) the default PA state
+ */
 const uint8_t bDefaultPaState = 1;
 /******************************************************************************/
 #include "crypto.h"
 #include "key_priv.h"
 
+/*!
+ * @brief This define some hard-coded default keys
+ */
 const key_s sDefaultKey[KEY_MAX_NB] =
 {
 	[0] = {
@@ -131,17 +183,31 @@ const key_s sDefaultKey[KEY_MAX_NB] =
 	}}
 };
 
+/*!
+  * @brief Table of keys
+  */
 KEY_SECTION(".data.keys") key_s _a_Key_[KEY_MAX_NB];
 
 /******************************************************************************/
 #include "platform.h"
 #include "bsp_boot.h"
 
+/*!
+  * @brief Variable to hold the number of reboot on "crash"
+  */
 PERM_SECTION(".param") uint8_t boot_count;
+
 /******************************************************************************/
 #include "flash_storage.h"
 
+/*!
+  * @brief Define the hard-coded flash address for the storage area
+  */
 #define STORAGE_FLASH_ADDRESS  (0x08078000UL) // Page and double-word aligned
+
+/*!
+  * @brief Pointer on the storage area n flash
+  */
 const struct flash_store_s * pStorage_FlashArea;
 
 /******************************************************************************/
@@ -155,6 +221,14 @@ struct _store_special_s
 	phy_power_t aPhyPower[PHY_NB_PWR];
 };
 
+/*!
+  * @brief  This initialize the storage area
+  *
+  * @param [in] bForce Force to defaults.
+  *
+  * @retval  None
+  *
+  */
 void Storage_Init(uint8_t bForce)
 {
 	pStorage_FlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
@@ -174,6 +248,12 @@ void Storage_Init(uint8_t bForce)
 	}
 }
 
+/*!
+  * @brief  Set to defaults device id, all parameters and all keys
+  *
+  * @retval  None
+  *
+  */
 void Storage_SetDefault(void)
 {
 	WizeApi_SetDeviceId(&sDefaultDevId);
@@ -185,6 +265,13 @@ void Storage_SetDefault(void)
 	memcpy(_a_Key_, sDefaultKey, sizeof(_a_Key_));
 }
 
+/*!
+  * @brief  Store current into the flash memory
+  *
+  * @retval  0 Success
+  * @retval  1 Failed
+  *
+  */
 uint8_t Storage_Store(void)
 {
 	struct _store_special_s store_special;
@@ -218,6 +305,13 @@ uint8_t Storage_Store(void)
 	return 0;
 }
 
+/*!
+  * @brief  Get from flash memory o current
+  *
+  * @retval  0 Success
+  * @retval  1 Failed
+  *
+  */
 uint8_t Storage_Get(void)
 {
 	struct _store_special_s store_special;
@@ -247,3 +341,5 @@ uint8_t Storage_Get(void)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

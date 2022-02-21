@@ -1,9 +1,10 @@
 /*!
-  * @file: bsp_spi.c
-  * @brief: This file contains functions to deal with SPI.
+  * @file bsp_spi.c
+  * @brief This file contains functions to deal with SPI.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,18 +18,28 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2019/12/14[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2019/12/14 [GBI]
   * Initial version
   *
   *
   */
 
+/*!
+ * @addtogroup OpenWize'Up_bsp
+ * @{
+ */
+
 #include "bsp_spi.h"
 #include "platform.h"
+#include <stm32l4xx_hal.h>
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 #ifndef SPI_RX_TIMEOUT
 	#define SPI_RX_TIMEOUT 1000
@@ -37,14 +48,21 @@
 	#define SPI_TX_TIMEOUT 1000
 #endif
 
-extern const char *pa_HalErrMsg[];
-//extern spi_dev_t *ap_SpiDev[SPI_ID_MAX];
+/*!
+ * @}
+ * @endcond
+ */
+
 extern SPI_HandleTypeDef *paSPI_BusHandle[SPI_ID_MAX];
 
 static uint32_t _get_SPI_freq_(void);
 static uint8_t _get_APB_div_(void);
 static uint32_t _get_SPI_freq_(void);
 
+/*!
+  * @static
+  * @brief This hold the SPI prescaler table
+  */
 static const uint32_t prescaler_table[] =
 {
 	SPI_BAUDRATEPRESCALER_2,
@@ -57,6 +75,13 @@ static const uint32_t prescaler_table[] =
 	SPI_BAUDRATEPRESCALER_256
 };
 
+/*!
+  * @static
+  * @brief Get the AHB divisor
+  *
+  * @return the divisor value
+  *
+  */
 static uint16_t _get_AHB_div_(void){
 	uint32_t cfgr, hpre;
 	uint16_t hdiv;
@@ -96,6 +121,13 @@ static uint16_t _get_AHB_div_(void){
 	return hdiv;
 }
 
+/*!
+  * @static
+  * @brief Get the APB divisor
+  *
+  * @return the divisor value
+  *
+  */
 static uint8_t _get_APB_div_(void){
 	uint32_t cfgr, pres;
 	uint8_t pdiv;
@@ -127,6 +159,13 @@ static uint8_t _get_APB_div_(void){
 	return pdiv;
 }
 
+/*!
+  * @static
+  * @brief Compute the current SPI clock frequency
+  *
+  * @return the SPI clock frequency
+  *
+  */
 static uint32_t _get_SPI_freq_(void){
 	uint16_t hdiv;
 	uint8_t pdiv;
@@ -137,6 +176,15 @@ static uint32_t _get_SPI_freq_(void){
 	return spi_freq;
 }
 
+/*!
+  * @brief Initialize the SPI peripheral
+  *
+  * @param [in] p_Device Pointer on the spi device structure
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  *
+  */
 uint8_t BSP_Spi_Init(const p_spi_dev_t p_Device)
 {
 	uint8_t ret = DEV_SUCCESS;
@@ -144,12 +192,20 @@ uint8_t BSP_Spi_Init(const p_spi_dev_t p_Device)
     SPI_HandleTypeDef *p_handle = paSPI_BusHandle[p_Device->bus_id];
     u8_Status = HAL_SPI_Init(p_handle);
     if ( u8_Status != HAL_OK) {
-    	DBG_BSP("SPI 0x%8X Init: %s\r\n", paSPI_BusHandle[p_Device->bus_id]->Instance, pa_HalErrMsg[u8_Status]);
+    	DBG_BSP("SPI 0x%8X Init: status %d\r\n", paSPI_BusHandle[p_Device->bus_id]->Instance, u8_Status);
         ret = DEV_FAILURE;
     }
     return ret;
 }
 
+/*!
+  * @brief Set the SPI device structure to its default
+  *
+  * @param [in] p_Device Pointer on the spi device structure
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_Spi_SetDefault(const p_spi_dev_t p_Device)
 {
 	SPI_HandleTypeDef *p_handle = paSPI_BusHandle[p_Device->bus_id];
@@ -173,6 +229,14 @@ uint8_t BSP_Spi_SetDefault(const p_spi_dev_t p_Device)
     return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Open / init the SPI device
+  *
+  * @param [in] p_Device Pointer on the spi device structure
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_Spi_Open(const p_spi_dev_t p_Device)
 {
 	BSP_Gpio_SetHigh(p_Device->ss_port, p_Device->ss_pin);
@@ -180,6 +244,14 @@ uint8_t BSP_Spi_Open(const p_spi_dev_t p_Device)
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Close / uninit the SPI device
+  *
+  * @param [in] p_Device Pointer on the spi device structure
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_Spi_Close (const p_spi_dev_t p_Device)
 {
 	HAL_SPI_MspDeInit(paSPI_BusHandle[p_Device->bus_id]);
@@ -187,6 +259,17 @@ uint8_t BSP_Spi_Close (const p_spi_dev_t p_Device)
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Set the SPI clock frequency
+  *
+  * @param [in] p_Device  Pointer on the spi device structure
+  * @param [in] u32_Hertz Frequency to set (in Hertz)
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_Spi_SetBitrate (const p_spi_dev_t p_Device, const uint32_t u32_Hertz)
 {
 	int spi_hz = 0;
@@ -215,6 +298,15 @@ uint8_t BSP_Spi_SetBitrate (const p_spi_dev_t p_Device, const uint32_t u32_Hertz
 	return BSP_Spi_Init(p_Device);
 }
 
+/*!
+  * @brief Set the SPI clock phase
+  *
+  * @param [in] p_Device Pointer on the spi device structure
+  * @param [in] b_Flag   0 : one edge; 1 : two edges.
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_Spi_SetClockPhase (const p_spi_dev_t p_Device, const bool b_Flag)
 {
     switch (b_Flag) {
@@ -228,6 +320,15 @@ uint8_t BSP_Spi_SetClockPhase (const p_spi_dev_t p_Device, const bool b_Flag)
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Set the SPI clock polarity
+  *
+  * @param [in] p_Device Pointer on the spi device structure
+  * @param [in] b_Flag   0 : polarity low; 1 : polarity high.
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
 uint8_t BSP_Spi_SetClockPol (const p_spi_dev_t p_Device, const bool b_Flag)
 {
 	switch (b_Flag) {
@@ -241,6 +342,17 @@ uint8_t BSP_Spi_SetClockPol (const p_spi_dev_t p_Device, const bool b_Flag)
 	return DEV_SUCCESS;
 }
 
+/*!
+  * @brief Read and Write to the SPI bus
+  *
+  * @param [in]     p_Device Pointer on the spi device structure
+  * @param [in,out] p_Xfr    Pointer on data structure
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_Spi_ReadWrite (const p_spi_dev_t p_Device, spi_transceiver_s* const p_Xfr)
 {
 	uint8_t ret = DEV_SUCCESS;
@@ -255,7 +367,7 @@ uint8_t BSP_Spi_ReadWrite (const p_spi_dev_t p_Device, spi_transceiver_s* const 
 				p_Xfr->ReceiverBytes, SPI_TX_TIMEOUT);
 		if ( u8_Status != HAL_OK )
 		{
-			DBG_BSP("SPI %x Transmit: %s\r\n", paSPI_BusHandle[p_Device->bus_id]e->Instance, pa_HalErrMsg[u8_Status]);
+			DBG_BSP("SPI %x Transmit: status %d\r\n", paSPI_BusHandle[p_Device->bus_id]e->Instance, u8_Status);
 			ret = DEV_FAILURE;
 		}
 		BSP_Gpio_SetHigh(p_Device->ss_port, p_Device->ss_pin);
@@ -265,3 +377,5 @@ uint8_t BSP_Spi_ReadWrite (const p_spi_dev_t p_Device, spi_transceiver_s* const 
 	}
 	return ret;
 }
+
+/*! @} */

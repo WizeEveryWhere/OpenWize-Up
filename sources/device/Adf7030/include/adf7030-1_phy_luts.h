@@ -26,6 +26,12 @@
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _ADF7030_PHY_LUTS_H_
 #define _ADF7030_PHY_LUTS_H_
 
@@ -345,3 +351,5 @@ typedef struct { /*!< PLLBW_LUTS Structure */
 }
 #endif
 #endif /* _ADF7030_PHY_LUTS_H_ */
+
+/*! @} */

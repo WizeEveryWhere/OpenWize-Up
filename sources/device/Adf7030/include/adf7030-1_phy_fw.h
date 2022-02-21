@@ -26,6 +26,12 @@
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _ADF7030_PHY_FW_H_
 #define _ADF7030_PHY_FW_H_
 #ifdef __cplusplus
@@ -219,3 +225,5 @@ typedef struct { /*!< SM_CONFIG Structure */
 }
 #endif
 #endif /* _ADF7030_PHY_FW_H_ */
+
+/*! @} */

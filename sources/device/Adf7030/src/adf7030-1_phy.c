@@ -27,6 +27,11 @@
   *
   */
 
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1606,3 +1611,5 @@ uint8_t adf7030_1_HostSPI_UnInit(
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

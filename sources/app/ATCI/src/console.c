@@ -48,7 +48,7 @@
 
 console_tx_buf_t consoleTxBuf;
 
-extern UART_HandleTypeDef *paUART_BusHandle[UART_ID_MAX];//////////
+extern uart_dev_t aDevUart[UART_ID_MAX];//////////
 
 /*=========================================================================================================
  * LOCAL FUNCTIONS PROTOTYPES
@@ -128,7 +128,7 @@ void Console_Rx_Flush(void)
 {
 	//TODO
 	uint8_t tmp;///////////
-	while(HAL_UART_Receive(paUART_BusHandle[STDOUT_UART_ID], &tmp, 1, 0) == 0);/////////////flush RX reg
+	while(HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, &tmp, 1, 0) == 0);/////////////flush RX reg
 }
 
 /*=========================================================================================================

@@ -1,4 +1,3 @@
- 
 # HAL config
 option( HAL_MODULE_ENABLED "Enable HAL module " ON)
 option( HAL_CORTEX_MODULE_ENABLED "Enable HAL CORTEX" ON )

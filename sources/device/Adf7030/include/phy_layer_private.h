@@ -26,6 +26,12 @@
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _PHY_LAYER_PRIVATE_H_
 #define _PHY_LAYER_PRIVATE_H_
 
@@ -142,3 +148,5 @@ extern const char * const aTestModeTXStr[TMODE_TX_NB];
 }
 #endif
 #endif /* _PHY_LAYER_PRIVATE_H_ */
+
+/*! @} */

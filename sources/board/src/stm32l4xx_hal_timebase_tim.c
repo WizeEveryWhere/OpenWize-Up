@@ -1,12 +1,12 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32l4xx_hal_timebase_TIM.c 
+  * @file    stm32l4xx_hal_timebase_tim.c
   * @brief   HAL time base based on the hardware TIM.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -90,7 +90,6 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 /**
   * @brief  Suspend Tick increment.
   * @note   Disable the tick increment by disabling TIM6 update interrupt.
-  * @param  None
   * @retval None
   */
 void HAL_SuspendTick(void)
@@ -102,7 +101,6 @@ void HAL_SuspendTick(void)
 /**
   * @brief  Resume Tick increment.
   * @note   Enable the tick increment by Enabling TIM6 update interrupt.
-  * @param  None
   * @retval None
   */
 void HAL_ResumeTick(void)

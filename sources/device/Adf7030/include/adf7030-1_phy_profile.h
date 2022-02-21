@@ -26,6 +26,12 @@
   *
   *
   */
+
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _ADF7030_PHY_PROFILE_H_
 #define _ADF7030_PHY_PROFILE_H_
 #ifdef __cplusplus
@@ -998,3 +1004,5 @@ typedef struct { /*!< PROFILE Structure */
 }
 #endif
 #endif /* _ADF7030_PHY_PROFILE_H_ */
+
+/*! @} */

@@ -1,9 +1,10 @@
 /**
-  * @file: default_device_config.h
-  * @brief: // TODO This file ...
+  * @file default_device_config.h
+  * @brief  This file define the ADF7030-1 interrupt
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,20 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/22[GBI]
+  * @par Revision history
+  *
+  * 1.0.0 : 2020/04/22 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup OpenWize'Up
+ * @{
+ *
+ */
 #ifndef _DEFAULT_DEVICE_CONFIG_H_
 #define _DEFAULT_DEVICE_CONFIG_H_
 
@@ -35,6 +41,8 @@ extern "C" {
 
 #include "platform.h"
 #include "adf7030-1__common.h"
+
+#include "pin_cfg.h"
 
 /*!
    Define the PHY Radio main clock source.\n
@@ -89,3 +97,5 @@ extern "C" {
 }
 #endif
 #endif /* _DEFAULT_DEVICE_CONFIG_H_ */
+
+/*! @} */

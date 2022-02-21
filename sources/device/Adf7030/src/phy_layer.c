@@ -28,11 +28,7 @@
   */
 
 /*!
- * @ingroup Sources
- * @{
- * @ingroup Device
- * @{
- * @ingroup Wize
+ * @ingroup OpenWize'Up
  * @{
  *
  */
@@ -1787,7 +1783,9 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 		{
 			if(pSPIDevInfo->eXferResult)
 			{
-				*((char*)args) = getErrMsg(pDevice);
+				//*((char*)args) = getErrMsg(pDevice);
+				uint32_t tt = (uint32_t)getErrMsg(pDevice);
+				*((uint32_t*)args) = tt;
 			}
 			pSPIDevInfo->eXferResult = 0;
 		}
@@ -1841,6 +1839,4 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 }
 #endif
 
-/*! @} */
-/*! @} */
 /*! @} */

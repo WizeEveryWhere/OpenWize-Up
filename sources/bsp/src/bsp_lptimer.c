@@ -1,9 +1,10 @@
 /**
-  * @file: bsp_lptimer.c
-  * @brief: This file contains functions to deal with LPTim as simple timer.
+  * @file bsp_lptimer.c
+  * @brief This file contains functions to deal with LPTim as simple timer.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,20 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/08/29[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/08/29[GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup OpenWize'Up_bsp
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -175,3 +181,5 @@ void BSP_LpTimer_SetHandler (const uint8_t u8TimerId, pfHandlerCB_t const pfCb)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

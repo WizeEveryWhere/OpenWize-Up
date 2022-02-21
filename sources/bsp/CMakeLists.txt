@@ -18,10 +18,9 @@ target_sources(${MODULE_NAME}
         src/bsp_flash.c
         src/bsp_gpio_it.c
         src/bsp_gpio.c
-        #src/bsp_lp.c
+        src/bsp_lp.c
         src/bsp_rtc.c
         src/bsp_uart.c
-        
         src/bsp.c
         src/fault_handler.c
         src/platform.c

@@ -31,7 +31,7 @@
     <Parameter id="11" loc="RW" rem="RW" size="2" name="TX_DELAY_FULLPOWER" desc="Maximum time between two COMMAND messages before the device automatically returns to maximum transmission power">
       100
     </Parameter>
-    <Parameter id="12" loc="RW" rem="RW" size="2" name="TX_FREQ_OFFSET" desc="Absolute transmission correction frequency of">
+    <Parameter id="12" loc="RW" rem="RW" size="2" name="TX_FREQ_OFFSET" desc="Absolute transmission correction frequency offset">
       0
     </Parameter>
     <Parameter id="18" loc="RW" rem="RW" size="1" name="EXCH_RX_DELAY" desc="Fixed wait time after transmission of a DATA message by the device and before opening the COMMAND message listening window">
@@ -67,7 +67,7 @@
     <Parameter id="29" loc="RO" rem="RO" eff="ACK" size="1" name="CIPH_KEY_COUNT" desc="Number of encryption keys available in the device">
       14
     </Parameter>
-    <Parameter id="2A" loc="RW" rem="RO" size="1" name="L6KmacIndex" desc="Kmac key index">
+    <Parameter id="2A" loc="RW" rem="RO" size="1" name="L6NetwIdSelect" desc="Kmac key index">
       1
     </Parameter>
     <Parameter id="30" loc="RW" rem="RW" size="1" name="PING_RX_DELAY" desc="Fixed waiting time after transmission of an INSTPING message by the device and before opening the INSTPONG message listening window">
@@ -88,7 +88,7 @@
     <Parameter id="35" loc="RO" rem="RO" size="1" name="PING_NBFOUND" desc="Number of different INSTPONG messages received in response to the last connectivity test">
       0
     </Parameter>
-    <Parameter id="36" loc="RO" rem="RO" size="9" name="PING_REPLY1" desc="Response 1 received for the last connectivity test (Bigger L7RssiDown)">
+    <Parameter id="36" loc="RO" rem="RO" size="9" name="PING_REPLY1" desc="Response 1 received for the last connectivity test (Bigest L7RssiDown)">
       0
     </Parameter>
     <Parameter id="37" loc="RO" rem="RO" size="9" name="PING_REPLY2" desc="Response 2 received for the last connectivity test ">
@@ -109,7 +109,7 @@
     <Parameter id="3C" loc="RO" rem="RO" size="9" name="PING_REPLY7" desc="Response 7 received for the last connectivity test ">
       0
     </Parameter>
-    <Parameter id="3D" loc="RO" rem="RO" size="9" name="PING_REPLY8" desc="Response 8 received for the last connectivity test (Lower L7RssiDown)">
+    <Parameter id="3D" loc="RO" rem="RO" size="9" name="PING_REPLY8" desc="Response 8 received for the last connectivity test (Lowest L7RssiDown)">
       0
     </Parameter>
     <Parameter id="3E" loc="RW" rem="RW" size="1" ref="REF_N" name="EXECPING_PERIODE" desc="Periodic time of execping sending by the device, in months">

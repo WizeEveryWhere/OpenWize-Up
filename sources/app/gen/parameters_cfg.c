@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.c
-  * @brief This file was generated from ../../../Config/param_config/WizeUp/MergedParam.xml(Modif. : 2021-09-24 14:34:30.162002300 +0200).
+  * @brief This file was generated from sources/app/cfg/MergedParam.xml(Modif. : 2022-02-21 20:10:48.637445000 +0100).
   * 
   *****************************************************************************
   * @copyright 2020, GRDF, Inc.  All rights reserved.
@@ -21,7 +21,7 @@
   *
   * Generation Date
   * ----------------
-  * 24/09/2021 14:34 [neo]
+  * 21/02/2022 20:10 [neo]
   *
   */
 

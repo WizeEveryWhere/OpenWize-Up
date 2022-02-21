@@ -56,8 +56,11 @@ UART_HandleTypeDef huart4;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphClock_Config(void);
+void LSEClock_Config(void);
+
 static void MX_GPIO_Init(void);
-static void MX_RTC_Init(void);
+
 static void MX_UART4_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_I2C1_Init(void);
@@ -73,7 +76,7 @@ extern void app_entry(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
+  * @brief  The main entry point.
   * @retval int
   */
 int main(void)
@@ -81,27 +84,53 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
-
+#define MAX_BOOT_CNT 5
+  //uint32_t u32PrevBootState;
+  uint32_t u32BootCnt;
+  uint32_t u32UnauthAcc;
+  uint32_t u32BootState;
   /* MCU Configuration--------------------------------------------------------*/
+
+  hrtc.Instance = RTC;
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
+  LSEClock_Config();
+  BSP_Rtc_Setup_Clk(RCC_RTCCLKSOURCE_LSE);
 
-  /* USER CODE BEGIN SysInit */
+  /** Enable MSI Auto calibration */ // Must be called after LSEON and LSERDY
+  HAL_RCCEx_EnableMSIPLLMode();
 
-  /* USER CODE END SysInit */
+  // Get boot state
+  u32BootState = BSP_Boot_GetState();
 
-  /* Initialize all configured peripherals */
+#define MAX_BOOT_CNT 5
+  // check if instability
+  if(u32BootState & INSTAB_DETECT)
+  {
+	  // increment boot_cnt
+	  u32BootCnt++;
+	  if (u32BootCnt > MAX_BOOT_CNT)
+	  {
+	  	//swap to the previous sw slot (if any)
+	    //(option) reboot
+	  }
+  }
+  // check if unauth access
+  if(u32BootState & UNAUTH_ACCESS)
+  {
+	  // increment unauth_cnt
+	  u32UnauthAcc++;
+  }
+
+  BSP_Init(u32BootState);
+
+
+  PeriphClock_Config();
   MX_GPIO_Init();
-  MX_RTC_Init();
+
   MX_UART4_Init();
   MX_SPI1_Init();
   MX_I2C1_Init();
@@ -112,7 +141,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  BSP_Init();
+
   BSP_PwrLine_Init();
 
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -155,17 +184,10 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  /** Configure LSE Drive Capability 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_HIGH);
-  /** Initializes the CPU, AHB and APB busses clocks 
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.MSICalibrationValue = 0;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11; // 48 Mhz
   //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_10; // 32 Mhz
@@ -177,7 +199,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -185,7 +207,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
+  // Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) // 48 Mhz OK
   //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) // 32 Mhz OK
   //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) // 24 Mhz KO
@@ -194,31 +216,69 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_UART4
-                              |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_I2C2;
-  PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+
+  /** Configure the main internal regulator output voltage
+  */
+  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief Peripheral Clcok Initialization Function
+  * @retval None
+  */
+void PeriphClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+
+  PeriphClkInit.PeriphClockSelection =
+		  RCC_PERIPHCLK_UART4|
+		  RCC_PERIPHCLK_I2C1|
+		  RCC_PERIPHCLK_I2C2;
+
+  PeriphClkInit.Uart4ClockSelection   = RCC_UART4CLKSOURCE_PCLK1;
+  
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   PeriphClkInit.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
-  /** Configure the main internal regulator output voltage 
-  */
-  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK) // 48, 32, 24, 16 Mhz
-  //if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE2) != HAL_OK) // 24 Mhz
-  {
-    Error_Handler();
-  }
-  /** Enable MSI Auto calibration 
-  */
-  HAL_RCCEx_EnableMSIPLLMode();
 }
 
 /**
+  * @brief LSE Clock Initialization Function
+  * @retval None
+  */
+void LSEClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+
+  // Enable Backup Domain access (must be set before accessing RCC_BDCR)
+  HAL_PWR_EnableBkUpAccess();
+
+  // Configure LSE Drive Capability
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_HIGH);
+
+  // Initializes LSE Oscillator
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  // LSE is ON, so configure LSE Drive Capability
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+}
+
+/**
+  * @static
   * @brief I2C1 Initialization Function
-  * @param None
   * @retval None
   */
 static void MX_I2C1_Init(void)
@@ -263,8 +323,8 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @static
   * @brief I2C2 Initialization Function
-  * @param None
   * @retval None
   */
 static void MX_I2C2_Init(void)
@@ -309,103 +369,8 @@ static void MX_I2C2_Init(void)
 }
 
 /**
-  * @brief RTC Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_RTC_Init(void)
-{
-
-  /* USER CODE BEGIN RTC_Init 0 */
-
-  /* USER CODE END RTC_Init 0 */
-
-  RTC_TimeTypeDef sTime = {0};
-  RTC_DateTypeDef sDate = {0};
-  RTC_AlarmTypeDef sAlarm = {0};
-
-  /* USER CODE BEGIN RTC_Init 1 */
-
-  /* USER CODE END RTC_Init 1 */
-  /** Initialize RTC Only 
-  */
-  hrtc.Instance = RTC;
-  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-  hrtc.Init.AsynchPrediv = 127;
-  hrtc.Init.SynchPrediv = 255;
-  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
-  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
-  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
-  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
-  if (HAL_RTC_Init(&hrtc) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /* USER CODE BEGIN Check_RTC_BKUP */
-    
-  /* USER CODE END Check_RTC_BKUP */
-
-  /** Initialize RTC and set the Time and Date 
-  */
-  sTime.Hours = 0x0;
-  sTime.Minutes = 0x0;
-  sTime.Seconds = 0x0;
-  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
-  sDate.Month = RTC_MONTH_JANUARY;
-  sDate.Date = 0x1;
-  sDate.Year = 0x13;
-
-  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Enable the Alarm A 
-  */
-  sAlarm.AlarmTime.Hours = 0x0;
-  sAlarm.AlarmTime.Minutes = 0x0;
-  sAlarm.AlarmTime.Seconds = 0x0;
-  sAlarm.AlarmTime.SubSeconds = 0x0;
-  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
-  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-  sAlarm.AlarmDateWeekDay = 0x1;
-  sAlarm.Alarm = RTC_ALARM_A;
-  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Enable the Alarm B 
-  */
-  sAlarm.AlarmDateWeekDay = 0x1;
-  sAlarm.Alarm = RTC_ALARM_B;
-  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Enable the WakeUp 
-  */
-  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 86400, RTC_WAKEUPCLOCK_CK_SPRE_17BITS) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN RTC_Init 2 */
-
-  /* USER CODE END RTC_Init 2 */
-
-}
-
-/**
+  * @static
   * @brief SPI1 Initialization Function
-  * @param None
   * @retval None
   */
 static void MX_SPI1_Init(void)
@@ -444,8 +409,8 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @static
   * @brief UART4 Initialization Function
-  * @param None
   * @retval None
   */
 static void MX_UART4_Init(void)
@@ -483,8 +448,8 @@ static void MX_UART4_Init(void)
 }
 
 /**
+  * @static
   * @brief GPIO Initialization Function
-  * @param None
   * @retval None
   */
 static void MX_GPIO_Init(void)

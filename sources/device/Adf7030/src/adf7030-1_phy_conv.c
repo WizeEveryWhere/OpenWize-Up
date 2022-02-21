@@ -27,6 +27,11 @@
   *
   */
 
+/*!
+ * @ingroup OpenWize'Up
+ * @{
+ *
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -176,3 +181,5 @@ float PHY_CONV_AfcFreqErrToFloat(int16_t i16AfcFreqErr)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */
