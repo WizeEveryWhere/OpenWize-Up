@@ -21,14 +21,14 @@
   *
   * @par Revision history
   *
-  * 1.0.0 : 2020/10/25 [GBI]
+  * @par 1.0.0 : 2020/10/25 [GBI]
   * Initial version
   *
   *
   */
 
 /*!
- * @ingroup OpenWize'Up
+ * @addtogroup app
  * @{
  *
  */

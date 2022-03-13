@@ -28,9 +28,10 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up
+ * @addtogroup app
  * @{
  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
+ * @addtogroup i2c
+ * @ingroup bsp
  * @{
  */
 
@@ -84,10 +85,10 @@ void BSP_I2C_Enable(uint8_t eBusId, uint8_t bFlag)
 }
 
 /*!
-  * @brief
+  * @brief This function check if the given I2C device is ready
   *
-  * @param [in]
-  * @param [in]
+  * @param [in] pDev        Pointer on I2C device
+  * @param [in] u32NbTrials Number of retries
   *
   * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
   * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)

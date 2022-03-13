@@ -1,9 +1,10 @@
 /**
-  * @file: adf7030-1_phy_log.c
-  * @brief: This file implement PHY error management convenient function.
+  * @file adf7030-1_phy_log.c
+  * @brief This file implement PHY error management convenient function.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,17 +18,17 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/23[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/23[GBI]
   * Initial version
   *
   *
   */
 /*!
- * @ingroup OpenWize'Up
+ * @addtogroup adf7030-1_phy
+ * @ingroup device
  * @{
  *
  */

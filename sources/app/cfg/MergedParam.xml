@@ -1,6 +1,8 @@
 
 <tns:ParamCfg xmlns:tns="http://www.grdf.fr/smart-solutions/TU/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.grdf.fr/smart-solutions/TU/1.0.0/Parameter.xsd ">
+
   <ParameterList>
+
     <Parameter id="01" loc="RO" rem="RO" size="2" name="VERS_HW_TRX" desc="Hardware version number of the device (or transceiver for a remote module)">
       0x0100
     </Parameter>
@@ -123,6 +125,7 @@
     </Parameter>
   </ParameterList>
   <RestrictionList>
+
     <Restriction id="01" rtype="ENUM" rsize="8BITS">
       100 110 120 130 140 150
     </Restriction>

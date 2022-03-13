@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
+ * @addtogroup i2c
+ * @ingroup bsp
  * @{
  */
 

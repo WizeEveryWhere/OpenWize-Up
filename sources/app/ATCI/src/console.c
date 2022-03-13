@@ -1,10 +1,10 @@
-/**********************************************************************************************************
-  * @file: console.c
-  * @brief: This file contains functions for a console interface
-  * module
+/**
+  * @file console.c
+  * @brief This file contains functions for a console interface module.
   *
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,15 +18,19 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 0.0.1 : 2021/01/11
+  * @par Revision history
+  *
+  * @par 0.0.1 : 2021/01/11 [Alciom]
   * Dev. version
   *
   *
- *********************************************************************************************************/
+  */
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
 
 /*=========================================================================================================
  * INCLUDES
@@ -38,7 +42,7 @@
 #include <string.h>
 
 #include "bsp.h"
-#include "platform.h"////////////
+#include "platform.h"
 
 #include "console.h"
 
@@ -46,9 +50,13 @@
  * GLOBAL VARIABLES
  *=======================================================================================================*/
 
+/*! @cond INTERNAL @{ */
+
 console_tx_buf_t consoleTxBuf;
 
 extern uart_dev_t aDevUart[UART_ID_MAX];//////////
+
+/*! @} @endcond */
 
 /*=========================================================================================================
  * LOCAL FUNCTIONS PROTOTYPES
@@ -59,32 +67,42 @@ extern uart_dev_t aDevUart[UART_ID_MAX];//////////
  * FUNCTIONS - RX
  *=======================================================================================================*/
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Receive byte from console UART
- * 				This function is non blocking
  *
- * @param[In]	None
- * @param[Out]	data: byte received
+ * @details 	This function is non blocking
  *
- * @return		status: CONSOLE_BYTE_RX if byte received, CONSOLE_RX_EMPTY if no byte received,
- * 					CONSOLE_RX_ERR if reception error
- *-------------------------------------------------------------------------------------------------------*/
+ * @param[out] data Byte received
+ *
+ * @retval CONSOLE_BYTE_RX if byte received
+ * @retval CONSOLE_RX_EMPTY if no byte received
+ * @retval CONSOLE_RX_ERR if reception error
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 uint8_t Console_Rx_Byte(uint8_t *data)
 {
 	//!!! not implemented !!!
 	return CONSOLE_RX_ERR;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Wait and receive byte from console UART
- * 				This function is blocking until a character is received or reception error
  *
- * @param[in]	None
- * @param[Out]	data: byte received
+ * @details 	This function is blocking until a character is received or reception error
  *
- * @return		CONSOLE_BYTE_RX if byte received, CONSOLE_TIMEOUT if no byte received after a timeout time,
- * 					CONSOLE_RX_ERR if reception error
- *-------------------------------------------------------------------------------------------------------*/
+ * @param [out] data Byte received
+ *
+ * @retval CONSOLE_BYTE_RX if byte received
+ * @retval CONSOLE_TIMEOUT if no byte received after a timeout time
+ * @retval CONSOLE_RX_ERR if reception error
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 uint8_t Console_Wait_Rx_Byte(uint8_t *data)
 {
 	*data = (uint8_t) __io_getchar();
@@ -115,15 +133,17 @@ uint8_t Console_Wait_Rx_Byte(uint8_t *data)
 	return CONSOLE_TIMEOUT;*/
 }
 
-/*!--------------------------------------------------------------------------------------------------------
- * @brief		Flush UART Receiption
- * 				This function is used to delete last received data
+/*!-----------------------------------------------------------------------------
+ * @internal
  *
- * @param[in]	None
- * @param[Out]	None
+ * @brief		Flush UART Reception
+ *
+ * @details		This function is used to delete last received data
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Rx_Flush(void)
 {
 	//TODO
@@ -131,48 +151,57 @@ void Console_Rx_Flush(void)
 	while(HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, &tmp, 1, 0) == 0);/////////////flush RX reg
 }
 
-/*=========================================================================================================
+/*==============================================================================
  * FUNCTIONS - TX
- *=======================================================================================================*/
+ *============================================================================*/
 
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send byte to console
  *
- * @param[in]	data: byte to send
- * @param[Out]	None
+ * @param[in]	data Byte to send
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Tx_Byte(uint8_t data)
 {
 	BSP_Console_Send(&data, 1);
 
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send data to console
  *
- * @param[in]	data: data array to send
- * @param[in]	len: array length (in bytes)
- * @param[Out]	None
+ * @param[in]	data Data array to send
+ * @param[in]	len  Array length (in bytes)
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Send(uint8_t *data, uint16_t len)
 {
 	BSP_Console_Send(data, len);
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send data as strings representing hexadecimal number to console
  *
- * @param[in]	data: data array to convert and send
- * @param[in]	len: array length (in bytes)
- * @param[Out]	None
+ * @param[in]	data Data array to convert and send
+ * @param[in]	len  Array length (in bytes)
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Send_Array_To_Hex_Ascii(uint8_t *data, uint16_t len)
 {
 	uint16_t i;
@@ -191,15 +220,18 @@ void Console_Send_Array_To_Hex_Ascii(uint8_t *data, uint16_t len)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send data as strings representing hexadecimal number to console
  *
- * @param[in]	data: data (1, 2 or 4 bytes integer) to convert and send
- * @param[in]	size: size of data (in bytes: 1, 2 or 4)
- * @param[Out]	None
+ * @param[in]	data Data (1, 2 or 4 bytes integer) to convert and send
+ * @param[in]	size Size of data (in bytes: 1, 2 or 4)
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Send_Nb_To_Hex_Ascii(uint32_t data, uint8_t size)
 {
 	consoleTxBuf.len = 0;
@@ -222,15 +254,19 @@ void Console_Send_Nb_To_Hex_Ascii(uint32_t data, uint8_t size)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*!--------------------------------------------------------------------------------------------------------
- * @brief		Send string to console
- * 				In not enough space in internal buffer, string is truncated
+/*!-----------------------------------------------------------------------------
+ * @internal
  *
- * @param[in]	str: string to send
- * @param[Out]	None
+ * @brief		Send string to console
+ *
+ * @details		In not enough space in internal buffer, string is truncated
+ *
+ * @param[in]	str String to send
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Send_Str(char *str)
 {
 	consoleTxBuf.len = strlen(str);
@@ -241,15 +277,19 @@ void Console_Send_Str(char *str)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*!--------------------------------------------------------------------------------------------------------
- * @brief		Send formated string to console (like printf)
- * 				In not enough space in internal buffer, string is truncated
+/*!-----------------------------------------------------------------------------
+ * @internal
  *
- * @param[in]	format: formated string, followed by parameters
- * @param[Out]	None
+ * @brief		Send formated string to console (like printf)
+ *
+ * @details		In not enough space in internal buffer, string is truncated
+ *
+ * @param[in]	format Formated string, followed by parameters
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Console_Printf(char *format, ...)
 {
 	va_list argList;
@@ -262,10 +302,9 @@ void Console_Printf(char *format, ...)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-
-/*=========================================================================================================
+/*==============================================================================
  * FUNCTIONS - Tools
- *=======================================================================================================*/
+ *============================================================================*/
 
 //------------------------------------------------------------------------------
 //	hexascii2nibble
@@ -324,10 +363,12 @@ uint8_t decascii2nb(uint8_t data)
 		return 0xFF;
 }
 
-/*=========================================================================================================
+/*==============================================================================
  * LOCAL FUNCTIONS
- *=======================================================================================================*/
+ *============================================================================*/
 
 
 
-/************************************************** EOF **************************************************/
+/*********************************** EOF **************************************/
+
+/*! @} */

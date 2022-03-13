@@ -21,22 +21,28 @@
   *
   * @par Revision history
   *
-  * 1.0.0 : 2020/04/22 [GBI]
+  * @par 1.0.0 : 2020/04/22 [GBI]
   * Initial version
   *
   *
   */
 
 /*!
- * @addtogroup OpenWize'Up
- * @{
- *
+ *  @addtogroup sys
+ *  @ingroup app
+ *  @{
  */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "default_device_config.h"
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 /* Default device configuration*/
 
@@ -83,6 +89,12 @@ KEEP_VAR(const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN]
 		.pIntCbParam = NULL
     }
 };
+
+/*!
+ * @}
+ * @endcond
+ */
+
 
 #ifdef __cplusplus
 }

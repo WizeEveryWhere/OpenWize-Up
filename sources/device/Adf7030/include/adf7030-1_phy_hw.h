@@ -1,9 +1,10 @@
 /**
-  * @file: adf7030-1_phy_hw.h
-  * @brief: // TODO This file ...
+  * @file adf7030-1_phy_hw.h
+  * @brief This file define some HW types
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,18 +18,18 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/26[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/26 [GBI]
   * Initial version
   *
   *
   */
 
 /*!
- * @ingroup OpenWize'Up
+ * @addtogroup adf7030-1_phy
+ * @ingroup device
  * @{
  *
  */
@@ -39,6 +40,11 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 /* ========================================================================== */
 /* =================             VCO_CAL_RESULTS              =============== */
@@ -385,6 +391,10 @@ typedef struct {
     };
 }aferx_filt_stg1_t;
 
+/*!
+ * @}
+ * @endcond
+ */
 
 #ifdef __cplusplus
 }

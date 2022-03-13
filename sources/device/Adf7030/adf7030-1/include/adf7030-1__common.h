@@ -34,6 +34,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 *****************************************************************************/
 
+/** \addtogroup adf7030-1 adf7030-1 Driver
+ *  @{
+ */
+
+/** \addtogroup adf7030-1__common Common
+ *  @{
+ */
+
 #ifndef _ADF7030_1__COMMON_H_
 #define _ADF7030_1__COMMON_H_
 
@@ -595,3 +603,7 @@ typedef struct adf7030_1_device_s
 } adf7030_1_device_t ;
 
 #endif /* _ADF7030_1__COMMON_H_ */
+
+/** @} */ /* End of group adf7030-1__common */
+/** @} */ /* End of group adf7030-1 adf7030-1 Driver */
+

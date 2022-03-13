@@ -102,8 +102,8 @@ static uint8_t adf7030_1__XferCfgSeq(
  * @param [in]  pSPIDevInfo     Pointer to the SPI device info structure of the 
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
- *
  * @param [in]  pCONFIG         Pointer to cfg binary blob
+ * @param [in]  Size            Size of the configuration
  *
  * @note                        Currently the maximum allowed "Cfg" sequence is 
  *                              limited by ADF7030_1_SPI_BUFFER_SIZE. User must ensure
@@ -166,6 +166,7 @@ uint8_t adf7030_1__SendConfiguration(
  *                              adf7030-1 PHY.
  *
  * @param [in]  pData           Pointer to cfg sub sequence
+ * @param [in]  Size            Size of cfg sub sequence
  *
  * @note                        Currently the maximum allowed "Cfg" sequence is 
  *                              limited by ADF7030_1_SPI_BUFFER_SIZE. Future revision 

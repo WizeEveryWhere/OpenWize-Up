@@ -28,8 +28,9 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up
- * @{
+ *  @addtogroup sys
+ *  @ingroup app
+ *  @{
  */
 
 #include "FreeRTOS.h"

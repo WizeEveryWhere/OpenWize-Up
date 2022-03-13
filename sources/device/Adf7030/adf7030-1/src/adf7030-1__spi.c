@@ -1,6 +1,6 @@
 /*!
  *****************************************************************************
-  @file:    adf7030-1_spi.c
+  @file:    adf7030-1__spi.c
   
   @brief:    SPI communication with between PHY Radio and the Host.
                 - SPI Xfer with between Host and Radio.
@@ -91,7 +91,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  RateHz          Target bitrate (in Hz) for SPI communication.
+ * @param [in]  eSPIRate        Target bitrate (in Hz) for SPI communication.
  *
  * @return      Status
  *  - 0  If SPI peripheral was succesfully released
@@ -189,7 +189,7 @@ uint8_t adf7030_1__SPI_GetMMapPointers(
  * @param [out] pPNTR_ID        Pointer to PNTR_ID variable to access "Addr" location of mmap
  *                              eg. pSPIDevInfo->PHY_PNTR[pPNTR_ID].
  *
- * @param [out] ByteOffset      Pointer to the positive byte offset variable between
+ * @param [out] pByteOffset     Pointer to the positive byte offset variable between
  *                              "Addr" and pSPIDevInfo->PHY_PNTR[pPNTR_ID].
  *
  * @return      None
@@ -939,7 +939,7 @@ uint8_t adf7030_1__SPI_rd_word_r_a(
  *              direct control of the SPI hardware.
  *              
  *              
- * @param [in]  hSPIDevice      Handle to Glue SPI peripheral device used to 
+ * @param [in]  pSPIDevInfo     Handle to Glue SPI peripheral device used to
  *                              communicate with the adf7030-1.
  *
  * @param [in]  cmdOffset       Location within the spitx_buff where the spi
@@ -948,12 +948,12 @@ uint8_t adf7030_1__SPI_rd_word_r_a(
  * @param [in]  PNTR_ID         SPI ID pointer to use as base address for writing 
  *                              the block of data.
  *
- * @param [in]  AddrIn          Address location at which the SPI write should 
+ * @param [in]  Addr            Address location at which the SPI write should
  *                              start transfer in the PHY.
  *
  * @param [in]  nbBytes         Number of bytes to read or write to be performed.
  *
- * @param [in|out]  pDataIO     Pointer to the start of the Host data block.
+ * @param [in,out]  pDataIO     Pointer to the start of the Host data block.
  *                              On exit, pDataIO is pointing nbBytes away from
  *                              its original value.
  *
@@ -1076,7 +1076,7 @@ uint8_t adf7030_1__SPI_Block_Xfer__fast(
  *              is completed. No buffer overflow or boundary check is done.
  *              
  *              
- * @param [in]  hSPIDevice      Handle to Glue SPI peripheral device used to 
+ * @param [in]  pSPIDevInfo     Handle to Glue SPI peripheral device used to
  *                              communicate with the adf7030-1.
  *
  * @param [in]  cmdOffset       Location within the spitx_buff where the spi
@@ -1085,7 +1085,7 @@ uint8_t adf7030_1__SPI_Block_Xfer__fast(
  * @param [in]  PNTR_ID         SPI pointer ID to use as base address for writing 
  *                              the block of data.
  *
- * @param [in]  AddrIn          Address location at which the SPI write should 
+ * @param [in]  Addr            Address location at which the SPI write should
  *                              start transfer in the PHY.
  *
  * @param [in]  nbBytes         Number of bytes to read or write to be performed.
@@ -1095,7 +1095,7 @@ uint8_t adf7030_1__SPI_Block_Xfer__fast(
  *                              and the PHY value (in the radio) will be restored 
  *                              to there original value.
  *
- * @param [in|out]  pDataIO     Pointer to the start of the Host data block.
+ * @param [in,out]  pDataIO     Pointer to the start of the Host data block.
  *                              On exit, pDataIO is pointing nbBytes away from
  *                              its original value.
  *
@@ -1267,7 +1267,7 @@ uint8_t adf7030_1__SPI_Block_Xfer(
  *                          
  * @note        Blocking SPI transfer without DMA.
  *                          
- * @param [in]  hSPIDevice      Handle to Glue SPI peripheral device used to 
+ * @param [in]  pSPIDevInfo     Handle to Glue SPI peripheral device used to
  *                              communicate with the adf7030-1.
  *
  * @param [in]  cmdOffset       Byte location from where the spi frame starts in the spi_txbuf.

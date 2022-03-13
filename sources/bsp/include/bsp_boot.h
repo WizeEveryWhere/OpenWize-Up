@@ -28,8 +28,9 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
- * @{
+ *  @addtogroup boot
+ *  @ingroup bsp
+ *  @{
  */
 
 #ifndef _BSP_BOOT_H_

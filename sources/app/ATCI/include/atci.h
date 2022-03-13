@@ -1,10 +1,11 @@
-/**********************************************************************************************************
-  * @file: atci.h
-  * @brief: This file contains functions of the AT command interpreter for WizeUp
+/**
+  * @file atci.h
+  * @brief This file contains functions of the AT command interpreter for WizeUp
   * module
   *
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,28 +19,32 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 0.0.1 : 2021/01/11
+  * @par Revision history
+  *
+  * @par 0.0.1 : 2021/01/11 [Alciom]
   * Dev. version
   *
   *
- *********************************************************************************************************/
+  */
+
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
 
 #ifndef INC_ATCI_H_
 #define INC_ATCI_H_
 
-
-/*=========================================================================================================
- * INCLUDES
- *=======================================================================================================*/
-
-
-/*=========================================================================================================
+/*==============================================================================
  * DEFINES
- *=======================================================================================================*/
+ *============================================================================*/
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 #define AT_CMD_BUF_LEN			256 //maximum received command length (as text)
 #define AT_CMD_CODE_MIN_LEN		2	//minimum command code length (reformatted text)
@@ -88,118 +93,139 @@
 #define TEST_MODE_RX_0			0x10
 #define TEST_MODE_RX_1			0x11
 
-/*=========================================================================================================
+/*!
+ * @}
+ * @endcond
+ */
+
+/*==============================================================================
  * TYPEDEF
- *=======================================================================================================*/
-
-//ATCI task states machine
-typedef enum{
-	ATCI_WAKEUP,
-	ATCI_WAIT,
-	ATCI_EXEC_CMD,
-	ATCI_SLEEP,
-	ATCI_RESET
-}atci_state_t;
+ *============================================================================*/
 
 
-//ATCI status
-typedef enum{
+/*!
+ * @brief This enum define the ATCI state
+ */
+typedef enum
+{
+	ATCI_WAKEUP,    /*!<  */
+	ATCI_WAIT,      /*!<  */
+	ATCI_EXEC_CMD,  /*!<  */
+	ATCI_SLEEP,     /*!<  */
+    ATCI_RESET      /*!<  */
+} atci_state_t;
+
+
+/*!
+ * @brief This enum define the ATCI status
+ */
+typedef enum
+{
 	//success
-	ATCI_OK,
-
+	ATCI_OK,                /*!< Success */
 	//AT commands decoding error
-	ATCI_ERR_INV_NB_PARAM,	//invalid number of parameters for the current AT command
-	ATCI_ERR_INV_PARAM_LEN,	//invalid parameter length
-	ATCI_ERR_INV_PARAM_VAL,	//invalid parameter value
-	ATCI_ERR_UNKNOWN_CMD,	//unknown command code
-	ATCI_ERR_INV_CMD_LEN,	//invalid command length (too short or too long to be decoded)
-
+	ATCI_ERR_INV_NB_PARAM,	/*!< Invalid number of parameters for the current AT command */
+	ATCI_ERR_INV_PARAM_LEN,	/*!< Invalid parameter length */
+	ATCI_ERR_INV_PARAM_VAL,	/*!< Invalid parameter value */
+	ATCI_ERR_UNKNOWN_CMD,	/*!< Unknown command code */
+	ATCI_ERR_INV_CMD_LEN,	/*!< Invalid command length (too short or too long to be decoded) */
 	//AT commands reception status
-	ATCI_AVAIL_AT_CMD,
-	ATCI_NO_AT_CMD,
-	ATCI_RX_CMD_ERR,
-	ATCI_RX_CMD_TIMEOUT,
-
+	ATCI_AVAIL_AT_CMD,      /*!<  */
+	ATCI_NO_AT_CMD,         /*!<  */
+	ATCI_RX_CMD_ERR,        /*!<  */
+	ATCI_RX_CMD_TIMEOUT,    /*!<  */
 	//generic error
-	ATCI_ERR = 0xFF
-}atci_status_t;
+	ATCI_ERR = 0xFF         /*!<  */
+} atci_status_t;
 
-
-//commands code
-typedef enum{
-	CMD_AT,
-	CMD_ATI,
-	CMD_ATZ,
-	CMD_ATQ,
-	CMD_ATF,
-	CMD_ATW,
-	CMD_ATPARAM,
-	CMD_ATKMAC,
-	CMD_ATKENC,
-	CMD_ATIDENT,
-	CMD_ATSEND,
-	CMD_ATPING,
-	CMD_ATFC,
-	CMD_ATTEST,
-
+/*!
+ * @brief This enum define the ATCI command code
+ */
+typedef enum
+{
+	CMD_AT,      /*!<  */
+	CMD_ATI,     /*!<  */
+	CMD_ATZ,     /*!<  */
+	CMD_ATQ,     /*!<  */
+	CMD_ATF,     /*!<  */
+	CMD_ATW,     /*!<  */
+	CMD_ATPARAM, /*!<  */
+	CMD_ATKMAC,  /*!<  */
+	CMD_ATKENC,  /*!<  */
+	CMD_ATIDENT, /*!<  */
+	CMD_ATSEND,  /*!<  */
+	CMD_ATPING,  /*!<  */
+	CMD_ATFC,    /*!<  */
+	CMD_ATTEST,  /*!<  */
+	// ----
 	NB_AT_CMD //used to get number of commands
-}atci_cmd_code_t;
+} atci_cmd_code_t;
 
-//command type and parameters decoding
-typedef enum{
-	AT_CMD_WITHOUT_PARAM,			//command without parameter
-	AT_CMD_WITH_PARAM_TO_GET,		//command with parameters (not all parameters decoded)
-	AT_CMD_WITH_PARAM,				//command with parameters (all parameters decoded)
-	AT_CMD_READ_WITHOUT_PARAM,		//read command without parameter
-	AT_CMD_READ_WITH_PARAM_TO_GET,	//read command with parameters (not all parameters decoded)
-	AT_CMD_READ_WITH_PARAM			//read command with parameters (all parameters decoded)
-}atci_cmd_type_t;
+/*!
+ * @brief This enum define the ATCI command type and parameter decoding
+ */
+typedef enum
+{
+	AT_CMD_WITHOUT_PARAM,			/*!< command without parameter */
+	AT_CMD_WITH_PARAM_TO_GET,		/*!< command with parameters (not all parameters decoded) */
+	AT_CMD_WITH_PARAM,				/*!< command with parameters (all parameters decoded) */
+	AT_CMD_READ_WITHOUT_PARAM,		/*!< read command without parameter */
+	AT_CMD_READ_WITH_PARAM_TO_GET,	/*!< read command with parameters (not all parameters decoded) */
+	AT_CMD_READ_WITH_PARAM			/*!< read command with parameters (all parameters decoded) */
+} atci_cmd_type_t;
 
-//command/response parameters size and data pointer
-typedef struct{
-	uint16_t size; //size/type: size=0~AT_PARAM_DATA_MAX_LEN: array of length size (in bytes), size=0xFFF0+n: integer of size n (n is 1, 2 or 4; in bytes)
-	union{ //data (for array), val8, val16 and val32 (for 8, 16 and 32 bits integer) are the same pointer to paramsMem;
-		uint8_t *data;
-		uint8_t *val8;
-		uint16_t *val16;
-		uint32_t *val32;
-		char *str;
+/*!
+ * @brief This enum define the ATCI command/response parameters size and data pointer
+ */
+typedef struct
+{
+	uint16_t size; /*!< size/type:
+	                    size=0~AT_PARAM_DATA_MAX_LEN:
+	                    array of length size (in bytes),
+	                    size=0xFFF0+n: integer of size n (n is 1, 2 or 4; in bytes)
+	                    */
+	union
+	{  // data, val8, val16 and val32 point on the same area paramsMem;
+		uint8_t *data;   /*!< Pointer used when data is an array */
+		uint8_t *val8;   /*!< Pointer used when data is a 8 bits size */
+		uint16_t *val16; /*!< Pointer used when data is a 16 bits size */
+		uint32_t *val32; /*!< Pointer used when data is a 32 bits size */
+		char *str;       /*!<  */
 	};
-}atci_cmd_param_t;
+} atci_cmd_param_t;
 
+/*!
+ * @brief This enum define the ATCI command/response main structure
+ */
+typedef struct
+{
+	uint8_t buf[AT_CMD_BUF_LEN];                  /*!< cmd data buffer used to receive cmd from UART */
+	uint16_t len;                                 /*!< cmd length in buffer */
+	uint16_t idx;                                 /*!< read index in buffer */
+	char cmdCodeStr[AT_CMD_CODE_MAX_LEN];         /*!< reformatted command code string */
+	atci_cmd_code_t cmdCode;                      /*!< command code (decoded) */
+	atci_cmd_type_t cmdType;                      /*!< if command is read or write and if it has parameters or not */
+	uint8_t nbParams;                             /*!< number of command/response parameters */
+	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; /*!< command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters) */
+	uint8_t paramsMem[AT_CMD_DATA_MAX_LEN];       /*!< buffer where parameters data are saved */
+	uint16_t paramsMemIdx;                        /*!< 1st free byte in paramsMem */
+} atci_cmd_t;
 
-//command/response main structure
-typedef struct{
-	uint8_t buf[AT_CMD_BUF_LEN]; //cmd data buffer used to receive cmd from UART
-	uint16_t len; //cmd length in buffer
-	uint16_t idx; //read index in buffer
-	char cmdCodeStr[AT_CMD_CODE_MAX_LEN]; //reformatted command code string
-	atci_cmd_code_t cmdCode; //command code (decoded)
-	atci_cmd_type_t cmdType; //if command is read or write and if it has parameters or not
-	uint8_t nbParams; //number of command/response parameters
-	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; //command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters)
-	uint8_t paramsMem[AT_CMD_DATA_MAX_LEN]; //buffer where parameters data are saved
-	uint16_t paramsMemIdx; //1st free byte in paramsMem
-}atci_cmd_t;
-
-
-
-/*=========================================================================================================
+/*==============================================================================
  * FUNCTIONS PROTOTYPES
- *=======================================================================================================*/
+ *============================================================================*/
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		AT command interpreter task
- * 				Wait AT command reception, decode and execute it
+ *
+ * @details		Wait AT command reception, decode and execute it
  * 				Manage sleep and reset
  *
- * @param[IN]	argument: unused
- * @param[OUT]	None
+ * @param[in]	argument: unused
  *
- * @return		None (this task never return)
- *-------------------------------------------------------------------------------------------------------*/
+ *-----------------------------------------------------------------------------*/
 void Atci_Task(void const *argument);
 
-
 #endif /* INC_ATCI_H_ */
-/************************************************** EOF **************************************************/
+
+/*! @} */

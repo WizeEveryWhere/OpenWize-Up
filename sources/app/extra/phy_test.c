@@ -26,9 +26,11 @@
   *
   *
   */
+
 /*!
- * @addtogroup OpenWize'Up
- * @{
+ *  @addtogroup extra
+ *  @ingroup app
+ *  @{
  */
  
 #ifdef __cplusplus
@@ -41,14 +43,30 @@ extern "C" {
 #include "bsp_pwrlines.h"
 #include "default_device_config.h"
 
+/*! @cond INTERNAL @{ */
+
 extern phydev_t sPhyDev;
+
+/*! @} @endcond */
 
 static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg);
 static void _phy_sport_cb_(void *pCBParam, void *pArg);
 static void _test_set_io(uint8_t eType, uint8_t bEnable);
 
+/*!
+  * @static
+  * @brief Copy Callback function.
+  *
+  * @details Called by interrupt handler to copy adf7030 gpio serial port clk and data to defined MCU gpio
+  *
+  * @param [in] pCBParam Unused
+  * @param [in] pArg Unused
+  *
+  */
 static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg)
 {
+	(void)pCBParam;
+	(void)pArg;
 	uint8_t b_Level;
 	// copy clk
 	BSP_Gpio_Get((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, &b_Level);
@@ -58,8 +76,21 @@ static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg)
 	BSP_Gpio_Set((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, b_Level);
 }
 
+/*!
+  * @static
+  * @brief Callback function.
+  *
+  * @details Called by interrupt handler to toggle MCU gpio on ADF7030 peramble and sync detection
+  *
+  * @param [in] pCBParam Unused
+  * @param [in] pArg Unused
+  *
+  */
 static void _phy_sport_cb_(void *pCBParam, void *pArg)
 {
+	(void)pCBParam;
+	(void)pArg;
+
 #define PHY_WM2400_PREAMBLE_DATA 0x5555
 #define PHY_WM2400_SYNC_WORD 0xF672
 
@@ -88,6 +119,14 @@ static void _phy_sport_cb_(void *pCBParam, void *pArg)
 	}
 }
 
+/*!
+  * @static
+  * @brief Setup the io for test mode
+  *
+  * @param [in] eType   IO type is 0 : copy mode or 1 : preamble and sync detect
+  * @param [in] bEnable Enable (1) / disable (0) the IO test mode
+  *
+  */
 static void _test_set_io(uint8_t eType, uint8_t bEnable)
 {
 	if (bEnable)
@@ -146,6 +185,15 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 
 }
 
+/*!
+  * @brief Initialize the PHY test
+  *
+  * @param [in] eMode PHY test mode (see  phy_test_mode_e)
+  * @param [in] eType IO type is 0 : copy mode or 1 : preamble and sync detect
+  *
+  * @return the current test mode
+  *
+  */
 phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
 {
 	//static test_mode_info_t eTestModeInfo = { .eTestMode = PHY_TST_MODE_NONE };
@@ -207,6 +255,11 @@ phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
 	}
 	return eTestModeInfo.eTestMode;
 }
+
+/*!
+  * @brief Copy AFD7030 interrupt 0 to MCU IO1
+  *
+  */
 void EX_PHY_SetCpy(void)
 {
 #ifdef HAS_CPY_PIN

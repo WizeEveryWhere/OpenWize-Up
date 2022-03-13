@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
+ * @addtogroup low_power
+ * @ingroup bsp
  * @{
  */
 

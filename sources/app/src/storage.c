@@ -28,7 +28,7 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up
+ * @addtogroup app
  * @{
  */
 

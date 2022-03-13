@@ -28,9 +28,11 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
- * @{
+ *  @addtogroup boot
+ *  @ingroup bsp
+ *  @{
  */
+
 #include "bsp_boot.h"
 #include "platform.h"
 #include <stm32l4xx_hal.h>

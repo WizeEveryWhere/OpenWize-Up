@@ -91,7 +91,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  pPatch          Pointer to Host "patch" descriptor.
+ * @param [in]  pPATCH          Pointer to Host "patch" descriptor.
  *
  * @note                        This function only transfert patch data to the PHY. 
  *                              Patch must be enabled at a later stage by calling the 
@@ -120,7 +120,7 @@ uint8_t adf7030_1__WritePatch(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in|out]  pPatch      Pointer to Host "patch" descriptor.
+ * @param [in,out]  pPATCH      Pointer to Host "patch" descriptor.
  *
  * @note                        This function only readback patch data from the PHY. 
  *                              pSPIDevInfo->PHY_PNTR[PNTR_CUSTOM0_ADDR] could be modified.
@@ -147,7 +147,7 @@ uint8_t adf7030_1__ReadPatch(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  pPatch          Pointer to Host "patch" descriptor.
+ * @param [in]  pPATCH          Pointer to Host "patch" descriptor.
  *
  * @note                        This function only disable the patch, it can be 
  *                              re-enable at a later stage by calling the 
@@ -176,7 +176,7 @@ uint8_t adf7030_1__VerifyPatch(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  pPatch          Pointer to Host "patch" descriptor.
+ * @param [in]  pPATCH          Pointer to Host "patch" descriptor.
  *
  * @param [in]  bCHECK          Boolean  -TRUE to verify the Inject sequence in the PHY
  *                                       -FALSE to discard any verifications
@@ -340,7 +340,7 @@ uint8_t adf7030_1__WritePatchBlock(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in|out] pBlock       Pointer to single Host patch memory block.
+ * @param [in,out] pBlock       Pointer to single Host patch memory block.
  *
  * @note                        This function modifies pSPIDevInfo->PHY_PNTR[PNTR_CUSTOM0_ADDR].
  *
@@ -394,7 +394,7 @@ uint8_t adf7030_1__VerifyPatchBlock(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in|out]  pPatch      Pointer to Host "patch" descriptor.
+ * @param [in,out]  pPATCH      Pointer to Host "patch" descriptor.
  *
  * @param [in]  bREAD_nWRITE    Boolean  -TRUE to write Patch from Host to the Radio PHY
  *                                       -FALSE to read Patch from Radio PHY back to Host
@@ -441,7 +441,7 @@ uint8_t adf7030_1__XferPatch(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in|out]  pBLOCK      Pointer to Host "patch" sub-block descriptor.
+ * @param [in,out]  pBLOCK      Pointer to Host "patch" sub-block descriptor.
  *
  * @param [in]  bREAD_nWRITE    Boolean  -TRUE to write Patch from Host to the Radio PHY
  *                                       -FALSE to read Patch from Radio PHY back to Host
@@ -561,9 +561,9 @@ uint8_t adf7030_1__XferPatchBlock(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  pPatch      Pointer to Host "patch" descriptor.
+ * @param [in]  pPATCH      Pointer to Host "patch" descriptor.
  *
- * @param [in|out]  pPATCH_CHECKSUM      Pointer to Host "patch" checksum configuration descriptor.
+ * @param [in,out]  pPATCH_CHECKSUM      Pointer to Host "patch" checksum configuration descriptor.
  *
  * @param [in]  bREAD_nWRITE    Boolean  -TRUE to write Patch from Host to the Radio PHY
  *                                       -FALSE to read Patch from Radio PHY back to Host

@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
+ * @addtogroup platform
+ * @ingroup bsp
  * @{
  */
 
@@ -85,6 +86,6 @@ typedef enum
 #ifdef __cplusplus
 }
 #endif
-#endif /* _Port_PLATFORM_H_ */
+#endif /* _PLATFORM_H_ */
 
 /*! @} */

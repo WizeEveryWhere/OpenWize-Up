@@ -61,7 +61,7 @@ typedef struct{
 } blck_xfer_desc_t ;
 
 /**
-* \todo Define a config structure for revision tracking/conpatibility
+* Define a config structure for revision tracking/conpatibility
 */
 typedef struct {
     char     config_name[16];

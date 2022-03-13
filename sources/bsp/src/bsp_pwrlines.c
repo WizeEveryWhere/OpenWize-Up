@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up_bsp
+ * @addtogroup power_lines
+ * @ingroup bsp
  * @{
  */
 

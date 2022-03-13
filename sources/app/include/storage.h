@@ -28,7 +28,7 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up
+ * @addtogroup app
  * @{
  */
 #ifndef _STORAGE_H_

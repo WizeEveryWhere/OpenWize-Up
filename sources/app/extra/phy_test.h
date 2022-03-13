@@ -28,8 +28,9 @@
   */
 
 /*!
- * @addtogroup OpenWize'Up
- * @{
+ *  @addtogroup extra
+ *  @ingroup app
+ *  @{
  */
  
 #ifndef _EXTRA_PHY_PHY_TEST_H_

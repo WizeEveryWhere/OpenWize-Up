@@ -1,9 +1,10 @@
 /**
-  * @file: adf7030-1_phy_fw.h
-  * @brief: // TODO This file ...
+  * @file adf7030-1_phy_fw.h
+  * @brief This file define some FW types
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,18 +18,18 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/25[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/25 [GBI]
   * Initial version
   *
   *
   */
 
 /*!
- * @ingroup OpenWize'Up
+ * @addtogroup adf7030-1_phy
+ * @ingroup device
  * @{
  *
  */
@@ -42,6 +43,11 @@ extern "C" {
  * Note :
  * ARM CPU is Little Endian. The bit filed in the following structure are
  * in the LSb (Least Significant Bit) first ordering.
+ */
+
+/*!
+ * @cond INTERNAL
+ * @{
  */
 
 typedef enum {
@@ -205,6 +211,10 @@ typedef struct { /*!< SM_CONFIG Structure */
     uint8_t             GPIO_CMD_1;      /*!< State machine command triggered by IRQ_IN1 */
 } sm_config_t;
 
+/*!
+ * @}
+ * @endcond
+ */
 /* ========================================================================== */
 
 #include "adf7030-1_phy_profile.h"

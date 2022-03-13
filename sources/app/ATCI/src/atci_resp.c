@@ -1,10 +1,11 @@
-/**********************************************************************************************************
-  * @file: atci.c
-  * @brief: This file contains low level functions (command responses) of the AT command interpreter for WizeUp
-  * module
+/**
+  * @file atci.c
+  * @brief This file contains low level functions (command responses) of the AT
+  * command interpreter for WizeUp module.
   *
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,19 +19,24 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 0.0.1 : 2021/01/11
+  * @par Revision history
+  *
+  * @par 0.0.1 : 2021/01/11 [Alciom]
   * Dev. version
   *
   *
- *********************************************************************************************************/
+  */
 
-/*=========================================================================================================
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
+
+/*==============================================================================
  * INCLUDES
- *=======================================================================================================*/
+ *============================================================================*/
 
 #include <stdint.h>
 #include <string.h>
@@ -38,54 +44,59 @@
 #include "atci.h"
 #include "console.h"
 
-/*=========================================================================================================
+/*==============================================================================
  * GLOBAL VARIABLES
- *=======================================================================================================*/
+ *============================================================================*/
 
 
-/*=========================================================================================================
+/*==============================================================================
  * LOCAL FUNCTIONS PROTOTYPES
- *=======================================================================================================*/
+ *============================================================================*/
 
-/*=========================================================================================================
+/*==============================================================================
  * FUNCTIONS - AT responses
- *=======================================================================================================*/
+ *============================================================================*/
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send wakeup message
  *
- * @param[in]	None
- * @param[Out]	None
- *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Atci_Send_Wakeup_Msg(void)
 {
 	Console_Send_Str("\r\n+WAKEUP\r\n");
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send sleep message
  *
- * @param[in]	None
- * @param[Out]	None
- *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Atci_Send_Sleep_Msg(void)
 {
 	Console_Send_Str("\r\n+SLEEP\r\n");
 }
 
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send AT response status (OK or error)
  *
- * @param[in]	errCode: 0 for succeess, else error code
- * @param[Out]	None
+ * @param[in]	errCode Error code : 0 for success, else error code
  *
  * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Atci_Resp_Ack(atci_status_t errCode)
 {
 	if(errCode)
@@ -95,16 +106,18 @@ void Atci_Resp_Ack(atci_status_t errCode)
 }
 
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send AT response data
  *
- * @param[IN]	cmdCodeStr: command code as string
- * @param[IN]	atciCmdData ("atci_cmd_t" structure):
- * 					nbParams: number of parameters in command response
- * 					params: parameters list (with size and data)
+ * @param[in]	cmdCodeStr Command code as string
+ * @param[in]	atciCmdData Pointer on "atci_cmd_t" structure:
+ * 					- nbParams: number of parameters in command response
+ * 					- params: parameters list (with size and data)
  *
- * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 {
 	uint8_t i;
@@ -162,20 +175,22 @@ void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 	Console_Send_Str("\r\n"); //new line (end)
 }
 
-/*=========================================================================================================
+/*==============================================================================
  * FUNCTIONS - AT debug messages
- *=======================================================================================================*/
+ *============================================================================*/
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Send debug data: command/response parameters (with Atci_Resp_Data format)
  *
- * @param[IN]	cmdCodeStr: command code as string
- * @param[IN]	atciCmdData ("atci_cmd_t" structure):
- * 					nbParams: number of parameters in command response
- * 					params: parameters list (with size and data)
+ * @param[in]	dbgMsd      Pointer on debug message
+ * @param[in]	atciCmdData Pointer on "atci_cmd_t" structure:
+ * 					- nbParams: number of parameters in command response
+ * 					- params: parameters list (with size and data)
  *
- * @return		None
- *-------------------------------------------------------------------------------------------------------*/
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 {
 	uint8_t i;
@@ -233,4 +248,6 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 	Console_Send_Str("\r\n"); //new line (end)
 }
 
-/************************************************** EOF **************************************************/
+/*********************************** EOF **************************************/
+
+/*! @} */
