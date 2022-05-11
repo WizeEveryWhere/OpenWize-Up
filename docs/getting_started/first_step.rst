@@ -9,7 +9,7 @@ Cloning this repository
 
 ::
 
-   git clone --recurse-submodules https://github.com/GRDF/OpenWize-Up.git
+   git clone --recurse-submodules https://github.com/WizeEveryWhere/OpenWize-Up.git
 
 Prerequitsite
 -------------
@@ -175,6 +175,8 @@ To create and launch a debug configuration follow this :ref:`Appendix <Create a 
 .. *****************************************************************************
 .. references
 
-.. _`OpenWize Documentation`: https://github.com/GRDF/OpenWize/blob/main/docs/OpenWize.rst
+.. only:: comment
+   .. _`OpenWize Documentation`: https://github.com/WizeEveryWhere/OpenWize/blob/main/docs/OpenWize.rst
+.. _`OpenWize Documentation`: https://wizeeverywhere-openwize.readthedocs.io/en/latest
 .. _`Alciom` : https://www.alciom.com/en/home
 .. _`STM32CubeIDE`: https://www.st.com/en/development-tools/stm32cubeide.html#get-software
