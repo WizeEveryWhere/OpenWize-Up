@@ -14,7 +14,7 @@ The SmartBricks or TRX is a transciver developed by `Alciom`_. It works on the 1
 
    The SmartBricks transciver
 
-A software tool is available at `this page <https://www.git/trxservices>`_. 
+A software tool is available at `this page <https://github.com/WizeEveryWhere/banc_lib.git>`_. 
 
 
 .. *****************************************************************************

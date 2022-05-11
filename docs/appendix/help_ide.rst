@@ -68,41 +68,41 @@ The build workflow is the following :
 
 #. Double-click on '*WizeUp*' target, then on the IDE console you should see : 
 
-.. figure:: ../pics/IDE_BuildTargetsConsole_1.png
-   :width: 85 %
-   :align: center
-
-   Result from '*WizeUp*' target
+   .. figure:: ../pics/IDE_BuildTargetsConsole_1.png
+      :width: 85 %
+      :align: center
+   
+      Result from '*WizeUp*' target
 
 #. Next, generate the build system by double-click on '*CMake Debug*' target. 
    The console gives you the generation prcess result : 
 
-.. figure:: ../pics/IDE_BuildTargetsConsole_2.png
-   :width: 85 %
-   :align: center
-
-   Result from '*CMake Debug*' target
+   .. figure:: ../pics/IDE_BuildTargetsConsole_2.png
+      :width: 85 %
+      :align: center
+   
+      Result from '*CMake Debug*' target
    
 #. Then, double-click on '*Build*' target to build the application. After few 
    seconds the compilation and link stages are finished. In the console you should
    be able to see something like the following : 
 
-.. figure:: ../pics/IDE_BuildTargetsConsole_3.png
-   :width: 85 %
-   :align: center
-
-   Result from '*Build*' target 
+   .. figure:: ../pics/IDE_BuildTargetsConsole_3.png
+      :width: 85 %
+      :align: center
+   
+      Result from '*Build*' target 
 
 #. Finally, install thes binaries files. The goal here, is mainly to be able to 
    get the executable file to debug or run it. Double-click on '*Install*' target
    and check in '*Project Explorer*' panal that files are available (refresh 
    with F5 if required). 
 
-.. figure:: ../pics/IDE_BuildTargetsResult.png
-   :width: 35 %
-   :align: center
-
-   Result from '*Install*' target 
+   .. figure:: ../pics/IDE_BuildTargetsResult.png
+      :width: 35 %
+      :align: center
+   
+      Result from '*Install*' target 
 
 
 .. ****************************************************************************

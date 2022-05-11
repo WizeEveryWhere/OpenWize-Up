@@ -37,6 +37,7 @@ Check the given example path and change it if required. Else hit ENTER.
 At the end, answer yes 
 
 ::
+
    Installing environment variable into bashrc
    Set the STM32Cube installation main path : (expl: /opt/Application/st/stm32cubeide_1.8.0/plugins)
    Path : 
