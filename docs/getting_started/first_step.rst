@@ -28,8 +28,9 @@ Build the application
 
 .. code-block:: bash
 
-   cd Openwize-Up
+   cd OpenWize-Up
    mkdir -p _build
+   cd _build
 
 .. code-block:: bash 
 
