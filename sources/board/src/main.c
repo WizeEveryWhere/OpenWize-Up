@@ -1,46 +1,37 @@
-/* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
+  * @file main.c
+  * @brief The main programm
   *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * @details
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * @copyright 2022, GRDF, Inc.  All rights reserved.
   *
-  ******************************************************************************
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted (subject to the limitations in the disclaimer
+  * below) provided that the following conditions are met:
+  *    - Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *    - Redistributions in binary form must reproduce the above copyright
+  *      notice, this list of conditions and the following disclaimer in the
+  *      documentation and/or other materials provided with the distribution.
+  *    - Neither the name of GRDF, Inc. nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  *
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2022/05/20[GBI]
+  * Initial version
+  *
+  *
   */
-/* USER CODE END Header */
 
-/* Includes ------------------------------------------------------------------*/
+/******************************************************************************/
 #include "main.h"
+#include "bsp.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
+/******************************************************************************/
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 
@@ -50,30 +41,22 @@ SPI_HandleTypeDef hspi1;
 
 UART_HandleTypeDef huart4;
 
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
+/******************************************************************************/
 void SystemClock_Config(void);
 void PeriphClock_Config(void);
 void LSEClock_Config(void);
 
+/******************************************************************************/
 static void MX_GPIO_Init(void);
 
 static void MX_UART4_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
-/* USER CODE BEGIN PFP */
 
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-#include "bsp.h"
 extern void app_entry(void);
-/* USER CODE END 0 */
+
+/******************************************************************************/
 
 /**
   * @brief  The main entry point.
@@ -81,15 +64,11 @@ extern void app_entry(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
 #define MAX_BOOT_CNT 5
   //uint32_t u32PrevBootState;
   uint32_t u32BootCnt;
   uint32_t u32UnauthAcc;
   uint32_t u32BootState;
-  /* MCU Configuration--------------------------------------------------------*/
 
   hrtc.Instance = RTC;
 
@@ -127,7 +106,6 @@ int main(void)
 
   BSP_Init(u32BootState);
 
-
   PeriphClock_Config();
   MX_GPIO_Init();
 
@@ -135,45 +113,13 @@ int main(void)
   MX_SPI1_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
 
   BSP_PwrLine_Init();
-
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-
-  GPIO_InitStruct.Pin = IO1_Pin;
-  HAL_GPIO_Init(IO1_GPIO_Port, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = IO6_Pin;
-  HAL_GPIO_Init(IO6_GPIO_Port, &GPIO_InitStruct);
-
-  HAL_GPIO_WritePin(IO1_GPIO_Port, IO1_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(IO6_GPIO_Port, IO6_Pin, GPIO_PIN_RESET);
-
-/*
-  BSP_Gpio_SetHigh ((uint32_t)IO1_GPIO_Port, IO1_Pin);
-  BSP_Gpio_SetLow ((uint32_t)IO1_GPIO_Port, IO1_Pin);
-
-  BSP_Gpio_SetHigh ((uint32_t)IO6_GPIO_Port, IO6_Pin);
-  BSP_Gpio_SetLow ((uint32_t)IO6_GPIO_Port, IO6_Pin);
-*/
-
 
   app_entry();
   while (1)
   {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
 }
 
 /**
@@ -191,10 +137,6 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = 0;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11; // 48 Mhz
-  //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_10; // 32 Mhz
-  //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_9; // 24 Mhz
-  //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_8; // 16 Mhz
-
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -210,10 +152,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
   // Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) // 48 Mhz OK
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) // 32 Mhz OK
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) // 24 Mhz KO
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) // 16 Mhz KO
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) // 24 Mhz @PRVS2 KO
   {
     Error_Handler();
   }
@@ -284,14 +222,6 @@ void LSEClock_Config(void)
   */
 static void MX_I2C1_Init(void)
 {
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x20303E5D;
   hi2c1.Init.OwnAddress1 = 0;
@@ -317,10 +247,6 @@ static void MX_I2C1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -330,14 +256,6 @@ static void MX_I2C1_Init(void)
   */
 static void MX_I2C2_Init(void)
 {
-
-  /* USER CODE BEGIN I2C2_Init 0 */
-
-  /* USER CODE END I2C2_Init 0 */
-
-  /* USER CODE BEGIN I2C2_Init 1 */
-
-  /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
   hi2c2.Init.Timing = 0x20303E5D;
   hi2c2.Init.OwnAddress1 = 0;
@@ -363,10 +281,6 @@ static void MX_I2C2_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C2_Init 2 */
-
-  /* USER CODE END I2C2_Init 2 */
-
 }
 
 /**
@@ -376,15 +290,6 @@ static void MX_I2C2_Init(void)
   */
 static void MX_SPI1_Init(void)
 {
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
@@ -403,10 +308,6 @@ static void MX_SPI1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
-
 }
 
 /**
@@ -416,14 +317,6 @@ static void MX_SPI1_Init(void)
   */
 static void MX_UART4_Init(void)
 {
-
-  /* USER CODE BEGIN UART4_Init 0 */
-
-  /* USER CODE END UART4_Init 0 */
-
-  /* USER CODE BEGIN UART4_Init 1 */
-
-  /* USER CODE END UART4_Init 1 */
   huart4.Instance = UART4;
   huart4.Init.BaudRate = 115200;
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
@@ -442,10 +335,6 @@ static void MX_UART4_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN UART4_Init 2 */
-
-  /* USER CODE END UART4_Init 2 */
-
 }
 
 /**
@@ -526,18 +415,7 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI2_IRQn);
-
-  //HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
-  //HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
-  //HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
-  //HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 }
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -549,15 +427,9 @@ static void MX_GPIO_Init(void)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6) {
     HAL_IncTick();
   }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
 }
 
 /**
@@ -566,10 +438,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-
-  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
@@ -582,10 +450,8 @@ void Error_Handler(void)
   */
 void assert_failed(char *file, uint32_t line)
 { 
-  /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
 
