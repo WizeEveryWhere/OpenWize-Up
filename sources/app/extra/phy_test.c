@@ -131,21 +131,25 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 {
 	if (bEnable)
 	{
+#ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 			// Disable I2C power
 			BSP_PwrLine_Clr(EXT_I2C_EN_MSK);
 #endif
 			// disable external I2C
 			BSP_I2C_Enable(I2C_ID_EXT, 0);
+#endif
 			// Configure Host GPIO as input
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, 1);
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, 1);
 			// reconfigure I2C pin as gpio output
 			BSP_Gpio_OutputEnable((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 1);
 			BSP_Gpio_OutputEnable((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 1);
+#ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 			// set external I2C power on
 			BSP_PwrLine_Set(EXT_I2C_EN_MSK);
+#endif
 #endif
 			// Setup the GPIO pin IT callback
 			if ( eType )
@@ -175,12 +179,14 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 		// Disable output
 		BSP_Gpio_OutputEnable((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 0);
 		BSP_Gpio_OutputEnable((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 0);
+#ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 		// Disable I2C power
 		BSP_PwrLine_Clr(EXT_I2C_EN_MSK);
 #endif
 		// Enable I2C peripheral
 		BSP_I2C_Enable(I2C_ID_EXT, 1);
+#endif
 	}
 
 }
