@@ -1,31 +1,46 @@
-/**
-  * @file: adf7030-1__gpio.c
-  * @brief:	adf7030-1 PHY Radio GPIO interface Functions.
-  *
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
-  *
-  * Redistribution and use in source and binary forms, with or without
-  * modification, are permitted (subject to the limitations in the disclaimer
-  * below) provided that the following conditions are met:
-  *    - Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *    - Redistributions in binary form must reproduce the above copyright
-  *      notice, this list of conditions and the following disclaimer in the
-  *      documentation and/or other materials provided with the distribution.
-  *    - Neither the name of GRDF, Inc. nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  *****************************************************************************
-  *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/05/18[TODO: your name]
-  * Initial version
-  *
-  *
-  */
+/*!
+ *****************************************************************************
+  @file:	adf7030-1__gpio.h
+  @brief:	adf7030-1 PHY Radio GPIO interface Functions.
+  @version:	$Revision:
+  @date:	$Date:
+ -----------------------------------------------------------------------------
+Copyright (c) 2017, Analog Devices, Inc.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted (subject to the limitations in the disclaimer below) provided that
+the following conditions are met:
+  - Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+  - Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  - Neither the name of Analog Devices, Inc. nor the names of its contributors
+    may be used to endorse or promote products derived from this software without
+    specific prior written permission.
+
+NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
+THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
+NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*****************************************************************************/
+
+/** \addtogroup adf7030-1 adf7030-1 Driver
+ *  @{
+ */
+
+/** \addtogroup adf7030-1__gpio SPI Command Interface
+ *  @{
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,9 +59,9 @@ extern "C" {
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  GPIO            PHY Radio GPIO pin to be configured
+ * @param [in]  eGPIO           PHY Radio GPIO pin to be configured
  *
- * @param [in]  CFG             PHY Radio GPIO pin configuration desired (see adf7030_1_gpio_cfg_e)
+ * @param [in]  eCFG            PHY Radio GPIO pin configuration desired (see adf7030_1_gpio_cfg_e)
  *
  * @param [in]  bDirect         Boolean  -TRUE to directly change the current GPIO pin configuration
  *                                       -FALSE to setup GPIO pin configuration in the profile.
@@ -87,9 +102,9 @@ uint8_t adf7030_1__GPIO_SetCfg(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  GPIO            PHY Radio GPIO pin to be configured
+ * @param [in]  eGPIO           PHY Radio GPIO pin to be configured
  *
- * @param [in]  pCFG            Pointer to PHY Radio GPIO pin configuration (see adf7030_1_gpio_cfg_e)
+ * @param [in]  peCFG           Pointer to PHY Radio GPIO pin configuration (see adf7030_1_gpio_cfg_e)
  *
  * @param [in]  bDirect         Boolean  -TRUE to directly change the current GPIO pin configuration
  *                                       -FALSE to setup GPIO pin configuration in the profile.
@@ -128,7 +143,7 @@ uint8_t adf7030_1__GPIO_GetCfg(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  eGPIO           PHY Radio GPIO pin to be set
+ * @param [in]  ePin            PHY Radio GPIO pin to be set
  *
  * @return      Status
  *  - #0      If the Radio PHY gpio pin output was cleared correctly.
@@ -153,7 +168,7 @@ uint8_t adf7030_1__GPIO_SetPin(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  eGPIO           PHY Radio GPIO pin to be cleared
+ * @param [in]  ePin            PHY Radio GPIO pin to be cleared
  *
  * @return      Status
  *  - #0      If the Radio PHY gpio pin output was cleared correctly.
@@ -173,3 +188,7 @@ uint8_t adf7030_1__GPIO_ClrPin(
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */ /* End of group adf7030-1__gpio */
+/** @} */ /* End of group adf7030-1 adf7030-1 Driver */
+

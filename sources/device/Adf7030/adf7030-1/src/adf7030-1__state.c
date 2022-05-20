@@ -530,7 +530,11 @@ uint8_t adf7030_1__STATE_Poll_PhyState(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in]  PHY_CMD         PHY Command from adf7030_1_radio_state_e.
+ * @param [in]  nPhyCmd         PHY Command from adf7030_1_radio_state_e.
+ * @param [in]  nStatusPoll     Polling status
+ * @param [in]  nStatePoll      Polling state (expected state)
+ * @param [in]  nRetry          Number of polling retries. Set to Zero, for continuously
+ *                              polling the SPI Status.
  *
  * @note                        This function automatically set the pSPIDevInfo->ePhyError
  *                              The "Wait for cmd_ready bit" is not correct

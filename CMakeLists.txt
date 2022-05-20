@@ -2,7 +2,7 @@
 
 ################################################################################
 # set top module name, info...
-set(MODULE_NAME OpenWizeUpBuilder)
+set(MODULE_NAME OpenWizeUp)
 set(MODULE_DESCRIPTION "\"This project is...\"")
 set(MODULE_URL "http://www.OpenWize-Up.fr")
 set(MODULE_VER_MAJOR 1)

@@ -1,34 +1,37 @@
-/* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32l4xx_hal_timebase_TIM.c 
-  * @brief   HAL time base based on the hardware TIM.
-  ******************************************************************************
-  * @attention
+  * @file stm32l4xx_hal_timebase_tim.c
+  * @brief HAL time base based on the hardware TIM.
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * @details
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * @copyright 2022, GRDF, Inc.  All rights reserved.
   *
-  ******************************************************************************
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted (subject to the limitations in the disclaimer
+  * below) provided that the following conditions are met:
+  *    - Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *    - Redistributions in binary form must reproduce the above copyright
+  *      notice, this list of conditions and the following disclaimer in the
+  *      documentation and/or other materials provided with the distribution.
+  *    - Neither the name of GRDF, Inc. nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  *
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2022/05/20[GBI]
+  * Initial version
+  *
+  *
   */
-/* USER CODE END Header */
 
-/* Includes ------------------------------------------------------------------*/
+/******************************************************************************/
 #include "stm32l4xx_hal.h"
 #include "stm32l4xx_hal_tim.h"
  
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef        htim6; 
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 
 /**
   * @brief  This function configures the TIM6 as a time base source. 
@@ -90,7 +93,6 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 /**
   * @brief  Suspend Tick increment.
   * @note   Disable the tick increment by disabling TIM6 update interrupt.
-  * @param  None
   * @retval None
   */
 void HAL_SuspendTick(void)
@@ -102,7 +104,6 @@ void HAL_SuspendTick(void)
 /**
   * @brief  Resume Tick increment.
   * @note   Enable the tick increment by Enabling TIM6 update interrupt.
-  * @param  None
   * @retval None
   */
 void HAL_ResumeTick(void)
@@ -110,5 +111,3 @@ void HAL_ResumeTick(void)
   /* Enable TIM6 Update interrupt */
   __HAL_TIM_ENABLE_IT(&htim6, TIM_IT_UPDATE);
 }
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

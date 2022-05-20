@@ -1,9 +1,10 @@
 /**
-  * @file: bsp_i2c.c
-  * @brief: This file contains functions to deal with I2C.
+  * @file bsp_i2c.c
+  * @brief This file contains functions to deal with I2C.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,29 +18,56 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/10/15[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/10/15 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup i2c
+ * @ingroup bsp
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "bsp_i2c.h"
 #include "platform.h"
+#include <stm32l4xx_hal.h>
 
 extern I2C_HandleTypeDef *paI2C_BusHandle[I2C_ID_MAX];
 
 static void _i2c_error_ (uint8_t u8BusId);
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
 static uint32_t I2cxTimeout = I2Cx_TIMEOUT_MAX;   /*<! Value of Timeout when I2C communication fails */
 
+/*!
+ * @}
+ * @endcond
+ */
 
+/*!
+  * @brief This function enable/disable (init.uninit) the I2C peripheral
+  *
+  * @param [in] eBusId I2C bus id
+  * @param [in] bFlag  0 : disable; 1 : enable
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 //void BSP_I2C_Enable(i2c_id_e eBusId, uint8_t bFlag)
 void BSP_I2C_Enable(uint8_t eBusId, uint8_t bFlag)
 {
@@ -56,11 +84,34 @@ void BSP_I2C_Enable(uint8_t eBusId, uint8_t bFlag)
 	}
 }
 
+/*!
+  * @brief This function check if the given I2C device is ready
+  *
+  * @param [in] pDev        Pointer on I2C device
+  * @param [in] u32NbTrials Number of retries
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_IsDeviceReady(const i2c_dev_t *pDev, const uint32_t u32NbTrials)
 {
 	return HAL_I2C_IsDeviceReady(paI2C_BusHandle[pDev->bus_id], pDev->device_id, u32NbTrials, I2cxTimeout);
 }
 
+/*!
+  * @brief This function write to an I2C device
+  *
+  * @param [in] pDev          Pointer on I2C device
+  * @param [in] pData         Pointer on data to write
+  * @param [in] u16Length     The number of byte to write
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_Write(
 	const i2c_dev_t *pDev,
 	uint8_t *pData,
@@ -86,6 +137,18 @@ uint8_t BSP_I2C_Write(
 	return eRet;
 }
 
+/*!
+  * @brief This function read from an I2C device
+  *
+  * @param [in] pDev          Pointer on I2C device
+  * @param [in] pData         Pointer on read data
+  * @param [in] u16Length     The number of byte to read
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_Read(
 	const i2c_dev_t *pDev,
 	uint8_t *pData,
@@ -111,6 +174,19 @@ uint8_t BSP_I2C_Read(
 	return eRet;
 }
 
+/*!
+  * @brief This function read from I2C device memory area
+  *
+  * @param [in] pDev          Pointer on I2C device
+  * @param [in] u16MemAddress Address of the  memory to read
+  * @param [in] pData         Pointer on read data
+  * @param [in] u16Length     The number of byte to read
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_MemRead(
 	const i2c_dev_t *pDev,
 	uint16_t u16MemAddress,
@@ -140,6 +216,19 @@ uint8_t BSP_I2C_MemRead(
 	return eRet;
 }
 
+/*!
+  * @brief This function write into I2C device memory area
+  *
+  * @param [in] pDev          Pointer on I2C device
+  * @param [in] u16MemAddress Address of the  memory to write
+  * @param [in] pData         Pointer on data to write
+  * @param [in] u16Length     The number of byte to write
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_MemWrite (
 	const i2c_dev_t *pDev,
 	uint16_t u16MemAddress,
@@ -168,6 +257,19 @@ uint8_t BSP_I2C_MemWrite (
 	return eRet;
 }
 
+/*!
+  * @brief This read from I2C device register
+  *
+  * @param [in] pDev         Pointer on I2C device
+  * @param [in] u8RegAddress Address of the register to read
+  * @param [in] pData        Pointer on read data
+  * @param [in] u16Length    Number of byte to read
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_RegRead(
 	const i2c_dev_t *pDev,
 	uint8_t u8RegAddress,
@@ -195,6 +297,19 @@ uint8_t BSP_I2C_RegRead(
 	return eRet;
 }
 
+/*!
+  * @brief This write to I2C device register
+  *
+  * @param [in] pDev         Pointer on I2C device
+  * @param [in] u8RegAddress Address of the register to write
+  * @param [in] pData        Pointer on data to write
+  * @param [in] u16Length    Number of byte to write
+  *
+  * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
+  * @retval DEV_FAILURE if failed (see @link dev_res_e::DEV_FAILURE @endlink)
+  * @retval DEV_BUSY if the given device is busy (see @link dev_res_e::DEV_BUSY @endlink)
+  *
+  */
 uint8_t BSP_I2C_RegWrite (
 	const i2c_dev_t *pDev,
 	uint8_t u8RegAddress,
@@ -224,6 +339,9 @@ uint8_t BSP_I2C_RegWrite (
 
 /**
   * @brief Eval I2Cx error treatment function
+  *
+  * @param [in] u8BusId The bus id
+  *
   * @retval None
   */
 static void _i2c_error_ (uint8_t u8BusId)
@@ -238,3 +356,5 @@ static void _i2c_error_ (uint8_t u8BusId)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

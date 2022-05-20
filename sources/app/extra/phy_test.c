@@ -1,31 +1,38 @@
 /**
   * @file: phy_test.c
-  * @brief: // TODO This file ...
+  * @brief: This file implement some phy test usefull functions
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
   *
-  * Redistribution and use in source and binary forms, with or without 
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
   * below) provided that the following conditions are met:
   *    - Redistributions of source code must retain the above copyright notice,
   *      this list of conditions and the following disclaimer.
-  *    - Redistributions in binary form must reproduce the above copyright 
-  *      notice, this list of conditions and the following disclaimer in the 
+  *    - Redistributions in binary form must reproduce the above copyright
+  *      notice, this list of conditions and the following disclaimer in the
   *      documentation and/or other materials provided with the distribution.
   *    - Neither the name of GRDF, Inc. nor the names of its contributors
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2021/04/07[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2021/04/07 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ *  @addtogroup extra
+ *  @ingroup app
+ *  @{
+ */
+ 
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,14 +43,30 @@ extern "C" {
 #include "bsp_pwrlines.h"
 #include "default_device_config.h"
 
+/*! @cond INTERNAL @{ */
+
 extern phydev_t sPhyDev;
+
+/*! @} @endcond */
 
 static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg);
 static void _phy_sport_cb_(void *pCBParam, void *pArg);
 static void _test_set_io(uint8_t eType, uint8_t bEnable);
 
+/*!
+  * @static
+  * @brief Copy Callback function.
+  *
+  * @details Called by interrupt handler to copy adf7030 gpio serial port clk and data to defined MCU gpio
+  *
+  * @param [in] pCBParam Unused
+  * @param [in] pArg Unused
+  *
+  */
 static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg)
 {
+	(void)pCBParam;
+	(void)pArg;
 	uint8_t b_Level;
 	// copy clk
 	BSP_Gpio_Get((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, &b_Level);
@@ -53,8 +76,21 @@ static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg)
 	BSP_Gpio_Set((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, b_Level);
 }
 
+/*!
+  * @static
+  * @brief Callback function.
+  *
+  * @details Called by interrupt handler to toggle MCU gpio on ADF7030 peramble and sync detection
+  *
+  * @param [in] pCBParam Unused
+  * @param [in] pArg Unused
+  *
+  */
 static void _phy_sport_cb_(void *pCBParam, void *pArg)
 {
+	(void)pCBParam;
+	(void)pArg;
+
 #define PHY_WM2400_PREAMBLE_DATA 0x5555
 #define PHY_WM2400_SYNC_WORD 0xF672
 
@@ -83,25 +119,37 @@ static void _phy_sport_cb_(void *pCBParam, void *pArg)
 	}
 }
 
+/*!
+  * @static
+  * @brief Setup the io for test mode
+  *
+  * @param [in] eType   IO type is 0 : copy mode or 1 : preamble and sync detect
+  * @param [in] bEnable Enable (1) / disable (0) the IO test mode
+  *
+  */
 static void _test_set_io(uint8_t eType, uint8_t bEnable)
 {
 	if (bEnable)
 	{
+#ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 			// Disable I2C power
 			BSP_PwrLine_Clr(EXT_I2C_EN_MSK);
 #endif
 			// disable external I2C
 			BSP_I2C_Enable(I2C_ID_EXT, 0);
+#endif
 			// Configure Host GPIO as input
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, 1);
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, 1);
 			// reconfigure I2C pin as gpio output
 			BSP_Gpio_OutputEnable((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 1);
 			BSP_Gpio_OutputEnable((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 1);
+#ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 			// set external I2C power on
 			BSP_PwrLine_Set(EXT_I2C_EN_MSK);
+#endif
 #endif
 			// Setup the GPIO pin IT callback
 			if ( eType )
@@ -131,16 +179,27 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 		// Disable output
 		BSP_Gpio_OutputEnable((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 0);
 		BSP_Gpio_OutputEnable((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 0);
+#ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 		// Disable I2C power
 		BSP_PwrLine_Clr(EXT_I2C_EN_MSK);
 #endif
 		// Enable I2C peripheral
 		BSP_I2C_Enable(I2C_ID_EXT, 1);
+#endif
 	}
 
 }
 
+/*!
+  * @brief Initialize the PHY test
+  *
+  * @param [in] eMode PHY test mode (see  phy_test_mode_e)
+  * @param [in] eType IO type is 0 : copy mode or 1 : preamble and sync detect
+  *
+  * @return the current test mode
+  *
+  */
 phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
 {
 	//static test_mode_info_t eTestModeInfo = { .eTestMode = PHY_TST_MODE_NONE };
@@ -202,6 +261,11 @@ phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
 	}
 	return eTestModeInfo.eTestMode;
 }
+
+/*!
+  * @brief Copy AFD7030 interrupt 0 to MCU IO1
+  *
+  */
 void EX_PHY_SetCpy(void)
 {
 #ifdef HAS_CPY_PIN
@@ -214,3 +278,5 @@ void EX_PHY_SetCpy(void)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

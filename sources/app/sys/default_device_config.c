@@ -1,9 +1,10 @@
 /**
-  * @file: default_device_config.c
-  * @brief: // TODO This file ...
+  * @file default_device_config.c
+  * @brief This file define the ADF7030-1 interrupt 
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,21 +18,31 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/22[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/22 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ *  @addtogroup sys
+ *  @ingroup app
+ *  @{
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "default_device_config.h"
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 /* Default device configuration*/
 
@@ -79,6 +90,14 @@ KEEP_VAR(const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN]
     }
 };
 
+/*!
+ * @}
+ * @endcond
+ */
+
+
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

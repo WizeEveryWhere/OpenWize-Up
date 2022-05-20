@@ -1,10 +1,11 @@
 
 /**
-  * @file: flash_storage.c
-  * @brief: // TODO This file ...
+  * @file flash_storage.c
+  * @brief This file implement function to store permanent data into the flash memory.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,15 +19,21 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2021/02/18[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2021/02/18[GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup flash_storage
+ * @ingroup device
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,11 +43,13 @@ extern "C" {
 #include "flash_storage.h"
 
 /*!
- * @brief This
+ * @brief This function initialize (erase) the storage area in flash memory
  *
- * @param [in]
+ * @param [in] pStoreArea Pointer on structure defining the flash area
  *
- * @return
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
  */
 uint8_t FlashStorage_StoreInit(struct storage_area_s* pStoreArea)
 {
@@ -81,11 +90,13 @@ uint8_t FlashStorage_StoreInit(struct storage_area_s* pStoreArea)
 }
 
 /*!
- * @brief This
+ * @brief This function finalize (store header) the storage area in flash memory
  *
- * @param [in]
+ * @param [in] pStoreArea Pointer on structure defining what to store
  *
- * @return
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
  */
 uint8_t FlashStorage_StoreFini(struct storage_area_s* pStoreArea)
 {
@@ -121,11 +132,13 @@ uint8_t FlashStorage_StoreFini(struct storage_area_s* pStoreArea)
 }
 
 /*!
- * @brief This
+ * @brief This function write the storage area into flash memory
  *
- * @param [in]
+ * @param [in] pStoreArea Pointer on structure defining what to store
  *
- * @return
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
  */
 uint8_t FlashStorage_StoreWrite(struct storage_area_s* pStoreArea)
 {
@@ -154,11 +167,13 @@ uint8_t FlashStorage_StoreWrite(struct storage_area_s* pStoreArea)
 }
 
 /*!
- * @brief This
+ * @brief This function read the storage area from flash memory
  *
- * @param [in]
+ * @param [in] pStoreArea Pointer on structure defining the storage
  *
- * @return
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
  */
 uint8_t FlashStorage_StoreRead(struct storage_area_s* pStoreArea)
 {
@@ -178,3 +193,5 @@ uint8_t FlashStorage_StoreRead(struct storage_area_s* pStoreArea)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

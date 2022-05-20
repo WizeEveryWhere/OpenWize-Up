@@ -1,9 +1,10 @@
 /**
-  * @file: adf7030-1_phy_log.h
-  * @brief: // TODO This file ...
+  * @file adf7030-1_phy_log.h
+  * @brief This file declare function to get log error messages
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,21 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/23[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/23 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup adf7030-1_phy
+ * @ingroup device
+ * @{
+ *
+ */
 #ifndef _ADF7030_1_PHY_LOG_H_
 #define _ADF7030_1_PHY_LOG_H_
 
@@ -43,7 +50,7 @@ extern "C" {
 /*!
    Define max number of logged PHY Radio error.\n
 */
-#define NUM_PHY_ERROR 29
+#define NUM_PHY_ERROR 30
 
 
 void CheckReturn(adf7030_1_device_t* const pDevice);
@@ -54,3 +61,5 @@ const char* getErrMsg(adf7030_1_device_t* const pDevice );
 }
 #endif
 #endif /* _ADF7030_1PHY_LOG_H_ */
+
+/*! @} */

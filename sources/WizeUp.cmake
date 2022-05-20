@@ -51,6 +51,15 @@ if(USE_FREERTOS)
 endif(USE_FREERTOS)
 
 ################################################################################
+# Generate parameters 
+# (only if "-DGENERATE_PARAM=ON" is added on cmake command line)
+find_package(gen_param REQUIRED)
+gen_param(
+    SOURCE sources/app/cfg
+    DESTINATION sources/app
+    )
+
+################################################################################
 ## subdirectories
 set(MOD_DIR_LST 
     "sources/bsp" 

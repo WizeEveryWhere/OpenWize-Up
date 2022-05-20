@@ -1,9 +1,10 @@
 /**
-  * @file: bsp_i2c.h
-  * @brief: This file defines functions to deal with I2C.
+  * @file bsp_i2c.h
+  * @brief This file defines functions to deal with I2C.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,21 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/10/15[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/10/15 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup i2c
+ * @ingroup bsp
+ * @{
+ */
+
 #ifndef _BSP_I2C_H_
 #define _BSP_I2C_H_
 #ifdef __cplusplus
@@ -34,14 +41,30 @@ extern "C" {
 
 #include "common.h"
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
 #define I2Cx_TIMEOUT_MAX 3000
 
+/*!
+ * @}
+ * @endcond
+ */
+
+/*!
+  * @brief This struct define the i2c device
+  */
 typedef struct
 {
-    uint8_t bus_id;
-    uint8_t device_id;
+    uint8_t bus_id;     /*!< I2C bus id */
+    uint8_t device_id;  /*!< I2C device id */
 } i2c_dev_t;
 
+/*!
+  * @brief This define a pointer on i2c device
+  */
 typedef i2c_dev_t* p_i2c_dev_t;
 
 //void BSP_I2C_Enable(i2c_id_e eBusId, uint8_t bFlag);
@@ -58,3 +81,5 @@ uint8_t BSP_I2C_RegRead (const i2c_dev_t *pDev, uint8_t u8RegAddress, uint8_t *p
 }
 #endif
 #endif /* _BSP_I2C_H_ */
+
+/*! @} */

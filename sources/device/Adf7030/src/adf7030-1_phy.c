@@ -1,9 +1,10 @@
 /**
-  * @file: adf7030-1_phy.c
-  * @brief: // TODO This file ...
+  * @file adf7030-1_phy.c
+  * @brief This file implement PHY error management convenient function.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,16 +18,21 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/22[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/22[GBI]
   * Initial version
   *
   *
   */
 
+/*!
+ * @addtogroup adf7030-1_phy
+ * @ingroup device
+ * @{
+ *
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,12 +74,11 @@ uint8_t a_SpiRxBuf [ADF7030_1_SPI_BUFFER_SIZE];
 /**
  * @brief       Pulse Host GPIO Trigger pin
  *
- * @param [in]  pDevInfo        Pointer to the ADF7030-1 instance information.
+ * @param [in]  pDevice         Pointer to the ADF7030-1 instance information.
  * @param [in]  eTRIG           PHY Trigger PIN to pulse.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS                If Trigger GPIO has been pulsed
- *  - #ADF7030_1_GPIO_DEV_FAILED        If Trigger GPIO failed to pulse
+ * @retval ADF7030_1_SUCCESS                If Trigger GPIO has been pulsed
+ * @retval ADF7030_1_GPIO_DEV_FAILED        If Trigger GPIO failed to pulse
 */
 uint8_t adf7030_1_PulseTrigger(
     adf7030_1_device_t* const pDevice,
@@ -102,11 +107,10 @@ uint8_t adf7030_1_PulseTrigger(
 /**
  * @brief       Pulse Host GPIO Reset pin
  *
- * @param [in]  pDevInfo        Pointer to the ADF7030-1 instance information.
+ * @param [in] pDevice Pointer to the ADF7030-1 instance information.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS                If Reset GPIO has been pulsed
- *  - #ADF7030_1_GPIO_DEV_FAILED        If Reset GPIO failed to pulse
+ * @retval ADF7030_1_SUCCESS                If Reset GPIO has been pulsed
+ * @retval ADF7030_1_GPIO_DEV_FAILED        If Reset GPIO failed to pulse
 */
 uint8_t adf7030_1_PulseReset(
     adf7030_1_device_t* const pDevice
@@ -138,9 +142,8 @@ uint8_t adf7030_1_PulseReset(
  *
  * @param [in] pDevice Pointer to ADF7030-1 device instance.
  *
- * @return      Status
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SUCCESS         Otherwise.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SUCCESS         Otherwise.
  */
 uint8_t adf7030_1_PulseWakup(
     adf7030_1_device_t* const pDevice
@@ -285,10 +288,9 @@ inline uint32_t adf7030_1__GetRawFrequency(
  * @param [in] pSPIDevInfo   Pointer to ADF7030-1 SPI device instance.
  * @param [in] u32_Frequency The required frequency (Hz).
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 inline uint8_t adf7030_1__SetRawFrequency(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -309,10 +311,9 @@ inline uint8_t adf7030_1__SetRawFrequency(
  * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
  * @param [in] e_State     The required state.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 inline uint8_t adf7030_1__SetRawState(
     adf7030_1_spi_info_t*   pSPIDevInfo,
@@ -357,10 +358,9 @@ inline uint8_t adf7030_1__GetRawState(
  * @param [in] u8_PaFine   Fine Power value (select one point the curve)
  * @param [in] u8_PaMicro  Micro Power value (adjust with a 0.5dDm step)
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__SetRawTXPower(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -388,10 +388,9 @@ uint8_t adf7030_1__SetRawTXPower(
  * @param [out] u8_Sz       Reference to the variable to hold the data size.
  * @param [in]  eInfo       Information type (FW_MODULE_VERSION or FW_MODULE_NAME).
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__GetFwModuleInfo(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -425,6 +424,13 @@ uint8_t adf7030_1__GetFwModuleInfo(
     return e_Ret;
 }
 
+/*!
+ * @brief  This function clear the adf7030 irq status
+ *
+ * @param [in]  pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [in]  eIntPin     Interrupt mask
+ *
+ */
 void adf7030_1__ClrIrqStatus(
     adf7030_1_spi_info_t *pSPIDevInfo,
     adf7030_1_intpin_e    eIntPin
@@ -458,6 +464,14 @@ void adf7030_1__ClrIrqStatus(
     pSPIDevInfo->nStatus.VALUE = *(pSPI_RX_BUFF+3);
 }
 
+/*!
+ * @brief  This function get the adf7030 irq status
+ *
+ * @param [in]  pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [in]  eIntPin     Interrupt mask
+ *
+ * @return the irq status
+ */
 uint32_t adf7030_1__GetIrqStatus(
     adf7030_1_spi_info_t *pSPIDevInfo,
     adf7030_1_intpin_e    eIntPin
@@ -537,10 +551,9 @@ uint32_t adf7030_1__GetMiscFwStatus(
  *
  * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__SetupBuff(
     adf7030_1_spi_info_t* pSPIDevInfo
@@ -569,10 +582,9 @@ uint8_t adf7030_1__SetupBuff(
  * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
  * @param [in] bFlag       Enable/disable the LPM
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__SetupLPM(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -604,10 +616,9 @@ uint8_t adf7030_1__SetupLPM(
  * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
  * @param [in] u8_WkUpSrc  The source allowed to wake-up the ADF7030
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__SetupWakeSrc(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -631,12 +642,11 @@ uint8_t adf7030_1__SetupWakeSrc(
  *
  * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
  * @param [in] ePaPhyPin   PHY pin id used for external PA control
- * @param [in] ePaPhyPin   PHY pin id used for external LNA control
+ * @param [in] eLnaPhyPin  PHY pin id used for external LNA control
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If the transfert was succesfull to the adf7030-1.
- *  - #ADF7030_1_INVALID_HANDLE  [D] If the given SPI ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If the transfer was successful to the adf7030-1.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given SPI ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__SetupExtPaLna(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -674,11 +684,10 @@ uint8_t adf7030_1__SetupExtPaLna(
  * @param [in] eIntPin The trigger id to use (1 or 2)
  * @param [in] u8Flag  Enable or disable the iNTERRUPT pin
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully configured.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_GPIO_DEV_FAILED If Host GPIO configuration failed.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the communication with Radio PHY failed.
+ * @retval ADF7030_1_SUCCESS         If successfully configured.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_GPIO_DEV_FAILED If Host GPIO configuration failed.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the communication with Radio PHY failed.
  */
 uint8_t adf7030_1_SetupInt(
     adf7030_1_device_t* const pDevice,
@@ -735,11 +744,10 @@ uint8_t adf7030_1_SetupInt(
  * @param [in] eTrigState The PHY command to execute on trigger
  * @param [in] u8Flag     Enable or disable the Trigger pin
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully configured.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_GPIO_DEV_FAILED If Host GPIO configuration failed.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the communication with Radio PHY failed.
+ * @retval ADF7030_1_SUCCESS         If successfully configured.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_GPIO_DEV_FAILED If Host GPIO configuration failed.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the communication with Radio PHY failed.
  */
 uint8_t adf7030_1_SetupTrig(
     adf7030_1_device_t* const pDevice,
@@ -780,14 +788,13 @@ uint8_t adf7030_1_SetupTrig(
 /*!
  * @brief  This function Transmit a packet to PHY TX (Polling).
  *
- * @param [in] pDevice Pointer to ADF7030-1 device instance.
- * @param [in] p_Data  Pointer on data buffer to copy in the TX packet.
- * @param [in] u8_Sz   Variable that hold the size of the data buffer.
+ * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [in] p_Data      Pointer on data buffer to copy in the TX packet.
+ * @param [in] u8_Sz       Variable that hold the size of the data buffer.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__Send(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -810,14 +817,13 @@ uint8_t adf7030_1__Send(
 /*!
  * @brief  This function Receive a packet from PHY RX (Polling).
  *
- * @param [in]  pDevice Pointer to ADF7030-1 device instance.
- * @param [out] p_Data  Pointer on buffer to copy in the RX packet.
- * @param [out] *u8_Sz  Reference variable to hold the size of the packet (with CRC).
+ * @param [in]  pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [out] p_Data      Pointer on buffer to copy in the RX packet.
+ * @param [out] *u8_Sz      Reference variable to hold the size of the packet (with CRC).
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__Recv(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -839,14 +845,13 @@ uint8_t adf7030_1__Recv(
 /*!
  * @brief  This function copy the given data buffer into the ADF7030 RX packet buffer.
  *
- * @param [in] pDevice Pointer to ADF7030-1 device instance.
- * @param [in] p_Data  Pointer on data buffer to copy in the TX packet.
- * @param [in] u8_Sz   Variable that hold the size of the data buffer.
+ * @param [in] pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [in] p_Data      Pointer on data buffer to copy in the TX packet.
+ * @param [in] u8_Sz       Variable that hold the size of the data buffer.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__SetTxPacket(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -872,14 +877,13 @@ uint8_t adf7030_1__SetTxPacket(
 /*!
  * @brief  This function copy the ADF7030 RX buffer into the given buffer.
  *
- * @param [in]  pDevice Pointer to ADF7030-1 device instance.
- * @param [out] p_Data  Pointer on buffer to copy in the RX packet.
- * @param [out] *u8_Sz  Reference variable to hold the size of the packet (with CRC).
+ * @param [in]  pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [out] p_Data      Pointer on buffer to copy in the RX packet.
+ * @param [out] *u8_Sz      Reference variable to hold the size of the packet (with CRC).
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__GetRxPacket(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -912,13 +916,12 @@ uint8_t adf7030_1__GetRxPacket(
  * @details The result is the average of NOISE_MEAS_AVG_NB valid measures.
  *          Measure is validated if the LIVE_STATUS of cca_readback register, equal 0.
  *
- * @param [in]  pDevice   Pointer to ADF7030-1 device instance.
- * @param [out] u16_Noise Reference variable to hold the measure.
+ * @param [in]  pSPIDevInfo Pointer to ADF7030-1 SPI device instance.
+ * @param [out] u16_Noise   Reference variable to hold the measure.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1__MeasureNoise(
     adf7030_1_spi_info_t* pSPIDevInfo,
@@ -943,10 +946,9 @@ uint8_t adf7030_1__MeasureNoise(
  *
  * @param [in]  pDevice Pointer to ADF7030-1 device instance.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE  [D]  If the given ADF7030-1 device instance is invalid.
- *  - #ADF7030_1_SPI_COMM_FAILED [D] If the transfert failed.
+ * @retval ADF7030_1_SUCCESS         If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SPI_COMM_FAILED If the transfer failed.
  */
 uint8_t adf7030_1_SynchState(
     adf7030_1_device_t* const pDevice
@@ -992,9 +994,8 @@ uint8_t adf7030_1_SynchState(
  * @param [in] eExtPaPin     Used ADF7030-1 pin as external PA control
  * @param [in] eExtLnaPin    Used ADF7030-1 pin as external LNA control
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS        If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE [D]  If the given ADF7030-1 device instance is invalid.
+ * @retval ADF7030_1_SUCCESS        If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE If the given ADF7030-1 device instance is invalid.
  */
 uint8_t adf7030_1_Setup(
     adf7030_1_device_t*          const pDevice,
@@ -1103,16 +1104,14 @@ uint8_t adf7030_1_Setup(
  * @details This function setup the SPI, Interrupt, Trigger and Reset Host GPIOs
  *          Trigger pin.
  *
- * @param [in] pDevice     Pointer to ADF7030-1 device instance.
- * @param [in] u8SpiDevNum The Host SPI id used by the ADF7030-1 device instance.
+ * @param [in] pDevice Pointer to ADF7030-1 device instance.
+ * @param [in] pSpiDev Pointer on the spi device.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS           If successfully initialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE    [D]  If the given ADF7030-1 device handle is invalid.
- *  - #ADF7030_1_DEVICE_NOT_OPENED [D]  if the given device is not yet opened.
- *  - #ADF7030_1_SPI_DEV_FAILED    Failed to setup GPIO service.
- *  - #ADF7030_1_GPIO_DEV_FAILED   Failed to setup SPI driver.
- * @sa adf7030_1_Init()
+ * @retval ADF7030_1_SUCCESS           If successfully initialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE    If the given ADF7030-1 device handle is invalid.
+ * @retval ADF7030_1_DEVICE_NOT_OPENED if the given device is not yet opened.
+ * @retval ADF7030_1_SPI_DEV_FAILED    Failed to setup GPIO service.
+ * @retval ADF7030_1_GPIO_DEV_FAILED   Failed to setup SPI driver.
  */
 uint8_t adf7030_1_Init(
     adf7030_1_device_t* const pDevice,
@@ -1216,13 +1215,11 @@ uint8_t adf7030_1_Init(
  *
  * @param [in] pDevice Pointer to ADF7030-1 device instance.
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS           If successfully uninitialized the Host GPIOs.
- *  - #ADF7030_1_INVALID_HANDLE    [D] If the given ADF7030-1 device handle is invalid.
- *  - #ADF7030_1_DEVICE_NOT_OPENED [D] if the given device is not yet opened.
- *  - #ADF7030_1_SPI_DEV_FAILED    Failed to terminate GPIO service.
- *  - #ADF7030_1_GPIO_DEV_FAILED   Failed to terminate SPI driver.
- * @sa adf7030_1_Init()
+ * @retval ADF7030_1_SUCCESS           If successfully uninitialized the Host GPIOs.
+ * @retval ADF7030_1_INVALID_HANDLE    If the given ADF7030-1 device handle is invalid.
+ * @retval ADF7030_1_DEVICE_NOT_OPENED if the given device is not yet opened.
+ * @retval ADF7030_1_SPI_DEV_FAILED    Failed to terminate GPIO service.
+ * @retval ADF7030_1_GPIO_DEV_FAILED   Failed to terminate SPI driver.
  */
 uint8_t adf7030_1_UnInit(
     adf7030_1_device_t*  const pDevice
@@ -1285,12 +1282,11 @@ uint8_t adf7030_1_UnInit(
  * @param [in] pCfg       Pointer to the reference configuration
  * @param [in] u32CfgSize The size of the given configuration
  *
- * @return      Status
- *  - #ADF7030_1_SUCCESS             If PHY instance was successfully setup
- *  - #ADF7030_1_INVALID_HANDLE      [D] If PHY instance does not exist
- *  - #ADF7030_1_INVALID_OPERATION   [D] If PHY instance was not previously initialized
- *  - #ADF7030_1_SPI_DEV_POLL_EXPIRE [D] If the Radio PHY failed to transition to new state.
- *  - #ADF7030_1_SPI_COMM_FAILED     [D] If the communication with Radio PHY failed.
+ * @retval ADF7030_1_SUCCESS             If PHY instance was successfully setup
+ * @retval ADF7030_1_INVALID_HANDLE      If PHY instance does not exist
+ * @retval ADF7030_1_INVALID_OPERATION   If PHY instance was not previously initialized
+ * @retval ADF7030_1_SPI_DEV_POLL_EXPIRE If the Radio PHY failed to transition to new state.
+ * @retval ADF7030_1_SPI_COMM_FAILED     If the communication with Radio PHY failed.
 */
 uint8_t adf7030_1_Configure(
     adf7030_1_device_t* const pDevice,
@@ -1349,17 +1345,12 @@ uint8_t adf7030_1_Configure(
  * @note This function initialize the adf7030 HW device by applying a HW Reset
  *       then configure it with the given configuration if any.
  *
- * @param [in] pDevice    Pointer to ADF3030-1 device instance.
- * @param [in] pCfg       Pointer to the reference configuration
- * @param [in] u32CfgSize The size of the given configuration
+ * @param [in] pDevice            Pointer to ADF3030-1 device instance.
+ * @param [in] pStartupCfg        Pointer to the reference configuration
+ * @param [in] u32_StartupCfgSize The size of the given configuration
  *
- * @return      Status
- *  - #0      If PHY instance was successfully setup
- *  - #1      [D] If PHY instance does not exist or
- *            [D] If PHY instance was not previously initialized or
- *            [D] If the Radio PHY failed to transition to new state or
- *            [D] If the communication with Radio PHY failed or
- *            [D] If PHY HW Reset (Host GPIO) failed
+ * @retval 0  If PHY instance was successfully setup
+ * @retval 1  If failed
 */
 uint8_t adf7030_1_Enable(
     adf7030_1_device_t* const pDevice,
@@ -1385,9 +1376,8 @@ uint8_t adf7030_1_Enable(
  *
  * @param [in] pDevice    Pointer to ADF3030-1 device instance.
  *
- * @return      Status
- *  - #0      If PHY instance was successfully setup
- *  - #1      [D] If PHY instance does not exist or if the Radio PHY failed to
+ * @retval 0  If PHY instance was successfully setup
+ * @retval 1  If PHY instance does not exist or if the Radio PHY failed to
  *            transition to new state or if the communication with Radio PHY failed.
 */
 uint8_t adf7030_1_Disable(
@@ -1434,9 +1424,8 @@ uint8_t adf7030_1_Disable(
  * @param [in] pfCallback Callback function which will be called upon interrupt detection.
  * @param [in] pCbParam   Callback parameter which will be passed to interrupt handler.
  *
- * @return      Status
- *  - #0    If Host GPIO has been configured for trigger functionality
- *  - #1    If Host port or pin are not valid or if Host GPIO configuration failed
+ * @retval 0    If Host GPIO has been configured for trigger functionality
+ * @retval 1    If Host port or pin are not valid or if Host GPIO configuration failed
  */
 uint8_t adf7030_1_HostGPIOIrq_Init(
     adf7030_1_device_t* const pDevice,
@@ -1492,9 +1481,8 @@ uint8_t adf7030_1_HostGPIOIrq_Init(
  * @param [in] u16Pin  Host pin used as trigger.
  * @param [in] bEnable PHY Trigger PIN to configure.
  *
- * @return      Status
- *  - #0     If Host GPIO has been configured for trigger functionality
- *  - #1     If Host port or pin are not valid or if Host GPIO configuration failed
+ * @retval 0     If Host GPIO has been configured for trigger functionality
+ * @retval 1     If Host port or pin are not valid or if Host GPIO configuration failed
 */
 uint8_t adf7030_1_HostGPIOTrig_Init(
     adf7030_1_device_t* const pDevice,
@@ -1530,12 +1518,10 @@ uint8_t adf7030_1_HostGPIOTrig_Init(
  *
  * @param [in] pDevice Pointer to ADF3030-1 device instance.
  *
- * @return      Status
- *  - #0    If SPI peripheral was successfully initialize
- *  - #1    [D] SPI peripheral failed to initialize or if the given device
+ * @retval 0    If SPI peripheral was successfully initialize
+ * @retval 1    If SPI peripheral failed to initialize or if the given device
  *          instance pointer is NULL
  *
- * @sa  adf7030_1_HostSPI_UnInit().
  */
 uint8_t adf7030_1_HostSPI_Init(
     adf7030_1_device_t* const pDevice
@@ -1576,12 +1562,9 @@ uint8_t adf7030_1_HostSPI_Init(
  *
  * @param [in] pDevice Pointer to ADF3030-1 device instance.
  *
- * @return      Status
- *  - #0     If SPI peripheral was successfully released
- *  - #1     [D] SPI peripheral failed to release or if the given device
- *           instance pointer is NULL
+ * @retval 0 If SPI peripheral was successfully released
+ * @retval 1 If SPI peripheral failed to release or if the given device instance pointer is NULL
  *
- * @sa  adf7030_1_HostSPI_Init().
  */
 uint8_t adf7030_1_HostSPI_UnInit(
     adf7030_1_device_t* const pDevice
@@ -1606,3 +1589,5 @@ uint8_t adf7030_1_HostSPI_UnInit(
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

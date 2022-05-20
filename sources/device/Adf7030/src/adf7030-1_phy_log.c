@@ -1,9 +1,10 @@
 /**
-  * @file: adf7030-1_phy_log.c
-  * @brief: This file implement PHY error management convenient function.
+  * @file adf7030-1_phy_log.c
+  * @brief This file implement PHY error management convenient function.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,16 +18,20 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/04/23[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/04/23[GBI]
   * Initial version
   *
   *
   */
-
+/*!
+ * @addtogroup adf7030-1_phy
+ * @ingroup device
+ * @{
+ *
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,28 +101,29 @@ const char * const phy_error_msgs[] =
     "SM_INVALID_SCRIPT_DATA -> Not available",                                                     // 0x09
     "SM_ROM_CRC_INCORRECT -> Not available",                                                     // 0x30
     "SM_PROFILE_CRC_CALCULATING -> Startup CRC calculation running (not really an error code)", // 0x31
-    "HW_MAIN_PLL_VCO_CAL_FAILURE_COARSE_CAL_FAILED -> PLL course calibration failure",             // 0x11
-    "HW_MAIN_PLL_VCO_CAL_FAILURE_AMP_CAL_FAILED -> PLL amplitude calibration failure",             // 0x12
-    "HW_MAIN_PLL_VCO_CAL_FAILURE_FINE_CAL_FAILED -> PLL fine calibration failure",                 // 0x13
+    "HW_MAIN_PLL_VCO_CAL_FAILURE_COARSE_CAL_FAILED -> PLL course calibration failure",          // 0x11
+    "HW_MAIN_PLL_VCO_CAL_FAILURE_AMP_CAL_FAILED -> PLL amplitude calibration failure",          // 0x12
+    "HW_MAIN_PLL_VCO_CAL_FAILURE_FINE_CAL_FAILED -> PLL fine calibration failure",              // 0x13
     "HW_ANC_PLL_LOCK_FAILED -> Auxiliary PLL lock failure",                                     // 0x14
     "HW_MAIN_PLL_VCO_CAL_MODE_INVALID -> PLL calibration mode invalid",                         // 0x15
-    "HW_TCXO_NOT_READY -> Temperature Compensated Crystal Oscillator failure",                     // 0x20
-    "HW_XTAL_NOT_READY -> Crystal Oscillator failure",                                             // 0x21
-    "HW_OCL_CAL_FAILED -> Offset calibration failure",                                             // 0x23
-    "HW_DIV_BY_ZERO -> Hardware divide by zero",                                                 // 0x24
-    "HW_VCO_KV_CAL_SINGLE_SHOT_FAILED -> VCO KV calibration step failure",                         // 0x25
+    "HW_TCXO_NOT_READY -> Temperature Compensated Crystal Oscillator failure",                  // 0x20
+    "HW_XTAL_NOT_READY -> Crystal Oscillator failure",                                          // 0x21
+    "HW_OCL_CAL_FAILED -> Offset calibration failure",                                          // 0x23
+    "HW_DIV_BY_ZERO -> Hardware divide by zero",                                                // 0x24
+    "HW_VCO_KV_CAL_SINGLE_SHOT_FAILED -> VCO KV calibration step failure",                      // 0x25
     "HW_VCO_KV_CAL_FINE_CAL_FAILED -> VCO KV fine calibration failure",                         // 0x26
     "HW_VCO_KV_CAL_AMP_CAL_FAILED -> VCO KV amplitude calibration failure",                     // 0x27
-    "HW_VCO_KV_HFXTAL_INVALID -> VCO KV clock source invalid",                                     // 0x28
+    "HW_VCO_KV_HFXTAL_INVALID -> VCO KV clock source invalid",                                  // 0x28
     "HW_VCO_KV_CAL_COARSE_CAL_FAILED -> VCO KV coarse calibration failure",                     // 0x29
-    "HW_TEMP_SENSE_FAILED -> Temperature sensor failure",                                         // 0x32
-    "HW_LFRC_CAL_FAILED -> Low frequency oscillator calibration failure",                         // 0x33
-    "HW_HARD_FAULT_FAIL -> Firmware hard fault \0"                                                 // 0x3F
-    // 0x0A to 0x10
-    // 0x16 to 0x1F
-    // 0x22
-    // 0x2A to 0x2F
-    // 0x34 to 0x3E
+    "HW_TEMP_SENSE_FAILED -> Temperature sensor failure",                                       // 0x32
+    "HW_LFRC_CAL_FAILED -> Low frequency oscillator calibration failure",                       // 0x33
+    "HW_HARD_FAULT_FAIL -> Firmware hard fault \0",                                             // 0x3F
+	//               0x0A to 0x10
+	//               0x16 to 0x1F
+	//               0x22
+	//               0x2A to 0x2F
+	//               0x34 to 0x3E
+	"HW_ERROR -> undetermined !"                                                                // 0xFF
 };
 
 /*!
@@ -180,7 +186,8 @@ adf7030_1_phy_error_debug_t phy_error_id[NUM_PHY_ERROR] =
         {0x29, &phy_error_msgs[25]},
         {0x32, &phy_error_msgs[26]},
         {0x33, &phy_error_msgs[27]},
-        {0x3F, &phy_error_msgs[28]}
+        {0x3F, &phy_error_msgs[28]},
+        {0xFF, &phy_error_msgs[29]}
 };
 
 /**
@@ -217,7 +224,8 @@ const char* getErrMsg(adf7030_1_device_t* const pDevice)
     adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
     adf7030_1_res_e eResult = pSPIDevInfo->eXferResult;
 
-    const char **ppError = instance_error_id[0].instance_error_str;
+    //const char **ppError = instance_error_id[0].instance_error_str;
+    const char **ppError = phy_error_id[29].phy_error_str;
 
     if(eResult == ADF7030_1_HW_ERROR)
     {
@@ -248,3 +256,5 @@ const char* getErrMsg(adf7030_1_device_t* const pDevice)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

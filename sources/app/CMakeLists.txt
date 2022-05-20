@@ -1,6 +1,6 @@
 ################################################################################
 # include the build support cmake
-find_package(install_support REQUIRED)
+find_package(build_support REQUIRED)
 
 set(MODULE_NAME App_WizeUp)
 

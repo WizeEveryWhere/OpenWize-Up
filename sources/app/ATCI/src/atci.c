@@ -1,10 +1,11 @@
-/**********************************************************************************************************
-  * @file: atci.c
-  * @brief: This file contains functions of the AT command interpreter for WizeUp
+/**
+  * @file atci.c
+  * @brief This file contains functions of the AT command interpreter for WizeUp
   * module
   *
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,19 +19,24 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 0.0.1 : 2021/01/11
+  * @par Revision history
+  *
+  * @par 0.0.1 : 2021/01/11 [Alciom]
   * Dev. version
   *
   *
- *********************************************************************************************************/
+  */
 
-/*=========================================================================================================
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
+
+/*==============================================================================
  * INCLUDES
- *=======================================================================================================*/
+ *============================================================================*/
 
 #include <stdint.h>
 
@@ -53,17 +59,26 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-/*=========================================================================================================
+/*==============================================================================
  * GLOBAL VARIABLES
- *=======================================================================================================*/
+ *============================================================================*/
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 atci_status_t (*Atci_Exec_Cmd[NB_AT_CMD])(atci_cmd_t *atciCmdData);
 
 extern phydev_t sPhyDev;
 
-/*=========================================================================================================
+/*!
+ * @}
+ * @endcond
+ */
+
+/*==============================================================================
  * LOCAL FUNCTIONS PROTOTYPES
- *=======================================================================================================*/
+ *============================================================================*/
 
 atci_status_t Exec_AT_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData);
@@ -79,20 +94,20 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
 
 
-/*=========================================================================================================
+/*==============================================================================
  * FUNCTIONS
- *=======================================================================================================*/
+ *============================================================================*/
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
+ * @internal
  * @brief		AT command interpreter task
- * 				Wait AT command reception, decode and execute it
- * 				Manage sleep and reset
  *
- * @param[IN]	argument: unused
- * @param[OUT]	None
+ * @details 	Wait AT command reception, decode and execute it. Manage sleep and reset.
  *
- * @return		None (this task never return)
- *-------------------------------------------------------------------------------------------------------*/
+ * @param[in]	argument Unused
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
 void Atci_Task(void const *argument)
 {
 	atci_state_t atciState = ATCI_WAKEUP;
@@ -240,17 +255,20 @@ void Atci_Task(void const *argument)
 }
 
 
-/*=========================================================================================================
+/*==============================================================================
  * LOCAL FUNCTIONS - commands executions
- *=======================================================================================================*/
+ *============================================================================*/
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute AT command (nothing to do)
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @return
+ * 	- ATCI_OK if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
@@ -259,15 +277,20 @@ atci_status_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_OK;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATI command (Queries the identification of the module)
- * 				Command format: "ATI"
- * 				Response format: "+ATI :"WIZEUP",<manufacturer>,<model>,<hw version>,<major sw version>,<minor sw version>"
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		Command format: "ATI".
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * 	Response format: "+ATI :"WIZEUP",<manufacturer>,<model>,<hw version>,<major sw version>,<minor sw version>"
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_OK if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 {
 	uint16_t tmp;
@@ -313,15 +336,18 @@ atci_status_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_OK;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute AT&F command (Restore registers to their factory settings)
- * 				Command format: "AT&F"
- * 				No specific response
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		Command format: "AT&F".
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_OK if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
@@ -332,15 +358,18 @@ atci_status_t Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_OK;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute AT&W command (Store current registers values in flash)
- * 					Command format: "AT&W"
- * 					No specific response
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		Command format: "AT&W".
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_OK if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
@@ -356,25 +385,34 @@ atci_status_t Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_OK;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATPARAM command (Modify/read the value of a Wize LAN parameter)
- * 				This command may be a read or a write command:
- * 					"ATPARAM?" -> read all registers
- * 					"ATPARAM=<address>?" -> read register of address <address>
- * 					"ATPARAM=<address>,<value>" -> write <value> to register of address <address> (1 byte)
- * 				Read response format:
- * 					"+ATPARAM:<address>,<value>" (this response is send for each register in read all register mode)
- * 				Fields:
- * 					<address> is the register address (decimal or hexadecimal 8 bits number)
- *					<value> may be a 8, 16 or 32 bits integer (decimal or hexadecimal format may be used)
- *					  or an array (hexadecimal format must be used) -> refer to register list in specifications
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
- * 					params[0] is used for the register address witch is always a 8 bits integer
- * 					params[1] is used for the register value witch can be a 8, 16 or 32 bits integer or a bytes array
+ * @details		This command may be a read or a write command:
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @parblock
+ * @li "ATPARAM?" : read all registers
+ * @li "ATPARAM=<address>?" : read register of address "address"
+ * @li "ATPARAM=<address>,<value>" : write "value" to register of address "address" (1 byte)
+ * @endparblock
+ *
+ * Read response format:
+ * @parblock
+ * "+ATPARAM:<address>,<value>"
+ * (this response is send for each register in read all register mode)
+ * @li address : is the register address (decimal or hexadecimal 8 bits number)
+ * @li value : may be a 8, 16 or 32 bits integer (decimal or hexadecimal format may be used) or an array (hexadecimal format must be used) -> refer to register list in specifications
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ * 					- params[0] is used for the register address witch is always a 8 bits integer
+ * 					- params[1] is used for the register value witch can be a 8, 16 or 32 bits integer or a bytes array
+ *
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -491,19 +529,22 @@ atci_status_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATKMAC command (Modify the value of the Kmac key)
- * 				ATKMAC command is a write only command:
- * 					"ATKMAC=<key>" <key> is a 16 or 32 bytes key (32 bytes KMAC but only the 16 1st bytes uses)
- * 						and must be written in hexadecimal format (with "$" char)
- * 				No specific response
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
- * 					params[0] is used for the key (16 bytes in command but extended to 32 bytes by adding zeros
+ * @details		ATKMAC command is a write only command:
+ *
+ * "ATKMAC=<key>" key is a 16 or 32 bytes key (32 bytes KMAC but only the 16 1st bytes uses) and must be written in hexadecimal format (with "$" char)
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ * 					- params[0] is used for the key (16 bytes in command but extended to 32 bytes by adding zeros
  * 						because a 32 bytes key is needed but only 16 bytes are used)
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATKMAC_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -546,18 +587,24 @@ atci_status_t Exec_ATKMAC_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATKENC command (Modify the value of the Kenc key)
- * 				ATKENC command is a write only command:
- * 					"ATKENC=<id>,<key>"	<id> is the key number (decimal or hexadecimal 1 byte number)
- * 										<key> is a 16 or 32 bytes key (32 bytes KENC but only the 16 1st bytes uses)
- * 											and must be written in hexadecimal format (with "$" char)
- * 				No specific response
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		ATKENC command is a write only command:
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * "ATKENC=<id>,<key>"
+ * @parblock
+ * @li id is the key number (decimal or hexadecimal 1 byte number)
+ * @li key is a 16 or 32 bytes key (32 bytes KENC but only the 16 1st bytes uses) and must be written in hexadecimal format (with "$" char)
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -615,20 +662,29 @@ atci_status_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATIDENT command (Modify/read the value of M-field and A-field)
- * 				This command may be a read or a write command:
- * 					"ATIDENT=<M-field>,<A-field>" -> write M-field and A-field
- * 					"ATIDENT?" -> read M-field and A-field
- * 					<M-field> is 2 bytes array (must be in hex format)
- * 					<A-field> is 6 bytes array (must be in hex format)
- * 				Response to a read command:
- * 					"+ATIDENT:<M-field>,<A-field>"
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		This command may be a read or a write command:
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @parblock
+ * @li "ATIDENT=<M-field>,<A-field>" : write M-field and A-field
+ * @li "ATIDENT?" : read M-field and A-field
+ * 		- <M-field> is 2 bytes array (must be in hex format)
+ * 		- <A-field> is 6 bytes array (must be in hex format)
+ *
+ * Response to a read command:
+ * @parblock
+ * @li "+ATIDENT:<M-field>,<A-field>"
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -689,24 +745,28 @@ atci_status_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATSEND command (Send a Wize message)
- * 				Command format:
- * 					"ATSEND=<l6app>,<l7msg>"
- * 						<l6app> is the layer 6 application code used to give for witch application are the L7 data (decimal or hexadecimal 8bits integer)
- * 						<l7msg> is the layer 7 message to send (array in hexadecimal format, maximum length is 102 bytes for PRES-EXCHANGE L6 frames)
- * 				Maybe 2 types of responses:
- * 						- an APP-ADMIN write command was received and processed by the on-board Wize stack
- * 							message: "+ATADMWRITE :<paramid>,<paramvalue>,<rssi>"
- * 						- a response was received in response of the Wize message, which can’t be managed
- * 							by the on-board Wize stack (other application layer than APP-ADMIN)
- * 							message: "+ATRCV:<L6App>,<l7resp>,<rssi>"
  *
+ * @details		Command format: "ATSEND=<l6app>,<l7msg>"
+ * @parblock
+ * @li l6app is the layer 6 application code used to give for witch application are the L7 data (decimal or hexadecimal 8bits integer)
+ * @li l7msg is the layer 7 message to send (array in hexadecimal format, maximum length is 102 bytes for PRES-EXCHANGE L6 frames)
+ * @endparblock
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * Maybe 2 types of responses:
+ * @parblock
+ * @li an APP-ADMIN write command was received and processed by the on-board Wize stack message: "+ATADMWRITE :<paramid>,<paramvalue>,<rssi>"
+ * @li a response was received in response of the Wize message, which can’t be managed by the on-board Wize stack (other application layer than APP-ADMIN) message: "+ATRCV:<L6App>,<l7resp>,<rssi>"
+ * @endparblock
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -816,15 +876,19 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATPING command (Send an INSTPING request)
- * 				Command format: "ATPING"
+ *
+ * @details 	Command format: "ATPING"
  * 				No specific response (read dedicated registers with ATPARAM command)
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 {
 	uint8_t sta;
@@ -875,40 +939,66 @@ atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_OK;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute ATFC command (set or get factory configuration)
- * 				This command may be a read or a write command:
- * 					"ATFC=<id>?" -> read configuration <id> (if parameter available)
- * 					"ATPARAM=<id>,<value_1>,<value_2>,...,<value_n>" -> write one or more values to a configuration
- * 				Read response format:
- * 					"+ATPARAM:<id>,<value_1>,<value_2>,...,<value_n>"
- * 				Fields:
- * 					<id> is the configuration ID (decimal or hexadecimal 8 bits number)
- *					<value_1>,<value_2>... one or more values:  may be a 8, 16 or 32 bits integer (decimal or hexadecimal format may be used)
- *					  or an array (hexadecimal format must be used)
- *				Configurations:
- *					- ADF7030 output power configuration: <id>,<value_1>,<value_2>,<value_3>
- *						<id> = 0x00 -> configuration for max power
- *						<id> = 0x01 -> configuration for 6dB under max power
- *						<id> = 0x02 -> configuration for 12dB under max power
- *						<value_1> -> coarse PA settings, from 1 to 6 (8 bits integer, see ADF7030 Datasheet)
- *						<value_2> -> fine PA settings from 0 to 255 (8 bits integer, see ADF7030 Datasheet)
- *						<value_3> -> micro PA settings from 0 to 255 (8 bits integer, see ADF7030 Datasheet)
- *					- Power amplifier (SKY66100-11) enable: <id>,<value_1>  (<value_1> is 8 bits integer)
- *						<id> = 0x10
- *						<value_1> = 0 -> Power amplifier is bypassed in TX
- *						<value_1> = 1 -> Power amplifier is enabled in TX
- *					- RSSI calibration (Apply Carrier at mid band frequency with -77dbm level): <id>
- *						<id> = 0x20
- *						There is no parameter, read will return an error
- *					- Auto-Calibration: <id>
- *						<id> = 0xFC
- *						There is no parameter, read will return an error
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		This command may be a read or a write command:
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @li	"ATFC=<id>?" -> read configuration "id" (if parameter available)
+ * @li	"ATPARAM=<id>,<value_1>,<value_2>,...,<value_n>" -> write one or more values to a configuration
+ *
+ * Read response format:
+ * @li	"+ATPARAM:<id>,<value_1>,<value_2>,...,<value_n>"
+ *
+ * @parblock
+ * @li	id is the configuration ID (decimal or hexadecimal 8 bits number)
+ * @li	value_1, value_2... one or more values:  may be a 8, 16 or 32 bits integer (decimal or hexadecimal format may be used) or an array (hexadecimal format must be used)
+ * @endparblock
+ *
+ * Configurations:
+ * @parblock
+ * <ul>
+ * <li>	ADF7030 output power configuration: id, value_1, value_2, value_3
+ * 		<ul>
+ * 		<li> id
+ * 			<ul>
+ * 			<li> 0x00 : configuration for max power
+ *			<li> 0x01 : configuration for 6dB under max power
+ *			<li> 0x02 : configuration for 12dB under max power
+ *			</ul>
+ *		<li> value_1 : coarse PA settings, from 1 to 6 (8 bits integer, see ADF7030 Datasheet)
+ *		<li> value_2 : fine PA settings from 0 to 255 (8 bits integer, see ADF7030 Datasheet)
+ *		<li> value_3 : micro PA settings from 0 to 255 (8 bits integer, see ADF7030 Datasheet)
+ * 		</ul>
+ * <li>	Power amplifier (SKY66100-11) enable: id, value_1  (value_1 is 8 bits integer)
+ *		<ul>
+ *		<li> id : 0x10
+  *		<li> value_1
+ *			<ul>
+ *			<li> 0 : Power amplifier is bypassed in TX
+ *			<li> 1 : Power amplifier is enabled in TX
+ *			</ul>
+ *		</ul>
+ * </li>
+ * <li>	RSSI calibration (Apply Carrier at mid band frequency with -77dbm level): id
+ *		<ul>
+ *		<li> id : 0x20 : There is no parameter, read will return an error
+ *		</ul>
+ * </li>
+ * <li>	Auto-Calibration: id
+ * 		<ul>
+ * 		<li> id : 0xFC : There is no parameter, read will return an error
+ * 		</ul>
+ * </ul>
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -1075,26 +1165,30 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 }
 
-/*!--------------------------------------------------------------------------------------------------------
+/*!-----------------------------------------------------------------------------
  * @brief		Execute TEST command (enable or disable a test mode)
- * 				This command is a write only command:
- * 					"ATTEST=<test_mode>" -> enable or disable a test mode
- * 				Fields:
- * 					<test_mode> = 0x00 -> disable test mode (RX or TX test)
- * 					<test_mode> = 0x01 -> enable TX test mode, transmit a carrier
- * 					<test_mode> = 0x02 -> enable TX test mode, transmit frequency deviation tone, −fDEV, in 2FSK or off in OOK
- * 					<test_mode> = 0x03 -> enable TX test mode, transmit −fDEV_MAX in 4FSK only
- * 					<test_mode> = 0x04 -> enable TX test mode, transmit +fDEV in 2FSK or on in OOK
- * 					<test_mode> = 0x05 -> enable TX test mode, transmit +fDEV_MAX in 4FSK only
- * 					<test_mode> = 0x06 -> enable TX test mode, transmit transmit preamble pattern.
- * 					<test_mode> = 0x07 -> enable TX test mode, transmit pseudorandom (PN9) sequence
- * 					<test_mode> = 0x10 -> enable RX test mode, get copy of SPORT_CLK to EXT_I2C_SCL and SPORT_DATA to EXT_I2C_SDA
- * 					<test_mode> = 0x11 -> enable RX test mode, get PREAMBLE detect on EXT_I2C_SCL and SYNCH detect on EXT_I2C_SDA
  *
- * @param[I/O]	atciCmdData ("atci_cmd_t" structure)
+ * @details		The received AT command "ATTEST=<test_mode>" where test_mode is one of :
+ * @parblock
+ * @li	0x00 : disable test mode (RX or TX test)
+ * @li	0x01 : enable TX test mode, transmit a carrier
+ * @li	0x02 : enable TX test mode, transmit frequency deviation tone, −fDEV, in 2FSK or off in OOK
+ * @li	0x03 : enable TX test mode, transmit −fDEV_MAX in 4FSK only
+ * @li	0x04 : enable TX test mode, transmit +fDEV in 2FSK or on in OOK
+ * @li	0x05 : enable TX test mode, transmit +fDEV_MAX in 4FSK only
+ * @li	0x06 : enable TX test mode, transmit transmit preamble pattern.
+ * @li	0x07 : enable TX test mode, transmit pseudorandom (PN9) sequence
+ * @li	0x10 : enable RX test mode, get copy of SPORT_CLK to EXT_I2C_SCL and SPORT_DATA to EXT_I2C_SDA
+ * @li	0x11 : enable RX test mode, get PREAMBLE detect on EXT_I2C_SCL and SYNCH detect on EXT_I2C_SDA
+ * @endparblock
  *
- * @return		status: ATCI_OK if succeed, else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *-------------------------------------------------------------------------------------------------------*/
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_OK if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
@@ -1147,9 +1241,6 @@ atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_OK;
 }
 
+/*********************************** EOF **************************************/
 
-
-/************************************************** EOF **************************************************/
-
-
-
+/*! @} */

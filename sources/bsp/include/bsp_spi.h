@@ -1,9 +1,10 @@
 /*!
-  * @file: bsp_spi.h
-  * @brief: This file defines functions to deal with SPI.
+  * @file bsp_spi.h
+  * @brief This file defines functions to deal with SPI.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,21 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2019/12/14[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2019/12/14 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup spi
+ * @ingroup bsp
+ * @{
+ */
+
 #ifndef _BSP_SPI_H_
 #define _BSP_SPI_H_
 #ifdef __cplusplus
@@ -35,24 +42,32 @@ extern "C" {
 #include "common.h"
 #include "bsp_gpio.h"
 
+/*!
+  * @brief This struct define the spi transaction
+  */
 typedef struct
 {
-    uint8_t*    pTransmitter;/*!< Pointer to transmit data.        */
-    uint8_t*    pReceiver; /*!< Pointer to receive data.         */
-    uint32_t    TransmitterBytes; /*!< Data size  for TX(bytes).          */
-    uint32_t    ReceiverBytes; /*!< Data size  for RX(bytes).          */
-    uint32_t    nTxIncrement;/*!<  Transmit pointer increment flag. */
-    uint32_t    nRxIncrement; /*!< Receive pointer increment flag.  */
+    uint8_t* pTransmitter;     /*!< Pointer to transmit data */
+    uint8_t* pReceiver;        /*!< Pointer to receive data */
+    uint32_t TransmitterBytes; /*!< Data size  for TX(bytes) */
+    uint32_t ReceiverBytes;    /*!< Data size  for RX(bytes) */
+    uint32_t nTxIncrement;     /*!< Transmit pointer increment flag */
+    uint32_t nRxIncrement;     /*!< Receive pointer increment flag */
 } spi_transceiver_s;
 
-
+/*!
+  * @brief This struct define the spi device
+  */
 typedef struct
 {
-    uint8_t bus_id;
-    uint32_t ss_port;
-    uint16_t ss_pin;
+    uint8_t bus_id;   /*!< SPI bus id */
+    uint32_t ss_port; /*!< Chip select gpio port */
+    uint16_t ss_pin;  /*!< Chip select gpio pin */
 } spi_dev_t;
 
+/*!
+  * @brief This define a pointer on spi device
+  */
 typedef spi_dev_t* p_spi_dev_t;
 
 uint8_t BSP_Spi_Init(const p_spi_dev_t p_Device);
@@ -70,3 +85,5 @@ uint8_t BSP_Spi_ReadWrite (const p_spi_dev_t p_Device, spi_transceiver_s* const 
 }
 #endif
 #endif /* _BSP_SPI_H_ */
+
+/*! @} */

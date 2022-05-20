@@ -1,31 +1,38 @@
 /**
   * @file: phy_test.h
-  * @brief: // TODO This file ...
+  * @brief: This file define some phy test usefull function
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
   *
-  * Redistribution and use in source and binary forms, with or without 
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
   * below) provided that the following conditions are met:
   *    - Redistributions of source code must retain the above copyright notice,
   *      this list of conditions and the following disclaimer.
-  *    - Redistributions in binary form must reproduce the above copyright 
-  *      notice, this list of conditions and the following disclaimer in the 
+  *    - Redistributions in binary form must reproduce the above copyright
+  *      notice, this list of conditions and the following disclaimer in the
   *      documentation and/or other materials provided with the distribution.
   *    - Neither the name of GRDF, Inc. nor the names of its contributors
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2021/04/07[TODO: your name]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2021/04/07 [GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ *  @addtogroup extra
+ *  @ingroup app
+ *  @{
+ */
+ 
 #ifndef _EXTRA_PHY_PHY_TEST_H_
 #define _EXTRA_PHY_PHY_TEST_H_
 #ifdef __cplusplus
@@ -44,3 +51,5 @@ void EX_PHY_SetCpy(void);
 }
 #endif
 #endif /* _EXTRA_PHY_PHY_TEST_H_ */
+
+/*! @} */

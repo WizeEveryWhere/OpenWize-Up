@@ -1,6 +1,6 @@
 /*!
  *****************************************************************************
-  @file:    adf7030-1_mem.c
+  @file:    adf7030-1__mem.c
   
   @brief:    adf7030-1 Memory Accress Functions.
                 - SPI communication with between Host and Radio.
@@ -83,10 +83,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 /**
  * @brief       Function call to convert a configuration file into data block
  *              description structure.
- *
- * @param [in]  pSPIDevInfo     Pointer to the SPI device info structure of the
- *                              ADI RF Driver used to communicate with the
- *                              adf7030-1 PHY.
  *
  * @param [in]  pCONFIG      Pointer to Host configuration structure.
  * @param [in]  Size         The pCONFIG content size.
@@ -216,7 +212,7 @@ inline uint8_t adf7030_1__WriteConfig(
  *                              ADI RF Driver used to communicate with the
  *                              adf7030-1 PHY.
  *
- * @param [in|out]  pCONFIG     Pointer to Host configuration structure.
+ * @param [in,out]  pCONFIG     Pointer to Host configuration structure.
  *
  * @note                        Configuration data is provided by ADI RF Setting Calculator.
  *                              @sa USER_CONFIG_20.h for an example.
@@ -494,6 +490,8 @@ inline uint8_t adf7030_1__ReadPartiaDataBlock(
  *                              adf7030-1 PHY.
  *
  * @param [in]  pBLOCK          Pointer to Host data block structure.
+ * @param [in]  Offset          Offset relative to the Host data block structure starting address.
+ * @param [in]  Size            Size in byte of the data block structure.
  *
  * @note                        This function modifies SPIDevInfo->PHY_PNTR[PNTR_CUSTOM0_ADDR].
  *
@@ -526,9 +524,9 @@ inline uint8_t adf7030_1__VerifyPartialDataBlock(
  *
  * @param [in]  pBLOCK          Pointer to Host configuration structure sub data block.
  *
- * @param [in]  Offset          Offset relative to the Host data block structure starting address.
+ * @param [in]  Byte_Offset     Offset relative to the Host data block structure starting address.
  *
- * @param [in]  Size            Size in byte to be transfered from Host data block structure.
+ * @param [in]  Byte_Size       Size in byte to be transfered from Host data block structure.
  *
  * @param [in]  bREAD_nWRITE    Boolean  -TRUE to write data block from Host to the Radio PHY
  *                                       -FALSE to read data block from Radio PHY back to Host
@@ -1079,7 +1077,7 @@ inline uint8_t adf7030_1__SPI_GetMem8(
  *
  * @param [in]  nbBytes         Number of Bytes to writes (1, 2, 3 or 4);
  *
- * @param [in|out]  pRegVal     Pointer to "last full 32bits value" of Addr location
+ * @param [in,out]  pRegVal     Pointer to "last full 32bits value" of Addr location
  *                              in the event of Addr not being within byte accessible
  *                              range of the memory map.
  *
@@ -1178,7 +1176,7 @@ void adf7030_1__SPI_SetBytes(
  *
  * @param [in]  nbBytes         Number of Bytes to read (1, 2, 3 or 4);
  *
- * @param [in|out]  pRegVal     Pointer to full 32bits register writeback location
+ * @param [in,out]  pRegVal     Pointer to full 32bits register writeback location
  *                              in the event of Addr not being within byte accessible
  *                              range of the memory map.
  *
@@ -1421,7 +1419,7 @@ uint32_t adf7030_1__SPI_GetField(
  *              at byte level. This includes ROM, RAM and Radio Peripheral Registers.
  *              APB Peripherals only support 32bits word access.
  *
- * @param [in]  Addr            32bit byte address location.
+ * @param [in]  nAddr  32bit byte address location.
  *
  * @return      None
  */

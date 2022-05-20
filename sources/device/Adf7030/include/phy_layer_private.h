@@ -1,9 +1,10 @@
 /**
-  * @file: phy_layer_private.h
-  * @brief: This file defines structures, type, enum required by the phy device
+  * @file phy_layer_private.h
+  * @brief This file defines structures, type, enum required by the phy device
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,15 +18,21 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2020/05/15[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2020/05/15[GBI]
   * Initial version
   *
   *
   */
+
+/*!
+ * @addtogroup phy_layer
+ * @ingroup device
+ * @{
+ *
+ */
 #ifndef _PHY_LAYER_PRIVATE_H_
 #define _PHY_LAYER_PRIVATE_H_
 
@@ -35,6 +42,11 @@ extern "C" {
 
 #include "adf7030-1_phy.h"
 #include "phy_itf.h"
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 #define RADIO_CAL_HEADER_BE 0x00002C38200003C8
 #define RADIO_CAL_HEADER_SZ sizeof(RADIO_CAL_HEADER_BE)
@@ -46,12 +58,19 @@ extern "C" {
 
 #define CAL_RES_SZ (36+8+32+8)
 
+/*!
+ * @}
+ * @endcond
+ */
+
 /******************************************************************************/
 /*!
  * @brief This define the available command to change the PHY state
  */
 typedef enum {
+	/*! @cond INTERNAL @{ */
 	PHY_CMD_INTERNAL = PHY_CTL_CMD_LAST,
+	/*! @} @endcond */
 	PHY_CMD_RX       , /*!< RX command */
 	PHY_CMD_TX       , /*!< TX command */
 	PHY_CMD_CCA      , /*!< Noise measurement */
@@ -127,9 +146,10 @@ int32_t Phy_RssiCalibrate(phydev_t *pPhydev, int8_t i8RssiRefLevel);
 #ifdef PHY_USE_POWER_RAMP
 	extern pa_ramp_rate_e pa_ramp_rate;
 #endif
-extern int16_t rssi_offset_cal ;
 
-extern phy_power_t aPhyPower[PHY_NB_PWR];
+//extern int16_t rssi_offset_cal ;
+
+//extern phy_power_t aPhyPower[PHY_NB_PWR];
 
 extern const char * const aChanStr[PHY_NB_CH];
 extern const char * const aModulationStr[PHY_NB_MOD];
@@ -142,3 +162,5 @@ extern const char * const aTestModeTXStr[TMODE_TX_NB];
 }
 #endif
 #endif /* _PHY_LAYER_PRIVATE_H_ */
+
+/*! @} */
