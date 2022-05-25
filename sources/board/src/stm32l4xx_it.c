@@ -4,6 +4,7 @@
 
 extern RTC_HandleTypeDef hrtc;
 extern UART_HandleTypeDef huart4;
+extern UART_HandleTypeDef husart1;
 extern TIM_HandleTypeDef htim6;
 
 /**
@@ -35,6 +36,22 @@ void UART4_IRQHandler(void)
 	else
 	{
 		HAL_UART_IRQHandler(&huart4);
+	}
+}
+
+/**
+  * @brief This function handles UART4 global interrupt.
+  */
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART2_IRQn 0 */
+	if ( husart1.Instance->ISR & USART_ISR_RTOF)
+	{
+		husart1.RxISR(&husart1);
+	}
+	else
+	{
+		HAL_UART_IRQHandler(&husart1);
 	}
 }
 

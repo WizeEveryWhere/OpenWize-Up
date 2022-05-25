@@ -50,6 +50,7 @@
 void RTC_WKUP_IRQHandler(void);
 void RTC_Alarm_IRQHandler(void);
 void UART4_IRQHandler(void);
+void USART1_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 void EXTI1_IRQHandler(void);

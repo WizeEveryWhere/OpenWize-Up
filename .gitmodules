@@ -1,3 +1,3 @@
 [submodule "third-party/.OpenWize"]
 	path = third-party/.OpenWize
-	url = https://github.com/GRDF/OpenWize.git
+	url = https://github.com/WizeEveryWhere/OpenWize.git

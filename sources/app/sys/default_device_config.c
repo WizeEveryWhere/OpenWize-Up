@@ -90,6 +90,34 @@ KEEP_VAR(const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN]
     }
 };
 
+KEEP_VAR(const adf7030_1_gpio_trig_info_t DEFAULT_GPIO_TRIG[ADF7030_1_NUM_TRIG_PIN]) =
+{
+	{
+		/*! Host GPIO port to which the interrupt pin is connected */
+		.u32Port = ADF7030_1_TRIG0_GPIO_PORT,
+		/*! Host GPIO pin within the GPIO port */
+		.u16Pin = ADF7030_1_TRIG0_GPIO_PIN,
+		/*! PHY Radio GPIO pin */
+		.ePhyPin = ADF7030_1_TRIG0_GPIO_PHY_PIN,
+		/*! PHY Radio Command to execute on trigger */
+		.nTrigCmd = PHY_TX,
+		/*! Current trigger status */
+		.eTrigStatus = 0
+	},
+	{
+		/*! Host GPIO port to which the interrupt pin is connected */
+		.u32Port = 0,
+		/*! Host GPIO pin within the GPIO port */
+		.u16Pin = ADF7030_1_TRIG1_GPIO_PIN,
+		/*! PHY Radio GPIO pin */
+		.ePhyPin = ADF7030_1_TRIG1_GPIO_PHY_PIN,
+		/*! PHY Radio Command to execute on trigger */
+		.nTrigCmd = PHY_RX,
+		/*! Current trigger status */
+		.eTrigStatus = 0
+	}
+};
+
 /*!
  * @}
  * @endcond

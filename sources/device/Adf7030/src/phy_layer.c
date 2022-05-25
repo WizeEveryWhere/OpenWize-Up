@@ -1357,9 +1357,13 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 							pSPIDevInfo->nPhyNextState = PHY_TX;
 							pDevice->eState |= ADF7030_1_STATE_TRANSMITTING;
 						}
-
+#ifdef USE_PHY_TRIG
+						eRet = adf7030_1_SetupTrig(pDevice, ADF7030_1_TRIGPIN0, pSPIDevInfo->nPhyNextState, 1);
+						eRet |= adf7030_1_PulseTrigger(pDevice, ADF7030_1_TRIGPIN0);
+#else
 						//eRet = adf7030_1__STATE_PhyCMD( pSPIDevInfo, pSPIDevInfo->nPhyNextState );
 						eRet = adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, pSPIDevInfo->nPhyNextState, pSPIDevInfo->nPhyNextState );
+#endif
 						if(eRet)
 						{
 							eStatus = PHY_STATUS_ERROR;

@@ -14,6 +14,7 @@ add_compile_definitions(DUMP_CORE_HAS_TRACE=1)
 add_compile_definitions(DUMP_CORE_HAS_FAULT_STATUS_REGISTER=1)
 add_compile_definitions(L6VERS=L6VER_WIZE_REV_1_2)
 #add_compile_definitions(HAS_LPOWER=1)
+add_compile_definitions(USE_PHY_TRIG=1)
 
 add_compile_options(-Wall -ffunction-sections -fdata-sections -fstack-usage)
 

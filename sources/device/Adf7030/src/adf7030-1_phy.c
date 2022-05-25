@@ -90,12 +90,14 @@ uint8_t adf7030_1_PulseTrigger(
     adf7030_1_gpio_trig_info_t * pTrigGPIOInfo = &pDevice->TrigGPIOInfo[eTRIG];
     if((pTrigGPIOInfo->u32Port != 0UL) && (pTrigGPIOInfo->u16Pin != 0UL))
     {
+    	register uint8_t cnt = 10;
         /* Toggle PHY Radio GPIO pin from the Glue Host */
         if(BSP_Gpio_SetHigh(pTrigGPIOInfo->u32Port, pTrigGPIOInfo->u16Pin) != DEV_SUCCESS)
         {
             return 1;
         }
-
+        //msleep(1);
+        while (cnt){cnt--;}
         if(BSP_Gpio_SetLow(pTrigGPIOInfo->u32Port, pTrigGPIOInfo->u16Pin) != DEV_SUCCESS)
         {
             return 1;

@@ -17,47 +17,10 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-/* USER CODE BEGIN Includes */
 
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN TD */
-
-/* USER CODE END TD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN Define */
- 
-/* USER CODE END Define */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN Macro */
-
-/* USER CODE END Macro */
-
-/* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* External functions --------------------------------------------------------*/
-/* USER CODE BEGIN ExternalFunctions */
-
-/* USER CODE END ExternalFunctions */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
 /**
   * Initializes the Global MSP.
   */
@@ -100,8 +63,6 @@ void HAL_MspInit(void)
 	HAL_DBGMCU_EnableDBGStopMode();
 	HAL_DBGMCU_EnableDBGSleepMode();
 #endif
-
-  /* USER CODE END MspInit 1 */
 }
 
 /**
@@ -349,9 +310,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   if(huart->Instance==UART4)
   {
-  /* USER CODE BEGIN UART4_MspInit 0 */
-
-  /* USER CODE END UART4_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_UART4_CLK_ENABLE();
   
@@ -370,10 +328,30 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     /* UART4 interrupt Init */
     HAL_NVIC_SetPriority(UART4_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(UART4_IRQn);
-  /* USER CODE BEGIN UART4_MspInit 1 */
-
-  /* USER CODE END UART4_MspInit 1 */
   }
+
+  else if(huart->Instance==USART1)
+  {
+    /* Peripheral clock enable */
+    __HAL_RCC_USART1_CLK_ENABLE();
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**USART1 GPIO Configuration
+    PA10    ------> USART1_TX
+    PA9     ------> USART1_RX
+    */
+    GPIO_InitStruct.Pin = IO5_Pin|IO6_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* UART4 interrupt Init */
+    HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
+  }
+
 
 }
 
@@ -387,9 +365,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 {
   if(huart->Instance==UART4)
   {
-  /* USER CODE BEGIN UART4_MspDeInit 0 */
-
-  /* USER CODE END UART4_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_UART4_CLK_DISABLE();
   
@@ -401,15 +376,19 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
     /* UART4 interrupt DeInit */
     HAL_NVIC_DisableIRQ(UART4_IRQn);
-  /* USER CODE BEGIN UART4_MspDeInit 1 */
-
-  /* USER CODE END UART4_MspDeInit 1 */
   }
+  else if(huart->Instance==USART1)
+  {
+    /* Peripheral clock disable */
+    __HAL_RCC_USART1_CLK_DISABLE();
 
+    /**UART4 GPIO Configuration
+    PA10    ------> USART1_TX
+    PA9     ------> USART1_RX
+    */
+    HAL_GPIO_DeInit(GPIOA, IO5_Pin|IO6_Pin);
+
+    /* UART4 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(USART1_IRQn);
+  }
 }
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

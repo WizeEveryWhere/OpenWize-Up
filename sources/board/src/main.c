@@ -49,6 +49,7 @@ RTC_HandleTypeDef hrtc;
 SPI_HandleTypeDef hspi1;
 
 UART_HandleTypeDef huart4;
+UART_HandleTypeDef husart1;
 
 /* USER CODE BEGIN PV */
 
@@ -62,6 +63,7 @@ void LSEClock_Config(void);
 static void MX_GPIO_Init(void);
 
 static void MX_UART4_Init(void);
+static void MX_USART1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C2_Init(void);
@@ -131,6 +133,7 @@ int main(void)
   PeriphClock_Config();
   MX_GPIO_Init();
 
+  MX_USART1_Init();
   MX_UART4_Init();
   MX_SPI1_Init();
   MX_I2C1_Init();
@@ -182,48 +185,77 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSICalibrationValue = 0;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11; // 48 Mhz
-  //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_10; // 32 Mhz
-  //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_9; // 24 Mhz
-  //RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_8; // 16 Mhz
+//#define CLK_MODE_100KHZ
+//#define CLK_MODE_2MHZ // missing PONG, missing ADM
+//#define CLK_MODE_4MHZ
+//#define CLK_MODE_8MHZ
+//#define CLK_MODE_16MHZ
+//#define CLK_MODE_24MHZ
+//#define CLK_MODE_32MHZ // FIXME : Install ok; ADM CMD seems to be not received
+#define CLK_MODE_48MHZ
 
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB busses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  // Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) // 48 Mhz OK
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) // 32 Mhz OK
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) // 24 Mhz KO
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) // 16 Mhz KO
-  //if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) // 24 Mhz @PRVS2 KO
-  {
-    Error_Handler();
-  }
+#if defined (CLK_MODE_2MHZ)
+	#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE2
+	#define MSI_RANGE	RCC_MSIRANGE_5
+	#define LATENCY	    FLASH_LATENCY_0
+#elif defined (CLK_MODE_4MHZ)
+	#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE2
+	#define MSI_RANGE	RCC_MSIRANGE_6
+	#define LATENCY	    FLASH_LATENCY_0
+#elif defined (CLK_MODE_8MHZ)
+	#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE2
+	#define MSI_RANGE	RCC_MSIRANGE_7
+	#define LATENCY	    FLASH_LATENCY_1
+#elif defined (CLK_MODE_16MHZ)
+	#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE2
+	#define MSI_RANGE	RCC_MSIRANGE_8
+	#define LATENCY	    FLASH_LATENCY_2
+#elif defined (CLK_MODE_24MHZ)
+	#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE2
+	#define MSI_RANGE	RCC_MSIRANGE_9
+	#define LATENCY	    FLASH_LATENCY_4
+#elif defined (CLK_MODE_32MHZ)
+#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE1
+#define MSI_RANGE	RCC_MSIRANGE_10
+#define LATENCY	    FLASH_LATENCY_1
+#else // defined (CLK_MODE_48MHZ)
+	#define REG_VOLTAGE PWR_REGULATOR_VOLTAGE_SCALE1
+	#define MSI_RANGE	RCC_MSIRANGE_11
+	#define LATENCY	    FLASH_LATENCY_2
+#endif
 
-  /** Configure the main internal regulator output voltage
-  */
-  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	/** Configure the main internal regulator output voltage */
+    if (HAL_PWREx_ControlVoltageScaling(REG_VOLTAGE) != HAL_OK)
+	{
+    	Error_Handler();
+	}
+
+	/** Initializes the CPU, AHB and APB busses clocks */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+	RCC_OscInitStruct.MSICalibrationValue = 0;
+	RCC_OscInitStruct.MSIClockRange = MSI_RANGE;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	/** Initializes the CPU, AHB and APB busses clocks */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+						  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	// Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, LATENCY) != HAL_OK)
+
+	{
+		Error_Handler();
+	}
 }
 
 /**
@@ -235,14 +267,17 @@ void PeriphClock_Config(void)
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   PeriphClkInit.PeriphClockSelection =
-		  RCC_PERIPHCLK_UART4|
-		  RCC_PERIPHCLK_I2C1|
-		  RCC_PERIPHCLK_I2C2;
+		  RCC_PERIPHCLK_UART4
+		  | RCC_PERIPHCLK_I2C1
+		  | RCC_PERIPHCLK_I2C2
+		  | RCC_PERIPHCLK_USART1
+		  ;
 
-  PeriphClkInit.Uart4ClockSelection   = RCC_UART4CLKSOURCE_PCLK1;
-  
+  PeriphClkInit.Uart4ClockSelection  = RCC_UART4CLKSOURCE_PCLK1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   PeriphClkInit.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
+
+  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
 
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -284,14 +319,6 @@ void LSEClock_Config(void)
   */
 static void MX_I2C1_Init(void)
 {
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x20303E5D;
   hi2c1.Init.OwnAddress1 = 0;
@@ -317,9 +344,6 @@ static void MX_I2C1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
 
 }
 
@@ -330,14 +354,6 @@ static void MX_I2C1_Init(void)
   */
 static void MX_I2C2_Init(void)
 {
-
-  /* USER CODE BEGIN I2C2_Init 0 */
-
-  /* USER CODE END I2C2_Init 0 */
-
-  /* USER CODE BEGIN I2C2_Init 1 */
-
-  /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
   hi2c2.Init.Timing = 0x20303E5D;
   hi2c2.Init.OwnAddress1 = 0;
@@ -363,10 +379,6 @@ static void MX_I2C2_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C2_Init 2 */
-
-  /* USER CODE END I2C2_Init 2 */
-
 }
 
 /**
@@ -376,14 +388,6 @@ static void MX_I2C2_Init(void)
   */
 static void MX_SPI1_Init(void)
 {
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
@@ -403,10 +407,6 @@ static void MX_SPI1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
-
 }
 
 /**
@@ -416,16 +416,16 @@ static void MX_SPI1_Init(void)
   */
 static void MX_UART4_Init(void)
 {
-
-  /* USER CODE BEGIN UART4_Init 0 */
-
-  /* USER CODE END UART4_Init 0 */
-
-  /* USER CODE BEGIN UART4_Init 1 */
-
-  /* USER CODE END UART4_Init 1 */
   huart4.Instance = UART4;
+#if defined (CLK_MODE_2MHZ)
+  huart4.Init.BaudRate = 19200; //
+  //huart4.Init.BaudRate = 38400; // Seems ok for COM, but not enough for Logger
+#elif defined (CLK_MODE_4MHZ)
+  huart4.Init.BaudRate = 57600;
+#else
   huart4.Init.BaudRate = 115200;
+#endif
+
   huart4.Init.WordLength = UART_WORDLENGTH_8B;
   huart4.Init.StopBits = UART_STOPBITS_1;
   huart4.Init.Parity = UART_PARITY_NONE;
@@ -442,10 +442,41 @@ static void MX_UART4_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN UART4_Init 2 */
+}
 
-  /* USER CODE END UART4_Init 2 */
+/**
+  * @static
+  * @brief USART1 Initialization Function
+  * @retval None
+  */
+static void MX_USART1_Init(void)
+{
+  husart1.Instance = USART1;
+#if defined (CLK_MODE_2MHZ)
+  husart1.Init.BaudRate = 19200; //
+  //huart4.Init.BaudRate = 38400; // Seems ok for COM, but not enough for Logger
+#elif defined (CLK_MODE_4MHZ)
+  husart1.Init.BaudRate = 57600;
+#else
+  husart1.Init.BaudRate = 115200;
+#endif
 
+  husart1.Init.WordLength = UART_WORDLENGTH_8B;
+  husart1.Init.StopBits = UART_STOPBITS_1;
+  husart1.Init.Parity = UART_PARITY_NONE;
+  husart1.Init.Mode = UART_MODE_TX_RX;
+  husart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  husart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  husart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  husart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;// | UART_ADVFEATURE_SWAP_INIT;
+  husart1.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
+
+  husart1.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
+
+  if (HAL_UART_Init(&husart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**

@@ -49,13 +49,13 @@ extern "C" {
 
 extern RTC_HandleTypeDef hrtc;
 
-//extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef husart1;
 extern UART_HandleTypeDef huart4;
 
 uart_dev_t aDevUart[UART_ID_MAX] =
 {
 	[UART_ID_CONSOLE] = {
-			//.hHandle = &huart2,
+			//.hHandle = &husart1,
 			.hHandle = &huart4,
 			.pfEvent = NULL
 	},

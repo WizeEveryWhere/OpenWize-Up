@@ -105,7 +105,9 @@ uint8_t Console_Rx_Byte(uint8_t *data)
  *----------------------------------------------------------------------------*/
 uint8_t Console_Wait_Rx_Byte(uint8_t *data)
 {
-	*data = (uint8_t) __io_getchar();
+	//*data = (uint8_t) __io_getchar();
+	HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, data, 1, CONSOLE_RX_TIMEOUT);
+
 	return CONSOLE_BYTE_RX;
 
 	/*dev_res_e eRet;
