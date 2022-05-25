@@ -28,8 +28,9 @@ Build the application
 
 .. code-block:: bash
 
-   cd Openwize-Up
+   cd OpenWize-Up
    mkdir -p _build
+   cd _build
 
 .. code-block:: bash 
 
@@ -90,7 +91,7 @@ Three consoles are needs :
 
       .. code-block:: bash
       
-         cd Openwize-Up   
+         cd OpenWize-Up   
 
    - Find the ST-Link probe id
 
@@ -175,8 +176,6 @@ To create and launch a debug configuration follow this :ref:`Appendix <Create a 
 .. *****************************************************************************
 .. references
 
-.. only:: comment
-   .. _`OpenWize Documentation`: https://github.com/WizeEveryWhere/OpenWize/blob/main/docs/OpenWize.rst
 .. _`OpenWize Documentation`: https://wizeeverywhere-openwize.readthedocs.io/en/latest
 .. _`Alciom` : https://www.alciom.com/en/home
 .. _`STM32CubeIDE`: https://www.st.com/en/development-tools/stm32cubeide.html#get-software

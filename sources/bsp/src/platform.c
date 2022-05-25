@@ -191,6 +191,9 @@ SPI_HandleTypeDef *paSPI_BusHandle[SPI_ID_MAX] =
 };
 
 /*******************************************************************************/
+#ifdef USE_I2C
+#if defined(HAL_I2C_MODULE_ENABLED)
+
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
 
@@ -205,7 +208,8 @@ I2C_HandleTypeDef *paI2C_BusHandle[I2C_ID_MAX] =
 	[I2C_ID_INT] = &hi2c1,
 	[I2C_ID_EXT] = &hi2c2,
 };
-
+#endif
+#endif
 /*******************************************************************************/
 
 /*!

@@ -75,6 +75,7 @@ typedef enum
 	SPI_ID_MAX
 } spi_id_e;
 
+#ifdef USE_I2C
 typedef enum
 {
 	I2C_ID_INT,
@@ -82,6 +83,7 @@ typedef enum
 	//
 	I2C_ID_MAX
 } i2c_id_e;
+#endif
 
 #ifdef __cplusplus
 }

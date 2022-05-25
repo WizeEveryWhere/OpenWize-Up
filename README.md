@@ -1,7 +1,7 @@
 # OpenWize-Up
 
-OpenWize'Up est une instanciation de la couche protocolaire OpenWize (lien à mettre) sur la carte Wize'Up de la société ALCIOM.
+OpenWize'Up is an application based on the [OpenWize](https://github.com/WizeEveryWhere/OpenWize) protocol targeting the Alciom's Wize'Up board. 
 
-Cette carte est architecturée autour d'un microcontroleur STM32L451 et d'un transceiver ADF7030-1.
+This board is build around a STMicroelectronic's MCU (STM32L451) and an Analog Device's transceiver (ADF7030-1).
 
-Poour plus d'information consulter (lien vers le readTehDoc de OpenWize'Up).
+For details see the [documentation](https://wizeeverywhere-openwize-up.readthedocs.io/en/latest).
