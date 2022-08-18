@@ -49,10 +49,7 @@ extern "C" {
 #include <bsp_pwrlines.h>
 #endif
 #include "bsp_lp.h"
-
-#include <bsp_lptimer.h>
 #include <bsp_spi.h>
-#include <bsp_i2c.h>
 
 extern uint8_t ascii2hex(uint16_t u16Char);
 extern uint16_t hex2ascii(uint8_t u8Hex);

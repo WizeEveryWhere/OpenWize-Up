@@ -162,16 +162,8 @@ void PeriphClock_Config(void)
 {
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
-  PeriphClkInit.PeriphClockSelection =
-		  RCC_PERIPHCLK_UART4|
-		  RCC_PERIPHCLK_I2C1|
-		  RCC_PERIPHCLK_I2C2;
-
-  PeriphClkInit.Uart4ClockSelection   = RCC_UART4CLKSOURCE_PCLK1;
-  
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-  PeriphClkInit.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
-
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_UART4;
+  PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -376,5 +368,3 @@ void assert_failed(char *file, uint32_t line)
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
