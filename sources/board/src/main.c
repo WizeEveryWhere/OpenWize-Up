@@ -354,7 +354,6 @@ static void MX_I2C2_Init(void)
   */
 static void MX_SPI1_Init(void)
 {
-  /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;

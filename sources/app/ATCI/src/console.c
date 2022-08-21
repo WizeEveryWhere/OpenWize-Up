@@ -70,6 +70,30 @@ extern uart_dev_t aDevUart[UART_ID_MAX];//////////
 /*!-----------------------------------------------------------------------------
  * @internal
  *
+ * @brief		Enable the UART console
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
+void Console_Enable(void)
+{
+	BSP_Uart_Enable(UART_ID_COM);
+}
+
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
+ * @brief		Disable the UART console
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
+void Console_Disable(void)
+{
+	BSP_Uart_Disable(UART_ID_COM);
+}
+
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Receive byte from console UART
  *
  * @details 	This function is non blocking
@@ -105,34 +129,21 @@ uint8_t Console_Rx_Byte(uint8_t *data)
  *----------------------------------------------------------------------------*/
 uint8_t Console_Wait_Rx_Byte(uint8_t *data)
 {
-	//*data = (uint8_t) __io_getchar();
-	HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, data, 1, CONSOLE_RX_TIMEOUT);
+	dev_res_e eRet;
+	eRet = BSP_Console_Received(data, 1);
 
-	return CONSOLE_BYTE_RX;
-
-	/*dev_res_e eRet;
-
-	do{
-		eRet = BSP_Console_Received(data, 1);
-
-		if ( (eRet == DEV_SUCCESS) && (*data < 0xFF) )
-		{
-			return CONSOLE_BYTE_RX;
-		}
-		else
-		{
-			if (eRet ==  DEV_TIMEOUT)
-			{
-				break;
-			}
-			else
-			{
-				return CONSOLE_RX_ERR;
-			}
-		}
-	} while(1); //TODO: manage timeout
-
-	return CONSOLE_TIMEOUT;*/
+	if ( eRet == DEV_SUCCESS )
+	{
+		return CONSOLE_BYTE_RX;
+	}
+	else if ( eRet ==  DEV_TIMEOUT )
+	{
+		return CONSOLE_TIMEOUT;
+	}
+	else
+	{
+		return CONSOLE_RX_ERR;
+	}
 }
 
 /*!-----------------------------------------------------------------------------
