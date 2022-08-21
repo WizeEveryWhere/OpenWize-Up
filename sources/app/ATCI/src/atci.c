@@ -133,12 +133,31 @@ void Atci_Task(void const *argument)
 	Atci_Exec_Cmd[CMD_ATTEST] = Exec_ATTEST_Cmd;
 
 	EX_PHY_SetCpy();
+	bPaState = Phy_GetPa();
 	//Loop
 	while(1)
 	{
 		switch(atciState)
 		{
+			case ATCI_SLEEP:
+				Atci_Debug_Str("Sleep");
+
+				bPaState = Phy_GetPa();
+				Phy_OnOff(&sPhyDev, 0);
+
+				Console_Disable();
+
+				BSP_LowPower_Enter(LP_STOP2_MODE);
+				atciState = ATCI_WAKEUP;
+				break;
+
 			case ATCI_WAKEUP:
+
+				Console_Enable();
+
+				Phy_OnOff(&sPhyDev, 1);
+				Phy_SetPa(bPaState);
+
 				Atci_Send_Wakeup_Msg();
 				Atci_Restart_Rx(&atciCmdData);
 				atciState = ATCI_WAIT;
@@ -229,21 +248,7 @@ void Atci_Task(void const *argument)
 				}
 				break;
 
-			case ATCI_SLEEP:
-#ifdef HAS_LPOWER
-				Atci_Debug_Str("Sleep");
-				CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);
-		        bPaState = Phy_GetPa();
-				Phy_OnOff(&sPhyDev, 0);
-				BSP_LowPower_Enter(LP_STOP2_MODE);
-				Phy_OnOff(&sPhyDev, 1);
-		        Phy_SetPa(bPaState);
-		        SET_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);
-#else
-				Atci_Debug_Str("No sleep!");
-#endif
-				atciState = ATCI_WAKEUP;
-				break;
+
 			default:
 			case ATCI_RESET:
 				Atci_Debug_Str("Reset");
