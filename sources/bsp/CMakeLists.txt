@@ -9,11 +9,8 @@ add_library(${MODULE_NAME} STATIC)
 # Add sources to Build
 target_sources(${MODULE_NAME}
     PRIVATE
-        src/bsp_i2c.c
-        #src/bsp_lptimer.c
         src/bsp_pwrlines.c
         src/bsp_spi.c
-        
         src/bsp_boot.c
         src/bsp_flash.c
         src/bsp_gpio_it.c

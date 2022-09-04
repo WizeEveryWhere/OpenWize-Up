@@ -32,9 +32,6 @@
 #include "bsp.h"
 
 /******************************************************************************/
-I2C_HandleTypeDef hi2c1;
-I2C_HandleTypeDef hi2c2;
-
 RTC_HandleTypeDef hrtc;
 SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart4;
@@ -51,8 +48,6 @@ static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
 static void MX_USART1_Init(void);
 static void MX_SPI1_Init(void);
-static void MX_I2C1_Init(void);
-static void MX_I2C2_Init(void);
 
 extern void app_entry(void);
 
@@ -112,9 +107,6 @@ int main(void)
   MX_USART1_Init();
   MX_UART4_Init();
   MX_SPI1_Init();
-  MX_I2C1_Init();
-  MX_I2C2_Init();
-
   BSP_PwrLine_Init();
 
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -234,15 +226,10 @@ void PeriphClock_Config(void)
 
   PeriphClkInit.PeriphClockSelection =
 		  RCC_PERIPHCLK_UART4
-		  | RCC_PERIPHCLK_I2C1
-		  | RCC_PERIPHCLK_I2C2
 		  | RCC_PERIPHCLK_USART1
 		  ;
 
   PeriphClkInit.Uart4ClockSelection  = RCC_UART4CLKSOURCE_PCLK1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-  PeriphClkInit.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
-
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
 
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
@@ -276,75 +263,6 @@ void LSEClock_Config(void)
 
   // LSE is ON, so configure LSE Drive Capability
   __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-}
-
-/**
-  * @static
-  * @brief I2C1 Initialization Function
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x20303E5D;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Analogue filter 
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Digital filter 
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-}
-
-/**
-  * @static
-  * @brief I2C2 Initialization Function
-  * @retval None
-  */
-static void MX_I2C2_Init(void)
-{
-  hi2c2.Instance = I2C2;
-  hi2c2.Init.Timing = 0x20303E5D;
-  hi2c2.Init.OwnAddress1 = 0;
-  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c2.Init.OwnAddress2 = 0;
-  hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Analogue filter 
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Configure Digital filter 
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
 }
 
 /**
@@ -500,8 +418,8 @@ static void MX_GPIO_Init(void)
                            ADF7030_GPIO0_Pin PB3 PB4 IO2_Pin 
                            IO1_Pin */
   GPIO_InitStruct.Pin = ADF7030_GPIO5_Pin|ADF7030_GPIO4_Pin|ADF7030_GPIO2_Pin|ADF7030_GPIO1_Pin 
-                          |ADF7030_GPIO0_Pin|GPIO_PIN_3|GPIO_PIN_4|IO2_Pin 
-                          |IO1_Pin;
+                          |ADF7030_GPIO0_Pin|GPIO_PIN_3|GPIO_PIN_4|IO2_Pin|IO1_Pin
+						  |SCL_EXT_Pin|SDA_EXT_Pin|SDA_1_INT_Pin|SCL_1_INT_Pin ;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -561,5 +479,3 @@ void assert_failed(char *file, uint32_t line)
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

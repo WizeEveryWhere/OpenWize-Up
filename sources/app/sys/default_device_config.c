@@ -90,6 +90,7 @@ KEEP_VAR(const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN]
     }
 };
 
+#ifdef USE_PHY_TRIG
 KEEP_VAR(const adf7030_1_gpio_trig_info_t DEFAULT_GPIO_TRIG[ADF7030_1_NUM_TRIG_PIN]) =
 {
 	{
@@ -117,6 +118,7 @@ KEEP_VAR(const adf7030_1_gpio_trig_info_t DEFAULT_GPIO_TRIG[ADF7030_1_NUM_TRIG_P
 		.eTrigStatus = 0
 	}
 };
+#endif
 
 /*!
  * @}
