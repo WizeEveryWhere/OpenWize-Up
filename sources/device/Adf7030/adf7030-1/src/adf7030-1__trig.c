@@ -89,7 +89,7 @@ uint8_t adf7030_1__TRIG_SetGPIOPin(
         adf7030_1__GPIO_SetCfg( pSPIDevInfo,
                                 pTrigGPIOInfo->ePhyPin,
                                 (eTRIG == ADF7030_1_TRIGPIN1) ? GPIO_TRIG_IN1 : GPIO_TRIG_IN0,
-                                0 );
+                                1 );
 
         /* Setup trigger PHY Radio command */
         adf7030_1__SPI_SetField( pSPIDevInfo,

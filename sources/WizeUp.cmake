@@ -1,4 +1,3 @@
- 
 cmake_minimum_required( VERSION 3.12 ) 
 ################################################################################
 
@@ -13,9 +12,10 @@ add_compile_definitions(LOGGER_USE_FWRITE=1)
 add_compile_definitions(DUMP_CORE_HAS_TRACE=1)
 add_compile_definitions(DUMP_CORE_HAS_FAULT_STATUS_REGISTER=1)
 add_compile_definitions(L6VERS=L6VER_WIZE_REV_1_2)
-#add_compile_definitions(HAS_LPOWER=1)
+# add_compile_definitions(USE_PHY_TRIG=1)
+
 add_compile_definitions(USE_SPI=1)
-#add_compile_definitions(USE_I2C=1)
+# add_compile_definitions(USE_I2C=1)
 
 add_compile_definitions(CONSOLE_RX_TIMEOUT=5000)
 

@@ -144,6 +144,7 @@ void Atci_Task(void const *argument)
 
 				bPaState = Phy_GetPa();
 				Phy_OnOff(&sPhyDev, 0);
+				Phy_SetPa(0);
 
 				Console_Disable();
 

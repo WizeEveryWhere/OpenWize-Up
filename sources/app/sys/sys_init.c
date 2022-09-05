@@ -65,6 +65,9 @@ extern boot_state_t gBootState;
 
 extern const adf7030_1_gpio_reset_info_t DEFAULT_GPIO_RESET;
 extern const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN];
+#ifdef USE_PHY_TRIG
+	extern const adf7030_1_gpio_trig_info_t DEFAULT_GPIO_TRIG[ADF7030_1_NUM_TRIG_PIN];
+#endif
 
 /*!
  * @brief This is the context for the ADF7030-1 device
@@ -118,7 +121,12 @@ void Sys_Init(void)
 	assert(0 == Phy_adf7030_setup( &sPhyDev,
                                &adf7030_1_ctx,
                                (adf7030_1_gpio_int_info_t *)&DEFAULT_GPIO_INT,
-                               (adf7030_1_gpio_trig_info_t *)NULL,
+
+#ifdef USE_PHY_TRIG
+							   (adf7030_1_gpio_trig_info_t *)&DEFAULT_GPIO_TRIG,
+#else
+							   (adf7030_1_gpio_trig_info_t *)NULL,
+#endif
                                (adf7030_1_gpio_reset_info_t *)&DEFAULT_GPIO_RESET,
 							   ADF7030_1_GPIO6,
                                ADF7030_1_GPIO_NONE

@@ -391,6 +391,12 @@ inline void Phy_SetPa(uint8_t bEnable)
 	}
 }
 
+/*
+inline void Phy_SetPa(phydev_t *pPhydev, uint8_t bEnable)
+{
+	pPhydev->pfIoctl(pPhydev, PHY_CTL_SET_PA, (uint32_t)(bEnable & 0x1));
+}
+*/
 
 /*!
  * @brief  This function get the current PA state
@@ -407,6 +413,15 @@ inline int32_t Phy_GetPa(void)
 	else
 		return 0;
 }
+
+/*
+inline int32_t Phy_GetPa(phydev_t *pPhydev)
+{
+	int32_t ret;
+	pPhydev->pfIoctl(pPhydev, PHY_CTL_GET_PA, (uint32_t)(&ret));
+	return ret;
+}
+*/
 
 /*!
  * @brief  This function set/change entry in power table
@@ -823,6 +838,7 @@ static int32_t _uninit(phydev_t *pPhydev)
     uint8_t u8i;
     if(pPhydev)
     {
+    	i32Ret = PHY_STATUS_OK;
 		 /* Clear and disable adf7030 interrupt */
 		for (u8i = 0; u8i < ADF7030_1_NUM_INT_PIN; u8i++)
 		{
@@ -1357,9 +1373,13 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 							pSPIDevInfo->nPhyNextState = PHY_TX;
 							pDevice->eState |= ADF7030_1_STATE_TRANSMITTING;
 						}
-
+#ifdef USE_PHY_TRIG
+						eRet = adf7030_1_SetupTrig(pDevice, ADF7030_1_TRIGPIN0, pSPIDevInfo->nPhyNextState, 1);
+						eRet |= adf7030_1_PulseTrigger(pDevice, ADF7030_1_TRIGPIN0);
+#else
 						//eRet = adf7030_1__STATE_PhyCMD( pSPIDevInfo, pSPIDevInfo->nPhyNextState );
 						eRet = adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, pSPIDevInfo->nPhyNextState, pSPIDevInfo->nPhyNextState );
+#endif
 						if(eRet)
 						{
 							eStatus = PHY_STATUS_ERROR;
@@ -1762,6 +1782,11 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 	int32_t i32Ret = PHY_STATUS_OK;
 	adf7030_1_device_t* pDevice = pPhydev->pCxt;
 	adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
+
+	if( (!pPhydev) || (!pDevice) || (!pSPIDevInfo))
+	{
+		return PHY_STATUS_ERROR;
+	}
 
 	if(eCtl > PHY_CTL_CMD)
 	{
