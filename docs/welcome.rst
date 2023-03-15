@@ -4,7 +4,7 @@
 Welcome
 *******
 
-The OpenWize'Up is the name of an application targetting the Wize'Up board. 
+The OpenWize'Up is the name of an application targeting the Wize'Up board. 
 This last is very tiny and can be soldered or plugged as a piggyback-board.
 
 .. figure:: pics/wize-up_board.png
@@ -12,20 +12,20 @@ This last is very tiny and can be soldered or plugged as a piggyback-board.
   
    The Wize'up board
  
-Wize'Up is an "Open Hardware", designed and made by the Alciom compagny (`Alciom`_). All the details and documentation can be found at `Wize’Up`_ website page.  
-Wize'Up comes with its base board allowing to quickly getting started of your project.
+Wize'Up is an "Open Hardware", designed and made by the Alciom compagny (`Alciom`_). All the details and documentation can be found on the `Wize’Up`_ website page.
+Wize'Up is delivered with its base board allowing you to quickly start your project.
 
 .. figure:: pics/wize-up_base-board.png
    :align: center
 
-   The Wize'Up plugged to its base board
+   The Wize'Up connected to its base board
 
-Wize'Up integrate an STM32L451 MCU with 512kB of Flash memory and 128kB of RAM. 
-The RF part is dedicated to the Analog Device ADF7030-1 transciver IC.
+Wize'Up integrates an STM32L451 MCU with 512kB of Flash memory and 128kB of RAM. 
+The RF part is dedicated to the ADF7030-1 transciver IC from Analog Device.
 
 
-The OpenWize'Up rely on OpenWize, an implementation of the Wize IoT protocol dedicated to exploit the 169 Mhz frequency band. 
-The local communication is ensure by AT Command (`Wize'Up AT Specification`_) over an UART peripheral. 
+OpenWize'Up is based on OpenWize, an implementation of the Wize IoT protocol dedicated to the exploitation of the 169 Mhz frequency band. 
+The local communication is provided by an AT command  (`Wize'Up AT Specification`_) on a UART peripheral. 
 
 .. *****************************************************************************
 .. references
