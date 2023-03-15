@@ -63,6 +63,9 @@ void HAL_MspInit(void)
 	#if defined(HAL_WWDG_MODULE_ENABLED)
 		__HAL_DBGMCU_FREEZE_WWDG();
 	#endif
+#endif
+
+#ifdef LOWPOWER_DEBUG
 	HAL_DBGMCU_EnableDBGStandbyMode();
 	HAL_DBGMCU_EnableDBGStopMode();
 	HAL_DBGMCU_EnableDBGSleepMode();
@@ -184,11 +187,11 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   {
     /* Peripheral clock enable */
     __HAL_RCC_UART4_CLK_ENABLE();
-  
+
     __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**UART4 GPIO Configuration    
+    /**UART4 GPIO Configuration
     PA0     ------> UART4_TX
-    PA1     ------> UART4_RX 
+    PA1     ------> UART4_RX
     */
     GPIO_InitStruct.Pin = UART_TXD_Pin|UART_RXD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -201,7 +204,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_NVIC_SetPriority(UART4_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(UART4_IRQn);
   }
-
 }
 
 /**
@@ -217,14 +219,13 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     /* Peripheral clock disable */
     __HAL_RCC_UART4_CLK_DISABLE();
   
-    /**UART4 GPIO Configuration    
+    /**UART4 GPIO Configuration
     PA0     ------> UART4_TX
-    PA1     ------> UART4_RX 
+    PA1     ------> UART4_RX
     */
     HAL_GPIO_DeInit(GPIOA, UART_TXD_Pin|UART_RXD_Pin);
 
     /* UART4 interrupt DeInit */
     HAL_NVIC_DisableIRQ(UART4_IRQn);
   }
-
 }

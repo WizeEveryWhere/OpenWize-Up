@@ -45,8 +45,6 @@ extern "C" {
  * @{
  */
 
-#define EEPROM_ADDRESS 0b10100000 // 0xA0
-
 #define STDOUT_UART_ID UART_ID_CONSOLE
 
 #define RTC_PREDIV_S 1023
@@ -56,6 +54,19 @@ extern "C" {
  * @}
  * @endcond
  */
+
+
+/* UART config
+ *
+ * Baud rate (0 : 4800, 1 : 9600, 2 : 19k2, 3 : 38k4, 4 : 57k6, 5 : 115k2)
+ * Internal PU enable/disable (0 / 1)
+ * Swap pins enable/disable (0 / 1)
+ *
+ */
+#define UART4_BAUD 115200
+#define UART4_TX_PU 1
+#define UART4_RX_PU 1
+#define UART4_SWAP 1
 
 /*!
  * @brief This enum define the UART device id
@@ -68,14 +79,26 @@ typedef enum
 	UART_ID_MAX
 } uart_id_e;
 
+// Wize-up available wake-up pins
+#define AVAILABLE_WKUP_PIN 0b00000
+// Wize-up (mask to be used to setup PU/PD during STDBY and SHUTDWN)
+#define AVAILABLE_PIN_PORTA_MSK 0b0001111111111111
+#define AVAILABLE_PIN_PORTB_MSK 0b1111111111100111
+#define AVAILABLE_PIN_PORTC_MSK 0b0011111111111111
+
+#ifdef USE_SPI
 typedef enum
 {
 	SPI_ID_MAIN,
 	//
 	SPI_ID_MAX
 } spi_id_e;
+#endif
 
 #ifdef USE_I2C
+
+#define EEPROM_ADDRESS 0b10100000 // 0xA0
+
 typedef enum
 {
 	I2C_ID_INT,

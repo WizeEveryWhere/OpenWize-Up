@@ -90,12 +90,14 @@ uint8_t adf7030_1_PulseTrigger(
     adf7030_1_gpio_trig_info_t * pTrigGPIOInfo = &pDevice->TrigGPIOInfo[eTRIG];
     if((pTrigGPIOInfo->u32Port != 0UL) && (pTrigGPIOInfo->u16Pin != 0UL))
     {
+    	register uint8_t cnt = 10;
         /* Toggle PHY Radio GPIO pin from the Glue Host */
         if(BSP_Gpio_SetHigh(pTrigGPIOInfo->u32Port, pTrigGPIOInfo->u16Pin) != DEV_SUCCESS)
         {
             return 1;
         }
-
+        //msleep(1);
+        while (cnt){cnt--;}
         if(BSP_Gpio_SetLow(pTrigGPIOInfo->u32Port, pTrigGPIOInfo->u16Pin) != DEV_SUCCESS)
         {
             return 1;
@@ -126,8 +128,7 @@ uint8_t adf7030_1_PulseReset(
         {
             return 1;
         }
-        msleep(1);
-        // TODO : micro-sleep of at least 2µs
+        usleep(20);
         if(BSP_Gpio_SetHigh(pResetGPIOInfo->u32Port, pResetGPIOInfo->u16Pin) != DEV_SUCCESS)
         {
             return 1;
@@ -166,7 +167,7 @@ uint8_t adf7030_1_PulseWakup(
         //	// should rise high level after 92µs typ.
         //    BSP_Gpio_Get((uint32_t)RADIO_MISO_GPIO_Port, RADIO_MISO_Pin, &u8Level);
         //} while(u8Level);
-        msleep(1);
+        usleep(120);
         BSP_Gpio_SetHigh(pSpiDev->ss_port, pSpiDev->ss_pin);
 #ifdef TRIG_AS_WAKE_UP
     }

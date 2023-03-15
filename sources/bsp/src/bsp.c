@@ -46,7 +46,7 @@ extern "C" {
 /* Usefull  */
 /******************************************************************************/
 /*!
-  * @brief Function convert a hexa represented as 2 bytes char into hexa value (1 byte).
+  * @brief Function convert a hexa represented as 2 bytes char (Little Endian) into hexa value (1 byte).
   *
   * @param [in] u16Char Two byte char to convert
   * 
@@ -69,7 +69,7 @@ uint8_t ascii2hex(uint16_t u16Char)
 }
 
 /*!
-  * @brief Function convert a hexa value (1 byte) into its 2 bytes char representation.
+  * @brief Function convert a hexa value (1 byte) into its 2 bytes char representation (Little Endian).
   *
   * @param [in] u8Hex One byte hexa value to convert
   * 
@@ -101,6 +101,17 @@ uint16_t hex2ascii(uint8_t u8Hex)
   */
 //inline __attribute__((always_inline))
 void msleep(uint32_t milisecond) { HAL_Delay(milisecond); }
+
+/*!
+  * @brief Wait for (inaccurate) microsecond
+  *
+  * @param [in] microsecond Number of microsecond to wait
+  */
+void usleep(uint32_t microsecond)
+{
+	uint32_t cnt = microsecond * ( SystemCoreClock / 1000000);
+	while(cnt) { cnt--; }
+}
 
 /******************************************************************************/
 /* Libc print wrapper functions */

@@ -706,7 +706,7 @@ uint8_t adf7030_1__XferCmdPoll(
 
 #if (ADF7030_1_PHY_ERROR_REPORT_ENABLE == 1) && ( ADF7030_1_PHY_ERROR_REPORT_SCHEME == 0)
 
-    if((nPhyCmd != CMD_RESET) && (pSPIDevInfo->bPhyErrorCheck == 1))
+    if((nPhyCmd != CMD_RESET) && (nPhyCmd != RADIO_CMD) && (pSPIDevInfo->bPhyErrorCheck == 1))
     {
         /*!
          *  The "error" bit inside pSPIDevInfo->nStatus is automatically cleared
@@ -723,7 +723,8 @@ uint8_t adf7030_1__XferCmdPoll(
         }
 
         /* Update the pSPIDevInfo->ePhyError */
-        pSPIDevInfo->ePhyError = (adf7030_1_radio_error_e)(fw_status_reg >> 26);
+        //pSPIDevInfo->ePhyError = (adf7030_1_radio_error_e)(fw_status_reg >> 26);
+        pSPIDevInfo->ePhyError = (adf7030_1_radio_error_e)(fw_status_reg >> 24);
 
         /* If error code exists, return ADF7030_1_HW_ERROR status */
         if(pSPIDevInfo->ePhyError != SM_NOERROR){

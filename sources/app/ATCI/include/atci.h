@@ -46,16 +46,46 @@
  * @{
  */
 
-#define AT_CMD_BUF_LEN			256 //maximum received command length (as text)
-#define AT_CMD_CODE_MIN_LEN		2	//minimum command code length (reformatted text)
-#define AT_CMD_CODE_MAX_LEN		16	//maximum command code length (reformatted text)
-#define AT_CMD_MAX_NB_PARAM		6	//maximum number of parameters for a command/response
-#define AT_CMD_DATA_MAX_LEN		128	//maximum length for all parameter of a command (after conversion; in bytes; note: maximum data is ATSEND_L7_MAX_MSG_LEN for ATSEND command)
+/*
+ * (GBI) Note :
+ * -----------------------------------------------------------------------------
+ * In the Wize 1.2 specifications, exchange frame length is limited to :
+ * - L2 : 127 + 1 (LField) bytes.
+ * - L7 : 102 + 1 (L6App) bytes
+ *
+ * Then, ATCI ascii buffers size should be at least :
+ * For : ATSEND=$xx,$yyyyyyyyy<CR>
+ * - 2x( 102 (L7) + 1 (L6App) ) + 6 (ATSEND command) + 1 ('=') + 2 (2x'$') + 1 (',') + 1 ('\r')
+ *   ---> 217 bytes
+ *
+ * -----------------------------------------------------------------------------
+ * Technically, the Wize protocol is (should be) able to treat frame size at most :
+ * For exchange frames :
+ * - L2 : 254 + 1 (LField) bytes
+ * - L7 : 229 bytes
+ *
+ * For download frames :
+ * - L2 : 255 + 1 (LField) bytes
+ * - L7 : 210 bytes
+ *
+ * Then, ATCI ascii buffers size should be at least :
+ * For : ATSEND=$xx,$yyyyyyyyy<CR>
+ * - 2x( 229 (L7) + 1 (L6App) ) + 6 (ATSEND command) + 1 ('=') + 2 (2x'$') + 1 (',') + 1 ('\r')
+ *   ---> 471 bytes
+ * -----------------------------------------------------------------------------
+ */
+#define AT_CMD_BUF_LEN			512 // 471 // maximum received command length (as text)
+#define AT_CMD_CODE_MIN_LEN		2	// minimum command code length (reformatted text)
+#define AT_CMD_CODE_MAX_LEN		16	// maximum command code length (reformatted text)
+#define AT_CMD_MAX_NB_PARAM		6	// maximum number of parameters for a command/response
+#define AT_CMD_DATA_MAX_LEN		256	// 230// maximum length for all parameter of a command (after conversion; in bytes; note: maximum data is ATSEND_L7_MAX_MSG_LEN for ATSEND command)
 
 #define ATKMAC_KEY_LEN			16
 #define ATKENC_KEY_LEN			16
 #define ATIDENT_MFIELD_LEN		2
 #define ATIDENT_AFIELD_LEN		6
+
+// GBI : This is deprecate. Replaced with a "get" from parameter table.
 #define ATSEND_L7_MAX_MSG_LEN	102 //maximum length is 102 bytes of L7 data for PRES-EXCHANGE L6 frames (ATSEND command)
 
 #define PARAM_VARIABLE_LEN	0

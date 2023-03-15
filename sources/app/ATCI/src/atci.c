@@ -133,12 +133,32 @@ void Atci_Task(void const *argument)
 	Atci_Exec_Cmd[CMD_ATTEST] = Exec_ATTEST_Cmd;
 
 	EX_PHY_SetCpy();
+	bPaState = Phy_GetPa();
 	//Loop
 	while(1)
 	{
 		switch(atciState)
 		{
+			case ATCI_SLEEP:
+				Atci_Debug_Str("Sleep");
+
+				bPaState = Phy_GetPa();
+				Phy_OnOff(&sPhyDev, 0);
+				Phy_SetPa(0);
+
+				Console_Disable();
+
+				BSP_LowPower_Enter(LP_STOP2_MODE);
+				atciState = ATCI_WAKEUP;
+				break;
+
 			case ATCI_WAKEUP:
+
+				Console_Enable();
+
+				Phy_OnOff(&sPhyDev, 1);
+				Phy_SetPa(bPaState);
+
 				Atci_Send_Wakeup_Msg();
 				Atci_Restart_Rx(&atciCmdData);
 				atciState = ATCI_WAIT;
@@ -229,21 +249,7 @@ void Atci_Task(void const *argument)
 				}
 				break;
 
-			case ATCI_SLEEP:
-#ifdef HAS_LPOWER
-				Atci_Debug_Str("Sleep");
-				CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);
-		        bPaState = Phy_GetPa();
-				Phy_OnOff(&sPhyDev, 0);
-				BSP_LowPower_Enter(LP_STOP2_MODE);
-				Phy_OnOff(&sPhyDev, 1);
-		        Phy_SetPa(bPaState);
-		        SET_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);
-#else
-				Atci_Debug_Str("No sleep!");
-#endif
-				atciState = ATCI_WAKEUP;
-				break;
+
 			default:
 			case ATCI_RESET:
 				Atci_Debug_Str("Reset");
@@ -791,7 +797,8 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 			if(status != ATCI_OK)
 				return status;
 
-			if(atciCmdData->params[1].size > ATSEND_L7_MAX_MSG_LEN)
+			Param_LocalAccess(L7TRANSMIT_LENGTH_MAX, &i, 0);
+			if(atciCmdData->params[1].size > i)
 				return ATCI_ERR_INV_PARAM_LEN;
 
 			if(atciCmdData->cmdType == AT_CMD_WITH_PARAM)
@@ -837,6 +844,7 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 					sta = WizeApi_GetAdmRsp(&rxMsg);
 					if (sta == WIZE_API_SUCCESS)
 					{
+						// FIXME :
 #if 0
 						//TODO: Rx msg format to be verified
 						// msg format: <L6 App code (1 byte)>...<cL7 data (n bytes)>
