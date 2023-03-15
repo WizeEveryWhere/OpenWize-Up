@@ -66,28 +66,38 @@ declare -A atCmd=(
     [ATI]='||Get manufacturer info'
 );
 
-function HelpAT(){
-    local req=$1;
+function _HelpAT_usage_ {
+cat << EOF
+Usage : 
+   HelpAT          : Display all available AT command
+   HelpAT -a       : Display all available AT command with details
+   HelpAT ATcmd    : Display help on this particular AT command
+   HelpAT -a ATcmd : Display help on this particular AT command with details
+   
+  SendAt 'ATcmd<formated string param>' (with '') : Send ATcmd
+          - e.g.: SendAt 'ATPARAM=\$30,1'
+
+EOF
+}
+
+function _HelpAT_display_()
+{
+    local details=$1;
+    local req=$2;
 
     local mkeys='';
 
     local rHelp='';
     local wHelp='';
     local sHelp='';
-    
-    local mAll=0;
-
+       
     mkeys=(${req});
     if [[ ! -v atCmd[${req}] ]];
     then
         mkeys=(${!atCmd[@]});
-        echo "${req}";
-        if [[ "${req}" == "-a" ]]
-        then
-            mAll=1;
-        fi
+        echo "*** Available AT command ***"
     fi
-    
+   
     #echo "${mkeys[@]}";
 
     IFS=$'|';
@@ -95,7 +105,7 @@ function HelpAT(){
     do
         read -r rHelp wHelp sHelp <<< "${atCmd[${k}]}"
         printf "%-7s : %s\n" ${k} ${sHelp};
-        if [[ ${#mkeys[@]} == 1 || ${mAll} == 1 ]]
+        if [[ ${details} == 1 ]]
         then
             if [[ ${rHelp} != "" ]]
             then
@@ -109,6 +119,36 @@ function HelpAT(){
         fi
     done
     unset IFS;
+}
+
+function HelpAT()
+{  
+    local input="${@}";
+    local option="ha";
+    
+    local cmd="";
+    local details=0;
+    
+    OPTIND=1;
+    while getopts ${option} arg ${input};
+    do
+        case $arg in
+            a)
+                details=1;
+                ;;
+            ?|h|*)
+                _HelpAT_usage_;
+                return;
+                ;;
+        esac
+    done
+    shift $(expr $OPTIND - 1 );
+    #echo "${details} : $1"
+    if [[ "$1" == "" ]]
+    then
+        _HelpAT_usage_;
+    fi
+    _HelpAT_display_ ${details} $1;
 }
 
 #*******************************************************************************
@@ -187,7 +227,7 @@ function GetCommissioning()
 #*******************************************************************************
 #*******************************************************************************
 
-function usage()
+function usage_main()
 {
     local prg=$1;
 
@@ -277,7 +317,7 @@ function _get_commissioning_args_()
                 ((cnt_mandatory-=1));
                 ;;
             h|*)
-                usage $prg;
+                usage_main $prg;
                 res=1;
                 ;;
         esac
@@ -286,7 +326,7 @@ function _get_commissioning_args_()
     if [[ ${cnt_mandatory} != 0 ]]
     then
         echo "...missing argument...!!!";
-        usage $prg;
+        usage_main $prg;
         res=1;
     fi
 }
