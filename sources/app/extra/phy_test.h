@@ -44,8 +44,16 @@ extern "C" {
 
 #include "phy_layer_private.h"
 
-phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType);
+phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo);
 void EX_PHY_SetCpy(void);
+
+void EX_PHY_OnOff(uint8_t bOn);
+void EX_PHY_SetPa(uint8_t bEnable);
+int32_t EX_PHY_GetPa(void);
+int32_t EX_PHY_RssiCalibrate(int8_t i8RssiRefLevel);
+int32_t EX_PHY_AutoCalibrate(void);
+int32_t EX_PHY_SetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
+int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
 
 #ifdef __cplusplus
 }

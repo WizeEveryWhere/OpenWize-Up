@@ -200,16 +200,8 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
   * @return the current test mode
   *
   */
-phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
+phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 {
-	//static test_mode_info_t eTestModeInfo = { .eTestMode = PHY_TST_MODE_NONE };
-	static test_mode_info_t eTestModeInfo = {
-		.eChannel = PHY_CH120,
-		.eModulation = PHY_WM2400,
-		.eTestMode = PHY_TST_MODE_NONE,
-		.eTxMode = TMODE_TX_NONE
-	};
-
 	static test_sport_t eTestSport = {
 		.eGpioData = ADF7030_1_SPORT_DATA_GPIO_PHY_PIN,
 		.eGpioClk = ADF7030_1_SPORT_CLK_GPIO_PHY_PIN,
@@ -218,45 +210,42 @@ phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
 	};
 
 	uint8_t eStatus = PHY_STATUS_OK;
-	eTestModeInfo.eTxMode = eType;
 
-	if (eMode)
+	if (sPhyDev.pIf->pfUnInit(&sPhyDev) == PHY_STATUS_OK)
 	{
 		eStatus = sPhyDev.pIf->pfInit(&sPhyDev);
 	}
 	else
 	{
-		eStatus = sPhyDev.pIf->pfUnInit(&sPhyDev);
+		// FIXME
+		return PHY_TST_MODE_NONE;
 	}
 
-
-	if (eMode && eStatus == PHY_STATUS_OK)
+	if (eTestModeInfo.eTestMode && eStatus == PHY_STATUS_OK)
 	{
 		// RX mode
-		if (eMode < PHY_TST_MODE_TX )
+		if (eTestModeInfo.eTestMode < PHY_TST_MODE_TX )
 		{
 			// Enable IT
-			_test_set_io(eType, 1);
+			_test_set_io(eTestModeInfo.eTxMode, 1);
 			eTestSport.bGpioClk = 1;
 			eTestSport.bGpioData = 1;
 			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
 		}
-		eTestModeInfo.eTestMode = eMode;
 		eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
 	}
 
-	if ( (!eMode) || (eStatus != PHY_STATUS_OK) )
+	if ( (!eTestModeInfo.eTestMode) || (eStatus != PHY_STATUS_OK) )
 	{
 		// RX mode
 		if (eTestModeInfo.eTestMode < PHY_TST_MODE_TX )
 		{
 			// Disable IT
-			_test_set_io(eType, 0);
+			_test_set_io(eTestModeInfo.eTxMode, 0);
 			eTestSport.bGpioClk = 0;
 			eTestSport.bGpioData = 0;
 			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
 		}
-		eTestModeInfo.eTestMode = PHY_TST_MODE_NONE;
 		eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
 	}
 	return eTestModeInfo.eTestMode;
@@ -266,13 +255,115 @@ phy_test_mode_e EX_PHY_Test(phy_test_mode_e eMode, uint8_t eType)
   * @brief Copy AFD7030 interrupt 0 to MCU IO1
   *
   */
-void EX_PHY_SetCpy(void)
+inline void EX_PHY_SetCpy(void)
 {
 #ifdef HAS_CPY_PIN
 	BSP_GpioIt_SetGpioCpy(BSP_GpioIt_GetLineId(ADF7030_1_INT0_GPIO_PIN), IO1_GPIO_Port, IO1_Pin);
 #else
 #warning HAS_CPY_PIN not defined
 #endif
+}
+
+/*!
+ * @brief  This function set the RF part power to ON/OFF
+ *
+ * @param [in]  bOn   On / Off the RF power
+ *
+ */
+inline void EX_PHY_OnOff(uint8_t bOn)
+{
+	if(bOn)
+	{
+		sPhyDev.pIf->pfInit(&sPhyDev);
+	}
+	else
+	{
+		sPhyDev.pIf->pfUnInit(&sPhyDev);
+	}
+}
+
+/*!
+ * @brief  This function enable/disable the PA
+ *
+ * @param [in]  bEnable   Enable / Disable the PA
+ *
+ */
+inline void EX_PHY_SetPa(uint8_t bEnable)
+{
+	sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_PA, (uint32_t)(bEnable & 0x1));
+}
+
+
+/*!
+ * @brief  This function get the current PA state
+ *
+ * @return      Status
+ * - 0          PA is disable
+ * - 1          PA is enable
+ *
+ */
+inline int32_t EX_PHY_GetPa(void)
+{
+	int32_t ret;
+	sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_PA, (uint32_t)(&ret));
+	return ret;
+}
+
+/*!
+ * @brief  This function launch the RSSI offset calibration sequence.
+ *
+ * @param [in]  i8RssiRefLevel RSSI reference input level (dbm) during calibration.
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ *
+ */
+inline int32_t EX_PHY_RssiCalibrate(int8_t i8RssiRefLevel)
+{
+	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_RSSI_CAL, (uint32_t)i8RssiRefLevel);
+}
+
+/*!
+ * @brief  This function launch the calibration sequence
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ *
+ */
+inline int32_t EX_PHY_AutoCalibrate(void)
+{
+	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_AUTO_CAL, (uint32_t)0);
+}
+
+
+/*!
+ * @brief  This function set/change entry in power table
+ *
+ * @param [in] pPhyPwrEntry Pointer on the transmission power entry
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ */
+inline int32_t EX_PHY_SetPowerEntry(phy_power_entry_t *pPhyPwrEntry)
+{
+	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_PWR_ENTRY, (uint32_t)(pPhyPwrEntry));
+}
+
+/*!
+ * @brief  This function get entry in power table
+ *
+ * @param [in] pPhyPwrEntry Pointer on the transmission power entry
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ */
+inline int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry)
+{
+	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_PWR_ENTRY, (uint32_t)pPhyPwrEntry);
 }
 
 #ifdef __cplusplus
