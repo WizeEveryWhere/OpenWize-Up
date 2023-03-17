@@ -258,7 +258,7 @@ void Storage_SetDefault(void)
 {
 	WizeApi_SetDeviceId(&sDefaultDevId);
 	memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	Phy_SetPa(bDefaultPaState);
+	EX_PHY_SetPa(bDefaultPaState);
 	i16RssiOffsetCal = i16DefaultRssiOffsetCal;
 	Phy_ClrCal();
 	Param_Init(a_ParamDefault);
@@ -279,7 +279,7 @@ uint8_t Storage_Store(void)
 	// Prepare first part with device ID, phy power and rssi cal. values
 	WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
 	memcpy(&(store_special.aPhyPower), aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	store_special.bPaState = Phy_GetPa();
+	store_special.bPaState = EX_PHY_GetPa();
 	store_special.i16PhyRssiOffset = i16RssiOffsetCal;
 	Phy_GetCal(store_special.aPhyCalRes);
 
@@ -332,7 +332,7 @@ uint8_t Storage_Get(void)
 	// Init special
 	WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
 	memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	Phy_SetPa(store_special.bPaState);
+	EX_PHY_SetPa(store_special.bPaState);
 	i16RssiOffsetCal = store_special.i16PhyRssiOffset;
 	Phy_SetCal(store_special.aPhyCalRes);
 	return 0;

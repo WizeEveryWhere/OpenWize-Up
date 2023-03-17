@@ -37,6 +37,8 @@
 #ifndef INC_ATCI_H_
 #define INC_ATCI_H_
 
+#include "phy_layer.h"
+
 /*==============================================================================
  * DEFINES
  *============================================================================*/
@@ -122,6 +124,9 @@
 #define TEST_MODE_DIS			0x00
 #define TEST_MODE_RX_0			0x10
 #define TEST_MODE_RX_1			0x11
+
+#define TEST_MODE_DEF_CH        PHY_CH120
+#define TEST_MODE_DEF_MOD       PHY_WM2400
 
 /*!
  * @}

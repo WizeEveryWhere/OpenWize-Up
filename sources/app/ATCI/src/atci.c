@@ -53,7 +53,7 @@
 #include "parameters_cfg.h"
 #include "crypto.h"
 #include "storage.h"
-#include "phy_layer_private.h"
+
 #include "phy_test.h"
 
 #include "FreeRTOS.h"
@@ -93,6 +93,34 @@ atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+ 
+static test_mode_info_t _atci_init_test_var_(void);
+static uint8_t _atci_init_lp_var_(void);
+
+/*!
+ * @}
+ * @endcond
+ */
+
+/*==============================================================================
+ * LOCAL VARIABLES
+ *============================================================================*/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
+static uint8_t _bTestMode_;
+
+
+/*!
+ * @}
+ * @endcond
+ */
 
 /*==============================================================================
  * FUNCTIONS
@@ -114,6 +142,7 @@ void Atci_Task(void const *argument)
 	atci_cmd_t atciCmdData;
 	atci_status_t status;
 	uint8_t bPaState;
+	uint8_t eLPmode;
 
 	//Inits
 
@@ -133,22 +162,27 @@ void Atci_Task(void const *argument)
 	Atci_Exec_Cmd[CMD_ATTEST] = Exec_ATTEST_Cmd;
 
 	EX_PHY_SetCpy();
-	bPaState = Phy_GetPa();
+	bPaState = EX_PHY_GetPa();
+	eLPmode = _atci_init_lp_var_();
+
 	//Loop
 	while(1)
 	{
 		switch(atciState)
 		{
 			case ATCI_SLEEP:
-				Atci_Debug_Str("Sleep");
+				if (!_bTestMode_ && eLPmode)
+				{
+					Atci_Debug_Str("Sleep");
 
-				bPaState = Phy_GetPa();
-				Phy_OnOff(&sPhyDev, 0);
-				Phy_SetPa(0);
+					bPaState = EX_PHY_GetPa();
+					EX_PHY_OnOff(0);
+					EX_PHY_SetPa(0);
 
-				Console_Disable();
+					Console_Disable();
 
-				BSP_LowPower_Enter(LP_STOP2_MODE);
+					BSP_LowPower_Enter(LP_STOP2_MODE);
+				}
 				atciState = ATCI_WAKEUP;
 				break;
 
@@ -156,8 +190,8 @@ void Atci_Task(void const *argument)
 
 				Console_Enable();
 
-				Phy_OnOff(&sPhyDev, 1);
-				Phy_SetPa(bPaState);
+				EX_PHY_OnOff(1);
+				EX_PHY_SetPa(bPaState);
 
 				Atci_Send_Wakeup_Msg();
 				Atci_Restart_Rx(&atciCmdData);
@@ -165,7 +199,7 @@ void Atci_Task(void const *argument)
 				break;
 
 			case ATCI_WAIT:
-
+			{
 				switch(Atci_Rx_Cmd(&atciCmdData))
 				{
 					case ATCI_AVAIL_AT_CMD:
@@ -178,17 +212,21 @@ void Atci_Task(void const *argument)
 						break;
 					case ATCI_RX_CMD_TIMEOUT:
 						Atci_Restart_Rx(&atciCmdData);
-						Atci_Send_Sleep_Msg();
-						atciState = ATCI_SLEEP;
+						if (!_bTestMode_ && eLPmode)
+						{
+							Atci_Send_Sleep_Msg();
+							atciState = ATCI_SLEEP;
+						}
 						break;
 					default:
 						break;
 				}
-
 				break;
+			}
 
 			case ATCI_EXEC_CMD:
-
+			{
+				eLPmode = _atci_init_lp_var_();
 				//decode and execute command
 				status = Atci_Get_Cmd_Code(&atciCmdData);
 				if(status == ATCI_OK)
@@ -210,8 +248,11 @@ void Atci_Task(void const *argument)
 							atciState = ATCI_RESET;
 							break;
 						case CMD_ATQ:
-							Atci_Send_Sleep_Msg();
-							atciState = ATCI_SLEEP;
+							if (!_bTestMode_ && eLPmode)
+							{
+								Atci_Send_Sleep_Msg();
+								atciState = ATCI_SLEEP;
+							}
 							break;
 						default: //other commands
 							atciState = ATCI_WAIT;
@@ -248,7 +289,7 @@ void Atci_Task(void const *argument)
 					atciState = ATCI_WAIT;
 				}
 				break;
-
+			}
 
 			default:
 			case ATCI_RESET:
@@ -1012,8 +1053,7 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 	atci_status_t status;
 	uint8_t i;
 
-	phy_power_e eEntryId;
-	phy_power_t sPwrEntry;
+	phy_power_entry_t sPwrEntry;
 
 	if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
 	{
@@ -1042,14 +1082,14 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 					atciCmdData->params[3].size = PARAM_INT8;
 					Atci_Add_Cmd_Param_Resp(atciCmdData);
 
-					eEntryId = PHY_PMAX_minus_0db + *(atciCmdData->params[0].val8);
+					sPwrEntry.eEntryId = PHY_PMAX_minus_0db + *(atciCmdData->params[0].val8);
 
-					if(Phy_GetPowerEntry(&sPhyDev, eEntryId, &sPwrEntry) != PHY_STATUS_OK)
+					if(EX_PHY_GetPowerEntry(&sPwrEntry) != PHY_STATUS_OK)
 						return ATCI_ERR;
 
-					*(atciCmdData->params[1].val8) = sPwrEntry.coarse;
-					*(atciCmdData->params[2].val8) = sPwrEntry.fine;
-					*(atciCmdData->params[3].val8) = sPwrEntry.micro;
+					*(atciCmdData->params[1].val8) = sPwrEntry.sEntryValue.coarse;
+					*(atciCmdData->params[2].val8) = sPwrEntry.sEntryValue.fine;
+					*(atciCmdData->params[3].val8) = sPwrEntry.sEntryValue.micro;
 
 					Atci_Resp_Data("ATFC", atciCmdData);
 				}
@@ -1070,19 +1110,19 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 
 					Atci_Debug_Param_Data("Set Fact Cfg. (TX PWR)", atciCmdData);/////////
 
-					eEntryId = PHY_PMAX_minus_0db + *(atciCmdData->params[0].val8);
+					sPwrEntry.eEntryId = PHY_PMAX_minus_0db + *(atciCmdData->params[0].val8);
 
-					sPwrEntry.coarse	= *(atciCmdData->params[1].val8);
-					sPwrEntry.fine		= *(atciCmdData->params[2].val8);
-					sPwrEntry.micro		= *(atciCmdData->params[3].val8);
-					if((sPwrEntry.coarse < FC_TX_PWR_COARSE_MIN) || (sPwrEntry.coarse > FC_TX_PWR_COARSE_MAX))
+					sPwrEntry.sEntryValue.coarse	= *(atciCmdData->params[1].val8);
+					sPwrEntry.sEntryValue.fine		= *(atciCmdData->params[2].val8);
+					sPwrEntry.sEntryValue.micro		= *(atciCmdData->params[3].val8);
+					if((sPwrEntry.sEntryValue.coarse < FC_TX_PWR_COARSE_MIN) || (sPwrEntry.sEntryValue.coarse > FC_TX_PWR_COARSE_MAX))
 						return ATCI_ERR_INV_PARAM_VAL;
-					if((sPwrEntry.fine < FC_TX_PWR_FINE_MIN) || (sPwrEntry.fine > FC_TX_PWR_FINE_MAX))
+					if((sPwrEntry.sEntryValue.fine < FC_TX_PWR_FINE_MIN) || (sPwrEntry.sEntryValue.fine > FC_TX_PWR_FINE_MAX))
 						return ATCI_ERR_INV_PARAM_VAL;
-					if((sPwrEntry.micro < FC_TX_PWR_MICRO_MIN) || (sPwrEntry.micro > FC_TX_PWR_MICRO_MAX))
+					if((sPwrEntry.sEntryValue.micro < FC_TX_PWR_MICRO_MIN) || (sPwrEntry.sEntryValue.micro > FC_TX_PWR_MICRO_MAX))
 						return ATCI_ERR_INV_PARAM_VAL;
 
-					if(Phy_SetPowerEntry(&sPhyDev, eEntryId, sPwrEntry) != PHY_STATUS_OK)
+					if(EX_PHY_SetPowerEntry(&sPwrEntry) != PHY_STATUS_OK)
 						return ATCI_ERR;
 				}
 
@@ -1098,17 +1138,7 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 					Atci_Add_Cmd_Param_Resp(atciCmdData);
 					atciCmdData->params[1].size = PARAM_INT8;
 					Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-					*(atciCmdData->params[1].val8) = (uint8_t) Phy_GetPa();
-
-					// S1 :
-					//uint32_t tmp;
-					//sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_PA, (uint32_t)&tmp);
-					//*(atciCmdData->params[1].val8) = (uint8_t)tmp;
-
-					// S2 :
-					//sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_PA, (uint32_t)(atciCmdData->params[1].val8));
-
+					*(atciCmdData->params[1].val8) = (uint8_t) EX_PHY_GetPa();
 					Atci_Resp_Data("ATFC", atciCmdData);
 				}
 				else if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)//write command
@@ -1122,11 +1152,9 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 					Atci_Debug_Param_Data("Set Fact Cfg. (PA EN)", atciCmdData);/////////
 
 					if(*(atciCmdData->params[1].val8) == 0)
-						Phy_SetPa(0);
+						EX_PHY_SetPa(0);
 					else
-						Phy_SetPa(1);
-					//sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_PA, (uint32_t)(*(atciCmdData->params[1].val8)));
-
+						EX_PHY_SetPa(1);
 				}
 				else
 					return ATCI_ERR_INV_NB_PARAM;
@@ -1141,7 +1169,7 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 				{
 					Atci_Debug_Param_Data("Set Fact Cfg. (CAL RSSI)", atciCmdData);/////////
 
-					if(Phy_RssiCalibrate(&sPhyDev, -77) != PHY_STATUS_OK)
+					if(EX_PHY_RssiCalibrate(-77) != PHY_STATUS_OK)
 						return ATCI_ERR;
 				}
 				else
@@ -1156,7 +1184,7 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 				{
 					Atci_Debug_Param_Data("Set Fact Cfg. (CAL ADF7030)", atciCmdData);/////////
 
-					if(Phy_AutoCalibrate(&sPhyDev) != PHY_STATUS_OK)
+					if(EX_PHY_AutoCalibrate() != PHY_STATUS_OK)
 						return ATCI_ERR;
 				}
 				else
@@ -1199,6 +1227,7 @@ atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
  *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 {
+	uint8_t eRet = ATCI_OK;
 	atci_status_t status;
 
 	if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
@@ -1212,43 +1241,120 @@ atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 		if(atciCmdData->cmdType != AT_CMD_WITH_PARAM)
 			return ATCI_ERR_INV_NB_PARAM;
 
-
+		test_mode_info_t eTestModeInfo = _atci_init_test_var_();
+		_bTestMode_ = 1;
 		if(*(atciCmdData->params[0].val8) == TEST_MODE_DIS) //also TMODE_TX_NONE witch correspond to the same thing (see test_modes_tx_e)
 		{
 			Atci_Debug_Param_Data("Set Fact Cfg. (DIS TEST MODE)", atciCmdData);/////////
 
-			EX_PHY_Test(PHY_TST_MODE_NONE, 0);
+			eTestModeInfo.eTestMode = PHY_TST_MODE_NONE;
+			eTestModeInfo.eTxMode = 0;
+			_bTestMode_ = 0;
 		}
 		else if(*(atciCmdData->params[0].val8) < TMODE_TX_NB) // (see test_modes_tx_e)
 		{
 			Atci_Debug_Param_Data("Set Fact Cfg. (TX TEST MODE)", atciCmdData);/////////
 
-			if(EX_PHY_Test(PHY_TST_MODE_TX, *(atciCmdData->params[0].val8)) != PHY_TST_MODE_TX)
-				return ATCI_ERR;
+			eTestModeInfo.eTestMode = PHY_TST_MODE_TX;
+			eTestModeInfo.eTxMode = *(atciCmdData->params[0].val8);
 		}
 		else if(*(atciCmdData->params[0].val8) == TEST_MODE_RX_0)
 		{
 			Atci_Debug_Param_Data("Set Fact Cfg. (RX TEST MODE)", atciCmdData);/////////
 
-			if(EX_PHY_Test(PHY_TST_MODE_RX, 0) != PHY_TST_MODE_RX)
-				return ATCI_ERR;
+			eTestModeInfo.eTestMode = PHY_TST_MODE_RX;
+			eTestModeInfo.eTxMode = 0;
 		}
 		else if(*(atciCmdData->params[0].val8) == TEST_MODE_RX_1)
 		{
 			Atci_Debug_Param_Data("Set Fact Cfg. (RX TEST MODE)", atciCmdData);/////////
 
-			if(EX_PHY_Test(PHY_TST_MODE_RX, 1) != PHY_TST_MODE_RX)
-				return ATCI_ERR;
+			eTestModeInfo.eTestMode = PHY_TST_MODE_RX;
+			eTestModeInfo.eTxMode = 1;
 		}
 		else
-			return ATCI_ERR_INV_PARAM_VAL;
+		{
+			eRet = ATCI_ERR_INV_PARAM_VAL;
+		}
+
+		if (eRet == ATCI_OK)
+		{
+			if (EX_PHY_Test(eTestModeInfo) != eTestModeInfo.eTestMode)
+			{
+				eRet = ATCI_ERR;
+			}
+		}
+
+		if (eRet != ATCI_OK)
+		{
+			_bTestMode_ = 0;
+		}
 	}
 	else
-		return ATCI_ERR_INV_NB_PARAM;
+		eRet = ATCI_ERR_INV_NB_PARAM;
 
-	return ATCI_OK;
+	return eRet;
 }
 
+/******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
+static test_mode_info_t _atci_init_test_var_(void)
+{
+	test_mode_info_t eTestModeInfo;
+	// Init test variable
+	eTestModeInfo.eChannel = TEST_MODE_DEF_CH;
+	eTestModeInfo.eModulation = TEST_MODE_DEF_MOD;
+	eTestModeInfo.eTestMode = PHY_TST_MODE_NONE;
+	eTestModeInfo.eTxMode = TMODE_TX_NONE;
+#ifdef HAS_TEST_CFG_PARAMETER
+	uint8_t t;
+	Param_Access(TEST_MODE_CHANNEL, &t, 0);
+	if (!t)	{ t = 120; }
+	eTestModeInfo.eChannel = (phy_chan_e)((t -100)/10);
+	Param_Access(TEST_MODE_MODULATION, &t, 0);
+	eTestModeInfo.eModulation = (phy_mod_e)t;
+#endif
+	return eTestModeInfo;
+}
+
+static uint8_t _atci_init_lp_var_(void)
+{
+	// Init LP mode
+	uint32_t u32LPdelay = CONSOLE_RX_TIMEOUT;
+	uint8_t eLPmode = 1;
+#ifdef HAS_LP_PARAMETER
+	/*
+	 *  0b xxxx xxxx
+	 *  0b xxxx xx00 : disable
+	 *  0b xxxx xx01 : enable
+	 *  0b 0000 xx01 : manual LP (no TMO)
+	 *  0b 0001 xx01 : 1 seconds
+	 *  0b 0010 xx01 : 2 seconds
+	 *  0b 0011 xx01 : 3 seconds
+	 *  ....
+	 *  0b 1111 xx01 : 15 seconds
+	 */
+	Param_Access(LOW_POWER_MODE, &eLPmode, 0);
+	u32LPdelay = (eLPmode >> 4) * 1000;
+	eLPmode = eLPmode & 0x1;
+	if (!u32LPdelay)
+	{
+		u32LPdelay = 0xFFFFFFFF;
+	}
+#endif
+	BSP_Console_SetRXTmo(u32LPdelay);
+	BSP_Console_SetTXTmo(CONSOLE_TX_TIMEOUT);
+	return eLPmode;
+}
+
+/*!
+ * @}
+ * @endcond
+ */
 /*********************************** EOF **************************************/
 
 /*! @} */
