@@ -136,13 +136,13 @@ int __io_putchar(int ch){
 		nb = 2;
 		((uint8_t *)&ch)[1] = '\r';
 	}
-	HAL_UART_Transmit(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t *)&ch, nb, CONSOLE_TX_TIMEOUT);
+	HAL_UART_Transmit(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t *)&ch, nb, aDevUart[STDOUT_UART_ID].u32TxTmo);
 	return ch;
 }
 
 int __io_getchar(void){
 	int c;
-	HAL_UART_Receive(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t*)&c, 1, CONSOLE_RX_TIMEOUT);
+	HAL_UART_Receive(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t*)&c, 1, aDevUart[STDOUT_UART_ID].u32RxTmo);
 	return c;
 }
 #endif

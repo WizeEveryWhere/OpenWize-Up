@@ -45,7 +45,7 @@ extern "C" {
  * @{
  */
 
-#define STDOUT_UART_ID UART_ID_CONSOLE
+#define STDOUT_UART_ID UART_ID_LOG
 
 #define RTC_PREDIV_S 1023
 #define RTC_PREDIV_A 31
@@ -73,8 +73,8 @@ extern "C" {
  */
 typedef enum
 {
-	UART_ID_CONSOLE, /*!< Concole id */
-	UART_ID_COM,     /*!< Communication Id */
+	UART_ID_LOG, /*!< Logger id */
+	UART_ID_COM, /*!< Communication Id */
 	//
 	UART_ID_MAX
 } uart_id_e;

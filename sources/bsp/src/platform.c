@@ -57,14 +57,18 @@ extern UART_HandleTypeDef huart4;
 
 uart_dev_t aDevUart[UART_ID_MAX] =
 {
-	[UART_ID_CONSOLE] = {
+	[UART_ID_LOG] = {
 			//.hHandle = &huart2,
 			.hHandle = &huart4,
-			.pfEvent = NULL
+			.pfEvent = NULL,
+			.u32RxTmo = LOGGER_RX_TIMEOUT,
+			.u32TxTmo = LOGGER_TX_TIMEOUT
 	},
 	[UART_ID_COM]     = {
 			.hHandle = &huart4,
-			.pfEvent = NULL
+			.pfEvent = NULL,
+			.u32RxTmo = CONSOLE_RX_TIMEOUT,
+			.u32TxTmo = CONSOLE_TX_TIMEOUT
 	},
 };
 

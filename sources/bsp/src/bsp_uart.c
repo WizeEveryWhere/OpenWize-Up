@@ -63,7 +63,8 @@ uint8_t BSP_Console_Send(uint8_t *pData, uint16_t u16Length)
 {
 	dev_res_e eRet = DEV_INVALID_PARAM;
 
-	eRet = HAL_UART_Transmit(aDevUart[UART_ID_COM].hHandle, pData, u16Length, CONSOLE_TX_TIMEOUT);
+	eRet = HAL_UART_Transmit(aDevUart[UART_ID_COM].hHandle, pData, u16Length, aDevUart[UART_ID_COM].u32TxTmo);
+	//eRet = HAL_UART_Transmit(aDevUart[UART_ID_COM].hHandle, pData, u16Length, CONSOLE_TX_TIMEOUT);
 	//eRet = HAL_UART_Transmit_DMA(paUART_BusHandle[UART_ID_CONSOLE], pData, u16Length);
 	//eRet = HAL_UART_Transmit_IT(paUART_BusHandle[UART_ID_CONSOLE], pData, u16Length);
 	return eRet;
@@ -72,10 +73,25 @@ uint8_t BSP_Console_Send(uint8_t *pData, uint16_t u16Length)
 uint8_t BSP_Console_Received(uint8_t *pData, uint16_t u16Length)
 {
 	dev_res_e eRet = DEV_INVALID_PARAM;
-	eRet = HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, pData, u16Length, CONSOLE_RX_TIMEOUT);
+
+	eRet = HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, pData, u16Length, aDevUart[UART_ID_COM].u32RxTmo);
+	//eRet = HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, pData, u16Length, CONSOLE_RX_TIMEOUT);
 
 	return eRet;
 }
+
+inline uint8_t BSP_Console_SetRXTmo(uint32_t u32Tmo)
+{
+	aDevUart[UART_ID_COM].u32RxTmo = u32Tmo;
+	return DEV_SUCCESS;
+}
+
+inline uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo)
+{
+	aDevUart[UART_ID_COM].u32TxTmo = u32Tmo;
+	return DEV_SUCCESS;
+}
+
 /******************************************************************************/
 /*!
   * @brief Enable the given uart and its related GPIO
@@ -175,7 +191,7 @@ uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode, uint
 
 	if(u32Tmo)
 	{
-		aDevUart[u8DevId].u32Tmo = u32Tmo & 0x00FFFFFF;
+		aDevUart[u8DevId].u32RxTmo = u32Tmo & 0x00FFFFFF;
 		/* Enable Receiver timeout */
 		SET_BIT(huart->Instance->CR2, USART_CR2_RTOEN);
 		/* Set Receiver timeout value */
@@ -183,7 +199,7 @@ uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode, uint
 	}
 	else
 	{
-		aDevUart[u8DevId].u32Tmo = 0;
+		aDevUart[u8DevId].u32RxTmo = 0;
 		CLEAR_BIT(huart->Instance->CR2, USART_CR2_RTOEN);
 	}
 
@@ -326,10 +342,10 @@ uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
 		SET_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
 		/* Set Receiver timeout value */
-		if(aDevUart[u8DevId].u32Tmo)
+		if(aDevUart[u8DevId].u32RxTmo)
 		{
 			/* Set Receiver timeout value */
-			MODIFY_REG(huart->Instance->RTOR, USART_RTOR_RTO, aDevUart[u8DevId].u32Tmo);
+			MODIFY_REG(huart->Instance->RTOR, USART_RTOR_RTO, aDevUart[u8DevId].u32RxTmo);
 			/* Enable Receiver timeout interrupt*/
 			itflags |= USART_CR1_RTOIE;
 		}
