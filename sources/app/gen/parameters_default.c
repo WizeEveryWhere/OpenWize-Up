@@ -1,9 +1,10 @@
 /*!
   * @file parameters_default.c
-  * @brief This file was generated from sources/app/cfg/MergedParam.xml(Modif. : 2022-03-07 14:27:28.014736500 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-03-17 15:12:12.373989847 +0100).
   * 
-  *****************************************************************************
-  * @copyright 2020, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2023, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,11 +18,10 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Generation Date
-  * ----------------
-  * 07/03/2022 14:27 [neo]
+  * @par Generation Date
+  * 
+  * @par x.x.x : 17/03/2023 15:12 [neo]
   *
   */
 
@@ -29,6 +29,9 @@
 
 
 /******************************************************************************/
+/*!
+ * @brief This array define the parameter default value
+ */
 const uint8_t a_ParamDefault[] = {
    0x1,0x0, //!< Hardware version number of the device (or transceiver for a remote module)
    0x1,0x0, //!< Software version number run by the device (or transceiver for a remote module)
@@ -68,14 +71,17 @@ const uint8_t a_ParamDefault[] = {
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, //!< Response 7 received for the last connectivity test
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, //!< Response 8 received for the last connectivity test (Lowest L7RssiDown)
    0x6, //!< Periodic time of execping sending by the device, in months
-   0x0, //!< Get or Set the Logger level
-   0x0, //!< Get or Set the Logger time option
+   0x78, //!< Get or Set the current test mode channel
+   0x0, //!< Get or Set the current test mode modulation
+   0x51, //!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manuel only).
+   0x0, //!< Get or Set the Logger level (see logger_level_e for details)
+   0x0, //!< Get or Set the Logger time option (see logger_tstamp_e for details)
    };
 
 /******************************************************************************/
 const uint8_t a_ENUM_01[6] = { 100, 110, 120, 130, 140, 150, };
 const uint8_t a_RANGE_02[2] = { 0, 2, };
-const uint8_t a_RANGE_03[2] = { 40, 200, };
-const uint8_t a_RANGE_04[2] = { 50, 200, };
+const uint8_t a_RANGE_03[2] = { 40, 229, };
+const uint8_t a_RANGE_04[2] = { 50, 229, };
 const uint8_t a_RANGE_05[2] = { 0, 14, };
 

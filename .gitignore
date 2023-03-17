@@ -3,3 +3,4 @@
 /_install*
 /aBuild*
 /aInstall*
+/sources/app/gen/*.xml

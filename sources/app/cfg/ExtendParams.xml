@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ParamCfg xmlns:tns="http://www.grdf.fr/smart-solutions/TU/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.grdf.fr/smart-solutions/TU/1.0.0/Parameter.xsd "> 
+  
+<ParameterList>
+    <!-- ******************************************************************* -->
+    <!-- Extend Parameters -->
+    <!-- ******************************************************************* -->
+    <Parameter id="F9" loc="RW" rem="NA" size="1"
+               ref="REF_N" 
+               name="EXTEND_FLAGS"
+               desc="Get or Set the extend flags. b[0] if 1: Clear MCU low power domain on next reboot, b[1] if 1 : Disable ATCI +DBG">
+          0</Parameter>   
+</ParameterList>
+
+</tns:ParamCfg>

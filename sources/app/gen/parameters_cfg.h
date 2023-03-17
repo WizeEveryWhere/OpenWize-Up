@@ -1,9 +1,10 @@
 /*!
   * @file parameters_cfg.h
-  * @brief This file was generated from sources/app/cfg/MergedParam.xml(Modif. : 2022-03-07 14:27:28.014736500 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-03-17 15:12:12.373989847 +0100).
   * 
-  *****************************************************************************
-  * @copyright 2020, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2023, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,11 +18,10 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Generation Date
-  * ----------------
-  * 07/03/2022 14:27 [neo]
+  * @par Generation Date
+  * 
+  * @par x.x.x : 17/03/2023 15:12 [neo]
   *
   */
 
@@ -36,11 +36,14 @@ extern C {
 
 /******************************************************************************/
 #define PARAM_ACCESS_CFG_SZ (0xFF)
-#define PARAM_DEFAULT_SZ (0x77)
+#define PARAM_DEFAULT_SZ (0x7A)
 
 extern const param_s a_ParamAccess[PARAM_ACCESS_CFG_SZ];
 extern const uint8_t a_ParamDefault[PARAM_DEFAULT_SZ];
 
+/*!
+ * @brief This enum define the parameter id
+ */
 typedef enum {
     VERS_HW_TRX = 0x01, //!< Hardware version number of the device (or transceiver for a remote module)
     VERS_FW_TRX = 0x02, //!< Software version number run by the device (or transceiver for a remote module)
@@ -80,8 +83,11 @@ typedef enum {
     PING_REPLY7 = 0x3C, //!< Response 7 received for the last connectivity test
     PING_REPLY8 = 0x3D, //!< Response 8 received for the last connectivity test (Lowest L7RssiDown)
     EXECPING_PERIODE = 0x3E, //!< Periodic time of execping sending by the device, in months
-    LOGGER_LEVEL = 0xFD, //!< Get or Set the Logger level
-    LOGGER_TIME_OPT = 0xFE, //!< Get or Set the Logger time option
+    TEST_MODE_CHANNEL = 0xFA, //!< Get or Set the current test mode channel
+    TEST_MODE_MODULATION = 0xFB, //!< Get or Set the current test mode modulation
+    LOW_POWER_MODE = 0xFC, //!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manuel only).
+    LOGGER_LEVEL = 0xFD, //!< Get or Set the Logger level (see logger_level_e for details)
+    LOGGER_TIME_OPT = 0xFE, //!< Get or Set the Logger time option (see logger_tstamp_e for details)
     LAST_ID = 0xFE, //!< Don't remove, it marks the end of table.
 }param_ids_e;
 

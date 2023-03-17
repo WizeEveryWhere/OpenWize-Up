@@ -1,9 +1,10 @@
 /*!
   * @file parameters_cfg.c
-  * @brief This file was generated from sources/app/cfg/MergedParam.xml(Modif. : 2022-03-07 14:27:28.014736500 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-03-17 15:12:12.373989847 +0100).
   * 
-  *****************************************************************************
-  * @copyright 2020, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2023, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,11 +18,10 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Generation Date
-  * ----------------
-  * 07/03/2022 14:27 [neo]
+  * @par Generation Date
+  * 
+  * @par x.x.x : 17/03/2023 15:12 [neo]
   *
   */
 
@@ -281,11 +281,11 @@ const param_s a_ParamAccess[0xFF] = {
     INIT_ACCESS_TABLE(0xF7, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xF8, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xF9, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xFA, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xFB, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xFC, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xFD, RW, NA, IMM, REF_N, 1, 117, 0x0),
-    INIT_ACCESS_TABLE(0xFE, RW, NA, IMM, REF_N, 1, 118, 0x0),
+    INIT_ACCESS_TABLE(0xFA, RW, NA, IMM, REF_N, 1, 117, 0x01),
+    INIT_ACCESS_TABLE(0xFB, RW, NA, IMM, REF_N, 1, 118, 0x02),
+    INIT_ACCESS_TABLE(0xFC, RW, RW, IMM, REF_N, 1, 119, 0x0),
+    INIT_ACCESS_TABLE(0xFD, RW, NA, IMM, REF_N, 1, 120, 0x0),
+    INIT_ACCESS_TABLE(0xFE, RW, NA, IMM, REF_N, 1, 121, 0x0),
 };
 
 /******************************************************************************/
