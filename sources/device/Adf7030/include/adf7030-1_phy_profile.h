@@ -137,16 +137,25 @@ typedef union {
 typedef union {
     uint32_t RADIO_DIG_RX_CFG; /*!< Rx Configuration */
     struct {
-        uint32_t DEMOD_DISC_BW              : 8;
+        uint32_t DEMOD_DISC_BW              : 8; /*!< Receiver discriminator bandwidth. */
         uint32_t DEMOD_POST_DEMOD_FILTER_BW : 4;
-        uint32_t DEMOD_PRODUCT_SEL          : 1;
-        uint32_t DEMOD_CORE_CLK_DIVIDE      : 2;
-        uint32_t                            : 2;
-        uint32_t LOW_SIDE                   : 1;
-        uint32_t DECIMATE_8XIF_CLK_DIVIDE   : 4;
-        uint32_t ADC_ANALOG_CLK_DIVIDE      : 3;
-        uint32_t                            : 1;
-        uint32_t INVERT                     : 1;
+        uint32_t DEMOD_PRODUCT_SEL          : 1; /*!< Dot/cross product select.*/
+        uint32_t DEMOD_CORE_CLK_DIVIDE      : 4; /*!< Divide down ratio of the
+        											  demodulation core clock
+        											  relative to the master clock.*/
+        uint32_t LOW_SIDE                   : 1; /*!< Select high sided or low sided injection.
+													  0: high sided injection.
+													  1: low sided injection.
+         	 	 	 	 	 	 	 	 	 	 	 */
+        uint32_t DECIMATE_8XIF_CLK_DIVIDE   : 4; /*!< Divide down ratio of
+        											  DECIMATE_8XIF_CLK relative
+        											   to the master clock.*/
+        uint32_t ADC_ANALOG_CLK_DIVIDE      : 4; /*!< Divide down ratio of SigmaDelta
+        										 	  analog-to-digital converter
+        										 	  (ADC) clock relative to the
+        										 	  master clock rate.*/
+        uint32_t INVERT                     : 1; /*!< 0: configure demodulation with dot product.
+        											  1: configure demodulation with cross product. */
         uint32_t MAPPING_4FSK_SEL           : 3;
         uint32_t DEMOD_SCALING              : 2;
     } RADIO_DIG_RX_CFG_b;
@@ -291,8 +300,8 @@ typedef union {
         uint32_t AFC_MODE              : 3; /*!< AFC mode */
         uint32_t AFC_INITIAL_CONDITION : 16;
         uint32_t AFC_SAMPLE_RATE       : 3;
-        uint32_t AFC_BW                : 6;
-        uint32_t AFC_INVERT            : 1;
+        uint32_t AFC_BW                : 6; /*!< AFC measurement bandwidth (BW).*/
+        uint32_t AFC_INVERT            : 1; /*!< AFC invert.*/
         uint32_t AFC_PRODUCT_SEL       : 1;
         uint32_t                       : 2;
     } RADIO_AFC_CFG2_b; /*!< BitSize*/

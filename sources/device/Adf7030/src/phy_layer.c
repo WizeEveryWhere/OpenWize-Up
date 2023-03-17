@@ -59,6 +59,14 @@ extern "C" {
 #include "adf7030-1_phy_conv.h"
 #include "adf7030-1_phy_log.h"
 
+#if defined (USE_PHY_LAYER_TRACE)
+#ifndef TRACE_PHY_LAYER
+#define TRACE_PHY_LAYER(...) fprintf (stdout, __VA_ARGS__ )
+#endif
+#else
+#define TRACE_PHY_LAYER(...)
+#endif
+
 // The WM6400 modulation is not natively supported by the ADF7030 and must works in Raw Mode
 
 /*!
@@ -221,8 +229,8 @@ typedef struct {
 #define PHY_RADIO_CAL (PHY_BASE_CFG +1)
 #define PHY_VCO_CAL   (PHY_RADIO_CAL +1)
 #define PHY_CAL_CFG   (PHY_VCO_CAL +1)
-#define PHY_HIDDEN   (PHY_CAL_CFG +1)
-#define PHY_NB_CFG   (PHY_HIDDEN +1)
+#define PHY_HIDDEN    (PHY_CAL_CFG +1)
+#define PHY_NB_CFG    (PHY_HIDDEN +1)
 
 /*!
  * @}
@@ -352,133 +360,6 @@ int32_t Phy_adf7030_setup(
 }
 
 /*!
- * @brief  This function set the RF part power to ON/OFF
- *
- * @param [in]  pPhydev   Pointer on the Phy device instance
- * @param [in]  bOn   On / Off the RF power
- *
- */
-inline void Phy_OnOff(phydev_t *pPhydev, uint8_t bOn)
-{
-	if(pPhydev && pPhydev->pIf)
-	{
-		if(bOn)
-		{
-			pPhydev->pIf->pfInit(pPhydev);
-		}
-		else
-		{
-			pPhydev->pIf->pfUnInit(pPhydev);
-		}
-	}
-}
-
-/*!
- * @brief  This function enable/disable the PA
- *
- * @param [in]  bEnable   Enable / Disable the PA
- *
- */
-inline void Phy_SetPa(uint8_t bEnable)
-{
-	if (bEnable)
-	{
-		BSP_PwrLine_Set(PA_EN_MSK);
-	}
-	else
-	{
-		BSP_PwrLine_Clr(PA_EN_MSK);
-	}
-}
-
-/*
-inline void Phy_SetPa(phydev_t *pPhydev, uint8_t bEnable)
-{
-	pPhydev->pfIoctl(pPhydev, PHY_CTL_SET_PA, (uint32_t)(bEnable & 0x1));
-}
-*/
-
-/*!
- * @brief  This function get the current PA state
- *
- * @return      Status
- * - 0          PA is disable
- * - 1          PA is enable
- *
- */
-inline int32_t Phy_GetPa(void)
-{
-	if (BSP_PwrLine_Get(PA_EN_MSK))
-		return 1;
-	else
-		return 0;
-}
-
-/*
-inline int32_t Phy_GetPa(phydev_t *pPhydev)
-{
-	int32_t ret;
-	pPhydev->pfIoctl(pPhydev, PHY_CTL_GET_PA, (uint32_t)(&ret));
-	return ret;
-}
-*/
-
-/*!
- * @brief  This function set/change entry in power table
- *
- * @param [in]  pPhydev   Pointer on the Phy device instance
- * @param [in]  eEntryId  The entry id in the power table
- * @param [in]  sPwrEntry The transmission power level
- *
- * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
- * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
- */
-int32_t Phy_SetPowerEntry(phydev_t *pPhydev, phy_power_e eEntryId, phy_power_t sPwrEntry)
-{
-    int32_t eStatus = PHY_STATUS_BUSY;
-    adf7030_1_device_t* pDevice = pPhydev->pCxt;
-	if ( !(pDevice->eState & ADF7030_1_STATE_BUSY) )
-	{
-		aPhyPower[eEntryId].coarse = sPwrEntry.coarse;
-		aPhyPower[eEntryId].fine = sPwrEntry.fine;
-		aPhyPower[eEntryId].micro = sPwrEntry.micro;
-
-		if ( eEntryId == pPhydev->eTxPower)
-		{
-			// run-time configure TX power is required
-			pDevice->bTxPwrDone = 0;
-		}
-		eStatus = PHY_STATUS_OK;
-	}
-	return eStatus;
-}
-
-/*!
- * @brief  This function get entry in power table
- *
- * @param [in]  pPhydev   Pointer on the Phy device instance
- * @param [in]  eEntryId  The entry id in the power table
- * @param [out] sPwrEntry The transmission power level
- *
- * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
- * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
- */
-int32_t Phy_GetPowerEntry(phydev_t *pPhydev, phy_power_e eEntryId, phy_power_t *sPwrEntry)
-{
-    int32_t eStatus = PHY_STATUS_BUSY;
-    adf7030_1_device_t* pDevice = pPhydev->pCxt;
-	if ( !(pDevice->eState & ADF7030_1_STATE_BUSY) )
-	{
-		sPwrEntry->coarse = aPhyPower[eEntryId].coarse;
-		sPwrEntry->fine = aPhyPower[eEntryId].fine;
-		sPwrEntry->micro = aPhyPower[eEntryId].micro;
-
-		eStatus = PHY_STATUS_OK;
-	}
-	return eStatus;
-}
-
-/*!
  * @brief  This function Get the radio and vco calibration data
  *
  * @param [in]  pBuf Pointer to write in the calibration data
@@ -558,167 +439,6 @@ inline int32_t Phy_ClrCal(void)
 	return PHY_STATUS_OK;
 }
 
-/*!
- * @brief  This function implement the calibration sequence
- *
- * @param [in]  pPhydev Pointer on the Phy device instance
- *
- * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
- * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
- * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
- *
- */
-int32_t Phy_AutoCalibrate(phydev_t *pPhydev)
-{
-	int32_t eStatus = PHY_STATUS_ERROR;
-	uint8_t eRet = 0;
-    adf7030_1_device_t* pDevice = pPhydev->pCxt;
-    adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
-    data_blck_desc_t sBlock;
-
-    eStatus = _ioctl(pPhydev, PHY_CTL_CMD_RESET, 0);
-    if (eStatus == PHY_STATUS_OK )
-    {
-    	eStatus = _ioctl(pPhydev, PHY_CTL_CMD_READY, 0);
-    }
-
-	// It must be set to READY before
-	if(pDevice->eState & ADF7030_1_STATE_READY)
-	{
-		// device must be in PHY_OFF state
-		eRet |= adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_OFF, PHY_OFF );
-
-		// Transfers Offline calibration patch to the PHY Radio
-	    eRet |= adf7030_1_Configure(pDevice, RF_CFG[PHY_CAL_CFG].cf, RF_CFG[PHY_CAL_CFG].size);
-
-		// Change frequency to mid of the band
-		adf7030_1__SPI_SetMem32( pSPIDevInfo, PROFILE_CH_FREQ_Addr, (uint32_t)(PHY_FREQUENCY_CH(PHY_CH120) + PHY_CHANNEL_WIDTH/2));
-
-		// Enable the calibration
-		eRet |= adf7030_1__SetupPatch(pSPIDevInfo, SM_DATA_CAL_ENABLE_key, 1);
-		eRet |= adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, CFG_DEV, PHY_OFF );
-	    eRet |= adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON );
-
-		// Setup "module" to calibrate
-	    adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RADIO_CAL_CFG0_Addr, pDevice->CalCfg.RADIO_CAL_CFG0);
-		// Start the calibration
-	    eRet |= adf7030_1__STATE_PhyCMD( pSPIDevInfo, DO_CAL );
-	    if (!eRet)
-	    {
-			// Wait for calibration done
-			eRet = adf7030_1__STATE_WaitStateReady(pSPIDevInfo, PHY_ON, 0);
-			// ---> Calibration finished, should be PHY_ON idle now
-			if ( adf7030_1__READ_FIELD(PROFILE_RADIO_CAL_CFG1_CAL_SUCCESS) )
-			{
-				pDevice->eState |= ADF7030_1_STATE_CALIBRATED;
-
-				sBlock.WordXfer = 0;
-				// Get Radio Calibration result
-				sBlock.Addr = PROFILE_RADIO_CAL_RESULTS0_Addr;
-				sBlock.pData = &(RF_CFG[PHY_RADIO_CAL].cf[8]);
-				sBlock.Size  = sizeof(radio_cal_results_t);
-				eRet = adf7030_1__ReadDataBlock( pSPIDevInfo, &(sBlock) );
-
-				// Get VCO Calibration result
-				sBlock.Addr = VCO_CAL_RESULTS_DATA0_Addr;
-				sBlock.pData = &(RF_CFG[PHY_VCO_CAL].cf[8]);
-				sBlock.Size  = sizeof(vco_cal_results_t);
-				eRet |= adf7030_1__ReadDataBlock( pSPIDevInfo, &(sBlock) );
-
-				if(!eRet)
-				{
-					*(uint64_t*)(RF_CFG[PHY_RADIO_CAL].cf) = RADIO_CAL_HEADER_BE;
-					*(uint64_t*)(RF_CFG[PHY_VCO_CAL].cf) = VCO_CAL_HEADER_BE;
-					eStatus = PHY_STATUS_OK;
-				}
-			}
-			// TODO : case when PROFILE_RADIO_CAL_CFG1_CAL_SUCCESS == 0
-	    }
-	}
-	else {
-		eStatus = PHY_STATUS_ERROR;
-		pSPIDevInfo->eXferResult = ADF7030_1_INVALID_OPERATION;
-	}
-	return eStatus;
-}
-
-
-/*!
- * @brief  This function implement the RSSI offset calibration sequence. Note,
- *         that a carrier at mid band frequency with -77dbm level must externally
- *         be applied during calibration.
- *
- * @param [in]  pPhydev        Pointer on the Phy device instance
- * @param [in]  i8RssiRefLevel RSSI reference input level (dbm) during calibration.
- *
- * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
- * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
- * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
- *
- */
-int32_t Phy_RssiCalibrate(phydev_t *pPhydev, int8_t i8RssiRefLevel)
-{
-	// Power On
-	// Configuration
-	int32_t eStatus = PHY_STATUS_ERROR;
-    adf7030_1_device_t* pDevice = pPhydev->pCxt;
-    adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
-    cca_cfg_t cca_cfg;
-    uint16_t u16Avg;
-    uint32_t u32Sum;
-    uint8_t i;
-	// Auto-Calibrate
-    if ( Phy_AutoCalibrate(pPhydev) == PHY_STATUS_OK )
-    {
-		// Clear NB_OFFSET in rssi_cfg_t
-		adf7030_1__WRITE_FIELD(PROFILE_RSSI_CFG_NB_OFFSET, 0);
-		// Set to PHY_ON
-		if ( adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON ) )
-		{
-			return eStatus;
-		}
-		// Apply Carrier at mid band frequency with -77dbm level
-		// TODO :
-
-		// clear DETECTION_TIME in cca_cfg_t
-		cca_cfg.CCA_CFG = adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr);
-		adf7030_1__WRITE_FIELD(PROFILE_CCA_CFG_DETECTION_TIME, 0);
-		// Issue CCA command
-		if (  adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, CCA, CCA ) )
-		{
-			// Revert DETECTION_TIME
-			adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr, cca_cfg.CCA_CFG);
-			return eStatus;
-		}
-
-		// Wait for at least 64 time the bit transition time
-		// assume 2400 bit/s, so 416.67µs per bit, then wait t > 26.67ms
-		msleep(30);
-		// Read 20 RSSI samples, convert in dbm then average it
-		u32Sum = 0;
-		for (i = 0; i < 20; i ++)
-		{
-			u32Sum += adf7030_1__GetRawRSSI( pSPIDevInfo );
-		}
-		// Calculate error (dbm) = Average (dbm) - Power input (dbm)
-		u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
-		// Write offset value to NB_OFFSET in rssi_cfg_t
-		adf7030_1__WRITE_FIELD(PROFILE_RSSI_CFG_NB_OFFSET, u16Avg);
-
-		// Exit from CCA mode
-		if (!adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON ) )
-		{
-			// Store the offset value for use at run-time
-			i16RssiOffsetCal = u16Avg;
-			eStatus = PHY_STATUS_OK;
-		}
-		// Revert DETECTION_TIME
-		adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr, cca_cfg.CCA_CFG);
-    }
-    return eStatus;
-}
-
-
 /******************************************************************************/
 /******************************************************************************/
 
@@ -741,9 +461,11 @@ static int32_t _ready_seq(phydev_t *pPhydev);
 static int32_t _sleep_seq(phydev_t *pPhydev);
 static int32_t _trx_seq(phydev_t *pPhydev);
 static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode);
+static int32_t _auto_calibrate_seq(phydev_t *pPhydev);
+static int32_t _rssi_calibrate_seq(phydev_t *pPhydev, int8_t i8RssiRefLevel);
 static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd);
 static void _frame_it(void *p_CbParam, void *p_Arg);
-
+static void _instrum_it(void *p_CbParam, void *p_Arg);
 
 /*!
  * @static
@@ -1214,7 +936,7 @@ static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode)
 			{
 				// RX test mode
 				eCmd = PHY_CMD_RX;
-				test_modes1.TEST_MODES1_b.PACKET_CNT = 100;
+				test_modes1.TEST_MODES1_b.PACKET_CNT = 0xFFFF;
 				test_modes1.TEST_MODES1_b.CURRENT_CNT = 0;
 				adf7030_1__SPI_SetMem32(pSPIDevInfo, GENERIC_PKT_TEST_MODES1_Addr, test_modes1.TEST_MODES1);
 
@@ -1253,9 +975,214 @@ static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode)
 				test_modes0.TEST_MODES0_b.TX_TEST = eTxMode;
 			}
 		}
+#if defined (USE_PHY_LAYER_TRACE)
+		if(pPhydev->eTestMode != PHY_TST_MODE_NONE)
+		{
+			TRACE_PHY_LAYER("Phy Enable Test mode\n");
+			TRACE_PHY_LAYER("- Mode : %s", aTestModeStr[pPhydev->eTestMode]);
+			if (pPhydev->eTestMode == PHY_TST_MODE_TX)
+			{
+				TRACE_PHY_LAYER(" (%s)\n", aTestModeTXStr[eTxMode]);
+			}
+			else
+			{
+				TRACE_PHY_LAYER("\n");
+			}
+			TRACE_PHY_LAYER("- Channel    : %s\n", aChanStr[pPhydev->eChannel]);
+			TRACE_PHY_LAYER("- Modulation : %s\n", aModulationStr[pPhydev->eModulation]);
+		}
+		else
+		{
+			TRACE_PHY_LAYER("Phy Disable Test mode\n");
+		}
+#endif
 		adf7030_1__SPI_SetMem32(pSPIDevInfo, GENERIC_PKT_TEST_MODES0_Addr, test_modes0.TEST_MODES0);
 		eStatus = _do_cmd(pPhydev, eCmd);
 	}
+    return eStatus;
+}
+
+/*!
+ * @brief  This function implement the calibration sequence
+ *
+ * @param [in]  pPhydev Pointer on the Phy device instance
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ *
+ */
+static int32_t _auto_calibrate_seq(phydev_t *pPhydev)
+{
+	int32_t eStatus = PHY_STATUS_ERROR;
+	uint8_t eRet = 0;
+    adf7030_1_device_t* pDevice = pPhydev->pCxt;
+    adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
+    data_blck_desc_t sBlock;
+
+    eStatus = _do_cmd(pPhydev, PHY_CTL_CMD_RESET);
+    if (eStatus == PHY_STATUS_OK )
+    {
+    	eStatus = _do_cmd(pPhydev, PHY_CTL_CMD_READY);
+    }
+
+	// It must be set to READY before
+	if(pDevice->eState & ADF7030_1_STATE_READY)
+	{
+		// device must be in PHY_OFF state
+		eRet |= adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_OFF, PHY_OFF );
+
+		// Transfers Offline calibration patch to the PHY Radio
+	    eRet |= adf7030_1_Configure(pDevice, RF_CFG[PHY_CAL_CFG].cf, RF_CFG[PHY_CAL_CFG].size);
+
+		// Change frequency to mid of the band
+		adf7030_1__SPI_SetMem32( pSPIDevInfo, PROFILE_CH_FREQ_Addr, (uint32_t)(PHY_FREQUENCY_CH(PHY_CH120) + PHY_CHANNEL_WIDTH/2));
+
+		// Enable the calibration
+		eRet |= adf7030_1__SetupPatch(pSPIDevInfo, SM_DATA_CAL_ENABLE_key, 1);
+		eRet |= adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, CFG_DEV, PHY_OFF );
+	    eRet |= adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON );
+
+		// Setup "module" to calibrate
+	    adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RADIO_CAL_CFG0_Addr, pDevice->CalCfg.RADIO_CAL_CFG0);
+		// Start the calibration
+	    eRet |= adf7030_1__STATE_PhyCMD( pSPIDevInfo, DO_CAL );
+	    if (!eRet)
+	    {
+			// Wait for calibration done
+			eRet = adf7030_1__STATE_WaitStateReady(pSPIDevInfo, PHY_ON, 0);
+			// ---> Calibration finished, should be PHY_ON idle now
+			if ( adf7030_1__READ_FIELD(PROFILE_RADIO_CAL_CFG1_CAL_SUCCESS) )
+			{
+				TRACE_PHY_LAYER("Phy Auto-Calibration success\n");
+				pDevice->eState |= ADF7030_1_STATE_CALIBRATED;
+
+				sBlock.WordXfer = 0;
+				// Get Radio Calibration result
+				sBlock.Addr = PROFILE_RADIO_CAL_RESULTS0_Addr;
+				sBlock.pData = &(RF_CFG[PHY_RADIO_CAL].cf[8]);
+				sBlock.Size  = sizeof(radio_cal_results_t);
+				eRet = adf7030_1__ReadDataBlock( pSPIDevInfo, &(sBlock) );
+
+				// Get VCO Calibration result
+				sBlock.Addr = VCO_CAL_RESULTS_DATA0_Addr;
+				sBlock.pData = &(RF_CFG[PHY_VCO_CAL].cf[8]);
+				sBlock.Size  = sizeof(vco_cal_results_t);
+				eRet |= adf7030_1__ReadDataBlock( pSPIDevInfo, &(sBlock) );
+
+				if(!eRet)
+				{
+					*(uint64_t*)(RF_CFG[PHY_RADIO_CAL].cf) = RADIO_CAL_HEADER_BE;
+					*(uint64_t*)(RF_CFG[PHY_VCO_CAL].cf) = VCO_CAL_HEADER_BE;
+					eStatus = PHY_STATUS_OK;
+
+#if defined (USE_PHY_LAYER_TRACE)
+					uint32_t i;
+					uint32_t *p;
+
+					p = (uint32_t*)(RF_CFG[PHY_RADIO_CAL].cf);
+					TRACE_PHY_LAYER("Phy Radio Calibration result :\n");
+					for (i = 0; i < (RF_CFG[PHY_RADIO_CAL].size/4); i++)
+					{
+						TRACE_PHY_LAYER("0x%08x\n", p[i]);
+					}
+
+					p = (uint32_t*)(RF_CFG[PHY_VCO_CAL].cf);
+					TRACE_PHY_LAYER("Phy VCO Calibration result :\n");
+					for (i = 0; i < (RF_CFG[PHY_VCO_CAL].size/4); i++)
+					{
+						TRACE_PHY_LAYER("0x%08x\n", p[i]);
+					}
+#endif
+				}
+			}
+			else
+			{
+				TRACE_PHY_LAYER("Phy Auto-Calibration failed\n");
+			}
+	    }
+	}
+	else {
+		eStatus = PHY_STATUS_ERROR;
+		pSPIDevInfo->eXferResult = ADF7030_1_INVALID_OPERATION;
+	}
+	return eStatus;
+}
+
+/*!
+ * @brief  This function implement the RSSI offset calibration sequence. Note,
+ *         that a carrier at mid band frequency with -77dbm level must externally
+ *         be applied during calibration.
+ *
+ * @param [in]  pPhydev        Pointer on the Phy device instance
+ * @param [in]  i8RssiRefLevel RSSI reference input level (dbm) during calibration.
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ *
+ */
+static int32_t _rssi_calibrate_seq(phydev_t *pPhydev, int8_t i8RssiRefLevel)
+{
+	// Power On
+	// Configuration
+	int32_t eStatus = PHY_STATUS_ERROR;
+    adf7030_1_device_t* pDevice = pPhydev->pCxt;
+    adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
+    cca_cfg_t cca_cfg;
+    uint16_t u16Avg;
+    uint32_t u32Sum;
+    uint8_t i;
+	// Auto-Calibrate
+    if ( _auto_calibrate_seq(pPhydev) == PHY_STATUS_OK )
+    {
+		// Clear NB_OFFSET in rssi_cfg_t
+		adf7030_1__WRITE_FIELD(PROFILE_RSSI_CFG_NB_OFFSET, 0);
+		// Set to PHY_ON
+		if ( adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON ) )
+		{
+			return eStatus;
+		}
+		// Apply Carrier at mid band frequency with -77dbm level
+		// TODO :
+
+		// clear DETECTION_TIME in cca_cfg_t
+		cca_cfg.CCA_CFG = adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr);
+		adf7030_1__WRITE_FIELD(PROFILE_CCA_CFG_DETECTION_TIME, 0);
+		// Issue CCA command
+		if (  adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, CCA, CCA ) )
+		{
+			// Revert DETECTION_TIME
+			adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr, cca_cfg.CCA_CFG);
+			return eStatus;
+		}
+
+		// Wait for at least 64 time the bit transition time
+		// assume 2400 bit/s, so 416.67µs per bit, then wait t > 26.67ms
+		msleep(30);
+		// Read 20 RSSI samples, convert in dbm then average it
+		u32Sum = 0;
+		for (i = 0; i < 20; i ++)
+		{
+			u32Sum += adf7030_1__GetRawRSSI( pSPIDevInfo );
+		}
+		// Calculate error (dbm) = Average (dbm) - Power input (dbm)
+		u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
+		// Write offset value to NB_OFFSET in rssi_cfg_t
+		adf7030_1__WRITE_FIELD(PROFILE_RSSI_CFG_NB_OFFSET, u16Avg);
+
+		// Exit from CCA mode
+		if (!adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON ) )
+		{
+			// Store the offset value for use at run-time
+			i16RssiOffsetCal = u16Avg;
+			eStatus = PHY_STATUS_OK;
+			TRACE_PHY_LAYER("Phy RSSI-Calibration success\n");
+			TRACE_PHY_LAYER("RSSI offset %d\n", i16RssiOffsetCal);
+		}
+		// Revert DETECTION_TIME
+		adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr, cca_cfg.CCA_CFG);
+    }
     return eStatus;
 }
 
@@ -1811,6 +1738,14 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 			pPhydev->eModulation = ((test_mode_info_t)args).eModulation;
 			i32Ret = _test_seq(pPhydev, ((test_mode_info_t)args).eTxMode);
 		}
+		else if (eCtl == PHY_CMD_AUTO_CAL)
+		{
+			i32Ret = _auto_calibrate_seq(pPhydev);
+		}
+		else if (eCtl == PHY_CMD_RSSI_CAL)
+		{
+			i32Ret = _rssi_calibrate_seq(pPhydev, (int8_t)(args & 0xFF));
+		}
 		else
 		{
 			i32Ret = _do_cmd(pPhydev, eCtl);
@@ -1829,6 +1764,7 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 			pSPIDevInfo->eXferResult = 0;
 		}
 		else {
+			uint8_t i;
 			switch(eCtl)
 			{
 				case PHY_CTL_SET_PA:
@@ -1843,6 +1779,35 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 						pPhydev->eTxPower = (phy_power_e)args;
 						// run-time configure TX power is required
 						((adf7030_1_device_t*)pPhydev->pCxt)->bTxPwrDone = 0;
+					}
+					break;
+				case PHY_CTL_SET_PWR_ENTRY:
+					if ( ((phy_power_entry_t*)args)->eEntryId < PHY_NB_PWR)
+					{
+						aPhyPower[((phy_power_entry_t*)args)->eEntryId].coarse = ((phy_power_entry_t*)args)->sEntryValue.coarse;
+						aPhyPower[((phy_power_entry_t*)args)->eEntryId].fine = ((phy_power_entry_t*)args)->sEntryValue.fine;
+						aPhyPower[((phy_power_entry_t*)args)->eEntryId].micro = ((phy_power_entry_t*)args)->sEntryValue.micro;
+						if ( ((phy_power_entry_t*)args)->eEntryId == pPhydev->eTxPower)
+						{
+							// run-time configure TX power is required
+							pDevice->bTxPwrDone = 0;
+						}
+					}
+					else
+					{
+						i32Ret = PHY_STATUS_ERROR;
+					}
+					break;
+				case PHY_CTL_GET_PWR_ENTRY:
+					if ( ((phy_power_entry_t*)args)->eEntryId < PHY_NB_PWR)
+					{
+						((phy_power_entry_t*)args)->sEntryValue.coarse = aPhyPower[((phy_power_entry_t*)args)->eEntryId].coarse;
+						((phy_power_entry_t*)args)->sEntryValue.fine = aPhyPower[((phy_power_entry_t*)args)->eEntryId].fine;
+						((phy_power_entry_t*)args)->sEntryValue.micro = aPhyPower[((phy_power_entry_t*)args)->eEntryId].micro;
+					}
+					else
+					{
+						i32Ret = PHY_STATUS_ERROR;
 					}
 					break;
 				case PHY_CTL_GET_PA:
