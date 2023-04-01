@@ -165,14 +165,15 @@ function SendCommissioning()
     local AField=${afield};
     local elogger=${elogger};
 
-    #echo "${mDev} ${MField} ${AField} ${elogger}";
-    #return;
+    # echo "${mDev} ${MField} ${AField} ${elogger}";
+    # return;
 
     local mKenc='0F0E0D0C0B0A09080706050403020100';
     local mKmac='596B25B5574F288CB0AB986407201770';
     local mKencId=1; # decimal
     local mNetwId=9; # decimal
 
+    SendAt "ATI" "...for wake-up";
     SendAt "ATIDENT=\$${MField},\$${AField}" "IDENT";
     SendAt "ATKENC=${mKencId},\$${mKenc}"    "KENC";
     SendAt "ATPARAM=\$28,${mKencId}"         "CIPH_CURRENT_KEY";

@@ -47,8 +47,8 @@
 
 #include "bsp.h"
 
-#include "wize_api.h"
-#include "proto.h"
+#include "wize_app.h"
+
 #include "parameters.h"
 #include "parameters_cfg.h"
 #include "crypto.h"
@@ -56,8 +56,10 @@
 
 #include "phy_test.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
+#include "rtos_macro.h"
+
+extern uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi);
+#define LO_ITF_TMO_EVT 0xFFFFFFFF
 
 /*==============================================================================
  * GLOBAL VARIABLES
@@ -817,112 +819,120 @@ atci_status_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
-	uint8_t sta;
-	net_msg_t rxMsg;
 	uint8_t i;
 
-	if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
+	if (atciCmdData->cmdType != AT_CMD_WITH_PARAM_TO_GET)
 	{
-		//get L6-app field
-		Atci_Cmd_Param_Init(atciCmdData);
-		status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
-
-		if(status != ATCI_OK)
-			return status;
-
-		if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
-		{
-			//get L7 message
-			status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_VARIABLE_LEN);
-
-			if(status != ATCI_OK)
-				return status;
-
-			Param_LocalAccess(L7TRANSMIT_LENGTH_MAX, &i, 0);
-			if(atciCmdData->params[1].size > i)
-				return ATCI_ERR_INV_PARAM_LEN;
-
-			if(atciCmdData->cmdType == AT_CMD_WITH_PARAM)
-			{
-				Atci_Debug_Param_Data("Send Frame.", atciCmdData);/////////
-
-				//send frame and wait for response:
-				sta = WIZE_API_FAILED;
-				sta = WizeApi_SendEx(atciCmdData->paramsMem, atciCmdData->params[1].size+1, APP_DATA);
-				if(sta == WIZE_API_ADM_SUCCESS)
-				{
-					//APP-ADMIN write command reception
-					// msg format: <cmd ID 1 (1 byte)><cmd val 1 (s1 bytes)>...<cmd ID n (1 byte)><cmd val n (sn bytes)>
-					atciCmdData->nbParams = 3;
-					atciCmdData->params[0].size = PARAM_INT8;
-					atciCmdData->params[2].size = PARAM_INT8;
-					atciCmdData->params[2].data = &(atciCmdData->paramsMem[AT_CMD_DATA_MAX_LEN-1]);
-					rxMsg.pData = atciCmdData->paramsMem; //write directly RX message in params memory
-					sta = WizeApi_GetAdmCmd(&rxMsg);
-					if (sta == WIZE_API_SUCCESS)
-					{
-						//TODO: Rx msg format to be verified
-						//get RSSI
-						*(atciCmdData->params[2].val8) = rxMsg.u8Rssi;
-						i=1;
-						while(i<rxMsg.u8Size)
-						{
-							//get param ID (1st byte of received message)
-							atciCmdData->params[0].data = &(atciCmdData->paramsMem[i++]);
-							//get param Value (next bytes of received message)
-							atciCmdData->params[1].size = (uint16_t) Param_GetSize(*(atciCmdData->params[0].val8));
-							atciCmdData->params[1].data = &(atciCmdData->paramsMem[i]);
-							i += atciCmdData->params[1].size;
-
-							//send received APP-ADMIN command
-							Atci_Resp_Data("ATADMWRITE", atciCmdData);
-						}
-					}
-
-					//Response of the Wize message reception
-					Atci_Cmd_Param_Init(atciCmdData);
-					rxMsg.pData = atciCmdData->paramsMem; //write directly RX message in params memory
-					sta = WizeApi_GetAdmRsp(&rxMsg);
-					if (sta == WIZE_API_SUCCESS)
-					{
-						// FIXME :
-#if 0
-						//TODO: Rx msg format to be verified
-						// msg format: <L6 App code (1 byte)>...<cL7 data (n bytes)>
-						//get L6 app code (1st byte of received message)
-						atciCmdData->params[0].size = PARAM_INT8;
-						Atci_Add_Cmd_Param_Resp(atciCmdData);
-						//get L7 response message (next bytes of received message)
-						atciCmdData->params[1].size = rxMsg.u8Size - 1;
-						Atci_Add_Cmd_Param_Resp(atciCmdData);
-						//get RSSI
-						atciCmdData->params[2].size = PARAM_INT8;
-						*(atciCmdData->params[2].val8) = rxMsg.u8Rssi;
-						Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-						//send received APP-ADMIN command
-						Atci_Resp_Data("ATRCV", atciCmdData);
-#warning "ATRCV is not available"
-#warning "ATRCV is not available"
-#endif
-					}
-
-					return ATCI_OK;
-				}
-				else if(sta == WIZE_API_SUCCESS)
-					return ATCI_OK;
-				else
-					return ATCI_ERR;
-
-			}
-			else
-				return ATCI_ERR_INV_NB_PARAM;
-		}
-		else
-			return ATCI_ERR_INV_NB_PARAM;
-	}
-	else
 		return ATCI_ERR_INV_NB_PARAM;
+	}
+
+	Atci_Cmd_Param_Init(atciCmdData);
+
+	// -------------------------------------------------------------------------
+	// get L6-app field
+	status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
+	if (status != ATCI_OK) { return status; }
+	if (atciCmdData->cmdType != AT_CMD_WITH_PARAM_TO_GET)
+	{
+		return ATCI_ERR_INV_NB_PARAM;
+	}
+
+	// -------------------------------------------------------------------------
+	//get L7 message
+	status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_VARIABLE_LEN);
+	if (status != ATCI_OK) { return status; }
+	if (atciCmdData->cmdType != AT_CMD_WITH_PARAM)
+	{
+		return ATCI_ERR_INV_NB_PARAM;
+	}
+	Param_LocalAccess(L7TRANSMIT_LENGTH_MAX, &i, 0);
+	if (atciCmdData->params[1].size > i)
+	{
+		return ATCI_ERR_INV_NB_PARAM;
+	}
+
+	// -------------------------------------------------------------------------
+	Atci_Debug_Param_Data("Send Frame.", atciCmdData);/////////
+	uint32_t ret;
+	uint32_t ulEvent;
+	//send frame and...
+	if( WIZE_API_SUCCESS != WizeApp_Send(atciCmdData->paramsMem, atciCmdData->params[1].size+1) )
+	{
+		// Failure
+		return ATCI_ERR;
+	}
+	// ...wait for response:
+	do
+	{
+		if ( sys_flag_wait(&ulEvent, LO_ITF_TMO_EVT) == 0 )
+		{
+			// Timeout
+			return ATCI_ERR;
+		}
+		ret = WizeApp_Common(ulEvent);
+	} while ( !(ulEvent & SES_FLG_ADM_COMPLETE) );
+
+	// if session is complete without error and CMD is WRITE_PARAM
+	if ( (ret == ADM_WRITE_PARAM) && !(ulEvent & SES_FLG_ADM_ERROR) )
+	{
+		// APP-ADMIN write command reception
+		// msg format: <cmd ID 1 (1 byte)><cmd val 1 (s1 bytes)>...<cmd ID n (1 byte)><cmd val n (sn bytes)>
+		atciCmdData->nbParams = 3;
+		atciCmdData->params[0].size = PARAM_INT8;
+		atciCmdData->params[2].size = PARAM_INT8;
+		atciCmdData->params[2].data = &(atciCmdData->paramsMem[AT_CMD_DATA_MAX_LEN-1]);
+
+		uint8_t size = WizeApp_GetAdmCmd(
+				//write RX message in params memory
+				atciCmdData->paramsMem,
+				//write RSSI in ???
+				atciCmdData->params[2].val8
+				);
+		if (size > 1)
+		{
+			i = 0;
+			while (i < size)
+			{
+				//get param ID (1st byte of received message)
+				atciCmdData->params[0].data = &(atciCmdData->paramsMem[i++]);
+				//get param Value (next bytes of received message)
+				atciCmdData->params[1].size = (uint16_t) Param_GetSize(*(atciCmdData->params[0].val8));
+				atciCmdData->params[1].data = &(atciCmdData->paramsMem[i]);
+				i += atciCmdData->params[1].size;
+
+				//send received APP-ADMIN command
+				Atci_Resp_Data("ATADMWRITE", atciCmdData);
+			}
+		}
+#if 0
+		// FIXME : The following is not Wize 1.0 compliant
+		//Response of the Wize message reception
+		Atci_Cmd_Param_Init(atciCmdData);
+		rxMsg.pData = atciCmdData->paramsMem; //write directly RX message in params memory
+		sta = WizeApi_GetAdmRsp(&rxMsg);
+		if (sta == WIZE_API_SUCCESS)
+		{
+			//TODO: Rx msg format to be verified
+			// msg format: <L6 App code (1 byte)>...<cL7 data (n bytes)>
+			//get L6 app code (1st byte of received message)
+			atciCmdData->params[0].size = PARAM_INT8;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+			//get L7 response message (next bytes of received message)
+			atciCmdData->params[1].size = rxMsg.u8Size - 1;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+			//get RSSI
+			atciCmdData->params[2].size = PARAM_INT8;
+			*(atciCmdData->params[2].val8) = rxMsg.u8Rssi;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+			//send received APP-ADMIN command
+			Atci_Resp_Data("ATRCV", atciCmdData);
+		}
+#warning "ATRCV is not available"
+#warning "ATRCV is not is not Wize rev. 1.2 compliant"
+#endif
+	}
+	return ATCI_OK;
 }
 
 /*!-----------------------------------------------------------------------------
@@ -940,7 +950,6 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
  *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 {
-	uint8_t sta;
 	uint8_t nbPong, i;
 
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
@@ -948,43 +957,52 @@ atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 
 	Atci_Debug_Str("Send PING");/////////
 
+	// clear PING_NBFOUND
 	nbPong = 0;
 	Param_Access(PING_NBFOUND, &nbPong, 1);
 
-	sta = WIZE_API_FAILED;
-	sta = WizeApi_ExecPing();
-	if(sta == WIZE_API_SUCCESS)
+	uint32_t ulEvent;
+	// start install session and...
+	if( WIZE_API_SUCCESS != WizeApp_Install() )
 	{
-		////////////////
-		Param_LocalAccess(PING_NBFOUND, &nbPong, 0);
-		if(nbPong > 8)
-			nbPong = 8;
-		Atci_Cmd_Param_Init(atciCmdData);
-		atciCmdData->params[0].size = PARAM_INT8;
-		*(atciCmdData->params[0].val8) = nbPong;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-		Atci_Debug_Param_Data("Nb Pong", atciCmdData);
-
-		Atci_Cmd_Param_Init(atciCmdData);
-		atciCmdData->params[0].size = PARAM_INT8;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-		atciCmdData->params[1].size = 9;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		for(i = 0; i < nbPong; i++)
-		{
-			*(atciCmdData->params[0].val8) = i;
-			Param_LocalAccess(PING_REPLY1+i, atciCmdData->params[1].data, 0);
-			Atci_Debug_Param_Data("INSTPONG", atciCmdData);
-
-		}
-		////////////////
-
-		return ATCI_OK;
-	}
-	else
+		// Failure
 		return ATCI_ERR;
+	}
+	// ...wait for complete
+	do
+	{
+		if ( sys_flag_wait(&ulEvent, LO_ITF_TMO_EVT) == 0 )
+		{
+			// Timeout
+			return ATCI_ERR;
+		}
+		WizeApp_Common(ulEvent);
+	} while ( !(ulEvent & SES_FLG_INST_COMPLETE) );
 
+
+	Param_Access(PING_NBFOUND, &nbPong, 0);
+	if(nbPong > 8)
+		nbPong = 8;
+
+	Atci_Cmd_Param_Init(atciCmdData);
+	atciCmdData->params[0].size = PARAM_INT8;
+	*(atciCmdData->params[0].val8) = nbPong;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+	Atci_Debug_Param_Data("Nb Pong", atciCmdData);
+
+	Atci_Cmd_Param_Init(atciCmdData);
+	atciCmdData->params[0].size = PARAM_INT8;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+	atciCmdData->params[1].size = 9;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+	for(i = 0; i < nbPong; i++)
+	{
+		*(atciCmdData->params[0].val8) = i;
+		Param_Access(PING_REPLY1+i, atciCmdData->params[1].data, 0);
+		Atci_Debug_Param_Data("INSTPONG", atciCmdData);
+
+	}
 	return ATCI_OK;
 }
 

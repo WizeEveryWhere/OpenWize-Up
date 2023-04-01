@@ -56,7 +56,7 @@ extern "C" {
 
 #include "phy_layer_private.h"
 
-#include "wize_api.h"
+#include "wize_app.h"
 
 #include "storage.h"
 #include "bsp_pwrlines.h"
@@ -132,17 +132,19 @@ void Sys_Init(void)
                                ADF7030_1_GPIO_NONE
                                ) );
 
-	WizeApi_CtxClear();
 
 	// Init storage
 	Storage_Init(0);
 
   	// Init Time Mgr
-	WizeApi_CtxRestore();
+	WizeApp_CtxRestore();
    	// Setup Time Event
   	TimeEvt_Setup();
-	// setup wize device
-  	WizeApi_Setup(&sPhyDev);
+
+  	// Setup Wize
+  	WizeApi_CtxClear();// FIXME
+  	WizeApi_TimeMgr_Setup(&sTimeUpdCtx);
+  	WizeApi_SesMgr_Setup(&sPhyDev, &sInstCtx, &sAdmCtx,	&sDwnCtx);
   	WizeApi_Enable(1);
 }
 
@@ -151,7 +153,7 @@ void Sys_Init(void)
  */
 void Sys_Fini(void)
 {
-	WizeApi_CtxSave();
+	WizeApp_CtxSave();
 }
 
 

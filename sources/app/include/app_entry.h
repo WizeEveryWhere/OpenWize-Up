@@ -43,18 +43,12 @@ extern "C" {
 #include <string.h>
 #include <stdlib.h>
 
-#include "FreeRTOS.h"
-#include "task.h"
-
 #include "bsp.h"
 
 #include "parameters_cfg.h"
 #include "parameters.h"
-#include "crypto.h"
 
-#include "wize_banner.h"
-#include "wize_api.h"
-#include "adf7030-1_phy_conv.h"
+#include "wize_app.h"
 
 #include "rtos_macro.h"
 

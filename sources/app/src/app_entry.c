@@ -84,6 +84,43 @@ void App_Init(void)
 }
 
 /******************************************************************************/
+#include "wize_app.h"
+uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi)
+{
+	uint8_t size = 0;
+	if(pData && rssi)
+	{
+		if ( ((admin_rsp_t*)sAdmCtx.aSendBuff)->L7ErrorCode == ADM_NONE )
+		{
+			size = sAdmCtx.sCmdMsg.u8Size - 1;
+			*rssi = sAdmCtx.sCmdMsg.u8Rssi;
+			memcpy(pData, &(sAdmCtx.aRecvBuff[1]), size);
+		}
+	}
+	return size;
+}
+
+void WizeApp_CtxClear(void)
+{
+	// TODO :
+	BSP_Rtc_Backup_Write(0, (uint32_t)0);
+	BSP_Rtc_Backup_Write(1, (uint32_t)0);
+}
+
+void WizeApp_CtxRestore(void)
+{
+	// TODO :
+	((uint32_t*)&sTimeUpdCtx)[0] = BSP_Rtc_Backup_Read(0);
+	((uint32_t*)&sTimeUpdCtx)[1] = BSP_Rtc_Backup_Read(1);
+}
+
+void WizeApp_CtxSave(void)
+{
+	// TODO :
+	BSP_Rtc_Backup_Write(0, ((uint32_t*)&sTimeUpdCtx)[0]);
+	BSP_Rtc_Backup_Write(1, ((uint32_t*)&sTimeUpdCtx)[1]);
+}
+/******************************************************************************/
 
 #ifdef __cplusplus
 }
