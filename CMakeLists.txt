@@ -30,6 +30,12 @@ set(TOOL_BUILD_SUPPORT "${TOP_DIR}/tools/build_support")
 list(APPEND CMAKE_PREFIX_PATH ${TOOL_BUILD_SUPPORT})
 list(APPEND CMAKE_PREFIX_PATH ${TOP_DIR}/third-party/.OpenWize/tools/build_support )
 
+execute_process (
+COMMAND 
+    bash -c "chmod +x ./third-party/.OpenWize/tools/scripts/gen_param/gen_table.sh;"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 ################################################################################
 project(
     ${MODULE_NAME} 
