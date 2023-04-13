@@ -1,6 +1,6 @@
 /*!
   * @file parameters_setup.c
-  * @brief This file was generated from /home/neo/Db/Version/git-disk/zRepos/GitHub_Repos/OpenWize-Up/sources/app/gen/.MergedParam.xml(Modif. : 2023-04-13 17:22:13.771312847 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-04-13 20:15:24.539323322 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 13/04/2023 17:22 [neo]
+  * @par x.x.x : 13/04/2023 20:15 [neo]
   *
   */
 
@@ -77,6 +77,20 @@ const uint8_t aParamSetup[] = {
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown)*/
    0x6, /*!< Periodic time of execping sending by the device, in months*/
    0x0, /*!< Get or Set the extend flags. b[0] if 1: Disable ATCI +DBG; b[1] : Reserved; b[2] : Reserved; b[3] : Reserved; b[4] if 1: Activate the immediat update when image is ready; b[5] if 1: Activate the WDT (bootcount for roll-back FW); b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM;*/
+   0x0,0x7d, /*!< Clock and Frequency Offset Auto-Adjustment. MSB : control, LSB : RSSI min. level (see struct adm_config_s).*/
+   0x0, /*!< ADM ANN Reception Filter disable (see struct adm_config_s)*/
+   0x0, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s)*/
+   0x0, /*!< ADM Key Change Reception Filter disable (see struct adm_config_s)*/
+   0x0,0xd,0x2f,0x0, /*!< Minimum delay between the AnnDownload and the day of the first block (see struct adm_config_s)*/
+   0x0,0x4f,0x1a,0x0, /*!< Maximum delay between the AnnDownload and the day of the first block (see struct adm_config_s)*/
+   0x0,0x0,0x38,0x40, /*!< Maintenance Window duration in second from 00:00:00 UTC (see struct adm_config_s)*/
+   0x0,0x0,0x0,0xa, /*!< Minimum deltaSec accepted in second (see struct adm_config_s)*/
+   0x0,0x0,0x3,0xe8, /*!< Duration of one block in ms (see struct adm_config_s)*/
+   0x0,0x0,0x3,0x2e, /*!< Maximum number of block accepted (see struct adm_config_s)*/
+   0x0,0x0, /*!< Offset to start RX before (in ms) (MSB first, Signed number limited to +/-63ms).*/
+   0x0,0x0, /*!< Offset to start RX before (in ms) (MSB first, Signed number limited to +/-1000ms).*/
+   0x0, /*!< L2 Reception Filter disable (see struct proto_config_s)*/
+   0x0, /*!< L6 Reception Filter disable (see struct proto_config_s)*/
    0x78, /*!< Get or Set the current test mode channel*/
    0x0, /*!< Get or Set the current test mode modulation*/
    0x51, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manuel only).*/

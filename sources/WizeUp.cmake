@@ -57,12 +57,17 @@ if(USE_FREERTOS)
 endif(USE_FREERTOS)
 
 ################################################################################
+set(opt 0)
+if(BUILD_NVM_BINARY)
+    set(opt 1)
+endif(BUILD_NVM_BINARY)
 # Generate parameters 
 # (only if "-DGENERATE_PARAM=ON" is added on cmake command line)
 find_package(gen_param REQUIRED)
 gen_param(
     SOURCE ${PARAM_XML_FILE_LIST}
     DESTINATION sources/app
+    OPT ${opt}
     )
 
 ################################################################################
