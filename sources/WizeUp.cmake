@@ -87,3 +87,8 @@ foreach(mod_dir ${MOD_DIR_LST})
         list(APPEND DOC_SOURCE_DIRS "${tmp_src_dir}")
     endif()
 endforeach(mod_dir)
+
+if(BUILD_STANDALAONE_APP)
+else()
+    include(sources/app_img.cmake)
+endif(BUILD_STANDALAONE_APP)

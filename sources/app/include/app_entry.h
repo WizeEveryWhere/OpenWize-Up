@@ -50,7 +50,21 @@ extern "C" {
 
 #include "wize_app.h"
 
+#include "crypto.h"
+#include "storage.h"
+
+#include "phy_test.h"
+
 #include "rtos_macro.h"
+
+
+
+int32_t WizeApp_WaitSesComplete(ses_type_t eSesId);
+uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi);
+void WizeApp_CtxClear(void);
+void WizeApp_CtxRestore(void);
+void WizeApp_CtxSave(void);
+
 
 #ifdef __cplusplus
 }

@@ -133,6 +133,10 @@ void Sys_Init(void)
                                ) );
 
 
+
+
+	WizeApi_CtxClear();// FIXME
+	// -----------------------
 	// Init storage
 	Storage_Init(0);
 
@@ -142,7 +146,6 @@ void Sys_Init(void)
   	TimeEvt_Setup();
 
   	// Setup Wize
-  	WizeApi_CtxClear();// FIXME
   	WizeApi_TimeMgr_Setup(&sTimeUpdCtx);
   	WizeApi_SesMgr_Setup(&sPhyDev, &sInstCtx, &sAdmCtx,	&sDwnCtx);
   	WizeApi_Enable(1);

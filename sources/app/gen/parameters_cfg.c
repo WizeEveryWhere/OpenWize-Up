@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-03-17 15:12:12.373989847 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-04-13 18:34:02.344531372 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 17/03/2023 15:12 [neo]
+  * @par x.x.x : 13/04/2023 18:34 [neo]
   *
   */
 
@@ -239,7 +239,7 @@ const param_s a_ParamAccess[0xFF] = {
     INIT_ACCESS_TABLE(0xCD, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xCE, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xCF, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xD0, NA, NA, IMM, REF_N, 0, 0, 0x0),
+    INIT_ACCESS_TABLE(0xD0, RW, NA, IMM, REF_N, 1, 117, 0x0),
     INIT_ACCESS_TABLE(0xD1, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xD2, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xD3, NA, NA, IMM, REF_N, 0, 0, 0x0),
@@ -249,28 +249,28 @@ const param_s a_ParamAccess[0xFF] = {
     INIT_ACCESS_TABLE(0xD7, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xD8, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xD9, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xDA, NA, NA, IMM, REF_N, 0, 0, 0x0),
+    INIT_ACCESS_TABLE(0xDA, RW, RW, IMM, REF_N, 2, 118, 0x0),
     INIT_ACCESS_TABLE(0xDB, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xDC, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xDD, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xDE, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xDF, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xE0, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xE1, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xE2, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xE3, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xE4, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xE5, NA, NA, IMM, REF_N, 0, 0, 0x0),
+    INIT_ACCESS_TABLE(0xDD, RW, RW, IMM, REF_N, 1, 120, 0x0),
+    INIT_ACCESS_TABLE(0xDE, RW, RW, IMM, REF_N, 1, 121, 0x0),
+    INIT_ACCESS_TABLE(0xDF, RW, RW, IMM, REF_N, 1, 122, 0x0),
+    INIT_ACCESS_TABLE(0xE0, RW, RW, IMM, REF_N, 4, 123, 0x0),
+    INIT_ACCESS_TABLE(0xE1, RW, RW, IMM, REF_N, 4, 127, 0x0),
+    INIT_ACCESS_TABLE(0xE2, RW, RW, IMM, REF_N, 4, 131, 0x0),
+    INIT_ACCESS_TABLE(0xE3, RW, RW, IMM, REF_N, 4, 135, 0x0),
+    INIT_ACCESS_TABLE(0xE4, RW, RW, IMM, REF_N, 4, 139, 0x0),
+    INIT_ACCESS_TABLE(0xE5, RO, RO, IMM, REF_N, 4, 143, 0x0),
     INIT_ACCESS_TABLE(0xE6, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xE7, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xE8, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xE9, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xEA, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xEB, NA, NA, IMM, REF_N, 0, 0, 0x0),
+    INIT_ACCESS_TABLE(0xEA, RW, RW, IMM, REF_N, 2, 147, 0x0),
+    INIT_ACCESS_TABLE(0xEB, RW, RW, IMM, REF_N, 2, 149, 0x0),
     INIT_ACCESS_TABLE(0xEC, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xED, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xEE, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xEF, NA, NA, IMM, REF_N, 0, 0, 0x0),
+    INIT_ACCESS_TABLE(0xEE, RW, RW, IMM, REF_N, 1, 151, 0x0),
+    INIT_ACCESS_TABLE(0xEF, RW, RW, IMM, REF_N, 1, 152, 0x0),
     INIT_ACCESS_TABLE(0xF0, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xF1, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xF2, NA, NA, IMM, REF_N, 0, 0, 0x0),
@@ -281,11 +281,11 @@ const param_s a_ParamAccess[0xFF] = {
     INIT_ACCESS_TABLE(0xF7, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xF8, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xF9, NA, NA, IMM, REF_N, 0, 0, 0x0),
-    INIT_ACCESS_TABLE(0xFA, RW, NA, IMM, REF_N, 1, 117, 0x01),
-    INIT_ACCESS_TABLE(0xFB, RW, NA, IMM, REF_N, 1, 118, 0x02),
-    INIT_ACCESS_TABLE(0xFC, RW, RW, IMM, REF_N, 1, 119, 0x0),
-    INIT_ACCESS_TABLE(0xFD, RW, NA, IMM, REF_N, 1, 120, 0x0),
-    INIT_ACCESS_TABLE(0xFE, RW, NA, IMM, REF_N, 1, 121, 0x0),
+    INIT_ACCESS_TABLE(0xFA, RW, NA, IMM, REF_N, 1, 153, 0x01),
+    INIT_ACCESS_TABLE(0xFB, RW, NA, IMM, REF_N, 1, 154, 0x02),
+    INIT_ACCESS_TABLE(0xFC, RW, RW, IMM, REF_N, 1, 155, 0x0),
+    INIT_ACCESS_TABLE(0xFD, RW, NA, IMM, REF_N, 1, 156, 0x0),
+    INIT_ACCESS_TABLE(0xFE, RW, NA, IMM, REF_N, 1, 157, 0x0),
 };
 
 /******************************************************************************/

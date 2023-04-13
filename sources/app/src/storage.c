@@ -180,6 +180,13 @@ const key_s sDefaultKey[KEY_MAX_NB] =
 		0xc3, 0x8e, 0x32, 0xee, 0xba, 0xa3, 0xc9, 0x9f,
 		0x4a, 0xe7, 0x0b, 0xfb, 0x2b, 0xb2, 0x53, 0x40,
 		0x25, 0x04, 0x85, 0x76, 0xe3, 0x81, 0xfe, 0xad
+	}},
+	[KEY_CHG_ID] = {
+	.key = {
+		0x51, 0x15, 0x1a, 0xb6, 0xa7, 0x47, 0x6b, 0xb1,
+		0x53, 0x44, 0x61, 0xdf, 0x67, 0xa0, 0x8b, 0x04,
+		0x38, 0x8c, 0xb2, 0x83, 0x96, 0x9c, 0xae, 0x27,
+		0x68, 0xe1, 0x2d, 0x0d, 0x83, 0xa4, 0x89, 0xbe
 	}}
 };
 
@@ -203,7 +210,9 @@ PERM_SECTION(".param") uint8_t boot_count;
 /*!
   * @brief Define the hard-coded flash address for the storage area
   */
-#define STORAGE_FLASH_ADDRESS  (0x08078000UL) // Page and double-word aligned
+extern unsigned int __nvm_org__;
+extern unsigned int _nvm_size;
+#define STORAGE_FLASH_ADDRESS (&__nvm_org__)
 
 /*!
   * @brief Pointer on the storage area n flash
@@ -216,9 +225,12 @@ struct _store_special_s
 {
 	device_id_t sDeviceInfo;
 	uint8_t     bPaState;
+	uint8_t     ND1;
 	int16_t     i16PhyRssiOffset;
-	uint8_t     aPhyCalRes[CAL_RES_SZ];
 	phy_power_t aPhyPower[PHY_NB_PWR];
+	uint8_t     ND2[3];
+	uint8_t     aPhyCalRes[CAL_RES_SZ] __attribute__ ((aligned(8)));
+	uint8_t     ND3[4];
 };
 
 /*!
@@ -283,12 +295,14 @@ uint8_t Storage_Store(void)
 	store_special.i16PhyRssiOffset = i16RssiOffsetCal;
 	Phy_GetCal(store_special.aPhyCalRes);
 
-	sStorageArea.u32SrcAddr[0] = (uint32_t)(&store_special);
-	sStorageArea.u32SrcAddr[1] = (uint32_t)(a_ParamValue);
-	sStorageArea.u32SrcAddr[2] = (uint32_t)(_a_Key_);
-	sStorageArea.u32Size[0] = sizeof(struct _store_special_s);
-	sStorageArea.u32Size[1] = PARAM_DEFAULT_SZ;
-	sStorageArea.u32Size[2] = sizeof(_a_Key_);
+	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
+	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
+	sStorageArea.u32SrcAddr[2] = (uint32_t)(a_ParamValue);
+
+	sStorageArea.u32Size[0] = sizeof(_a_Key_);
+	sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
+	sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
+
 	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;;
 	if ( FlashStorage_StoreInit(&sStorageArea) != DEV_SUCCESS)
 	{
@@ -317,12 +331,14 @@ uint8_t Storage_Get(void)
 	struct _store_special_s store_special;
 	struct storage_area_s sStorageArea;
 
-	sStorageArea.u32SrcAddr[0] = (uint32_t)(&store_special);
-	sStorageArea.u32SrcAddr[1] = (uint32_t)(a_ParamValue);
-	sStorageArea.u32SrcAddr[2] = (uint32_t)(_a_Key_);
-	sStorageArea.u32Size[0] = sizeof(struct _store_special_s);
-	sStorageArea.u32Size[1] = PARAM_DEFAULT_SZ;
-	sStorageArea.u32Size[2] = sizeof(_a_Key_);
+	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
+	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
+	sStorageArea.u32SrcAddr[2] = (uint32_t)(a_ParamValue);
+
+	sStorageArea.u32Size[0] = sizeof(_a_Key_);
+	sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
+	sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
+
 	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;;
 	if ( FlashStorage_StoreRead(&sStorageArea) != DEV_SUCCESS)
 	{

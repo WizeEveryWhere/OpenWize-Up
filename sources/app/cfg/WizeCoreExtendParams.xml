@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ParamCfg xmlns:tns="http://www.grdf.fr/smart-solutions/TU/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.grdf.fr/smart-solutions/TU/1.0.0/Parameter.xsd "> 
+  
+<ParameterList>
+    <!-- ******************************************************************* -->
+    <!-- Wize Core form id="DA" to  id="EF" -->
+    <!-- ***  -->
+    <Parameter id="DA" loc="RW" rem="RW" size="2"
+               ref="REF_N" 
+               name="AUTO_ADJ_CLK_FREQ"
+               desc="
+Clock and Frequency Offset Auto-Adjustment. 
+MSB : control, 
+LSB : RSSI min. level (see struct adm_config_s).">
+       0x007D</Parameter>
+    <!-- ***  -->
+    <Parameter id="DD" loc="RW" rem="RW" size="1"
+               ref="REF_N" 
+               name="ADM_ANN_DIS_FLT"
+               desc="
+ADM ANN Reception Filter disable  (see struct adm_config_s)">
+         0x00</Parameter>
+    <Parameter id="DE" loc="RW" rem="RW" size="1"
+               ref="REF_N" 
+               name="ADM_PARAM_DIS_FLT"
+               desc="
+ADM R/W parameters Reception Filter disable (see struct adm_config_s)">
+         0x00</Parameter>
+    <Parameter id="DF" loc="RW" rem="RW" size="1"
+               ref="REF_N" 
+               name="ADM_KEY_DIS_FLT"
+               desc="
+ADM Key Change Reception Filter disable (see struct adm_config_s)">
+         0x00</Parameter>
+    <!-- ***  -->
+    <Parameter id="E0" loc="RW" rem="RW" size="4"
+               ref="REF_N" 
+               name="DWN_DAY_PRG_WIN_MIN"
+               desc="
+Minimum delay between the AnnDownload and the day of the first block (see struct adm_config_s)">
+   0x000D2F00</Parameter>     
+    <Parameter id="E1" loc="RW" rem="RW" size="4"
+               ref="REF_N" 
+               name="DWN_DAY_PRG_WIN_MAX"
+               desc="
+Maximum delay between the AnnDownload and the day of the first block (see struct adm_config_s)">
+   0x004F1A00</Parameter>
+    <Parameter id="E2" loc="RW" rem="RW" size="4"
+               ref="REF_N" 
+               name="MNT_WINDOW_DURATION"
+               desc="
+Maintenance Window duration in second from 00:00:00 UTC (see struct adm_config_s)">
+   0x00003840</Parameter>
+    <!-- ***  -->
+    <Parameter id="E3" loc="RW" rem="RW" size="4"
+               ref="REF_N" 
+               name="DWN_DELTA_SEC_MIN"
+               desc="
+Minimum deltaSec accepted in second (see struct adm_config_s)">
+   0x0000000A</Parameter>
+    <Parameter id="E4" loc="RW" rem="RW" size="4"
+               ref="REF_N" 
+               name="DWN_BLK_DURATION_MOD"
+               desc="
+Duration of one block in ms (see struct adm_config_s)">
+   0x000003E8</Parameter>
+    <Parameter id="E5" loc="RO" rem="RO" size="4"
+               ref="REF_N" 
+               name="DWN_BLK_NB_MAX"
+               desc="
+Maximum number of block accepted (see struct adm_config_s)">
+   0x0000032E</Parameter>
+   <!-- ***  -->
+    <Parameter id="EA" loc="RW" rem="RW" size="2"
+               ref="REF_N" 
+               name="ADM_RECEPTION_OFFSET"
+               desc="
+Offset to start RX before (in ms) 
+(MSB first, Signed number limited to +/-63ms).">
+       0x0000</Parameter>
+    <Parameter id="EB" loc="RW" rem="RW" size="2"
+               ref="REF_N" 
+               name="DWN_RECEPTION_OFFSET"
+               desc="
+Offset to start RX before (in ms) 
+(MSB first, Signed number limited to +/-1000ms).">
+       0x0000</Parameter>
+    <!-- ***  -->
+    <Parameter id="EE" loc="RW" rem="RW" size="1"
+               ref="REF_N" 
+               name="L2_EXCH_DIS_FLT"
+               desc="
+L2 Reception Filter disable (see struct proto_config_s)">
+         0x00</Parameter>
+    <Parameter id="EF" loc="RW" rem="RW" size="1"
+               ref="REF_N" 
+               name="L6_EXCH_DIS_FLT"
+               desc="
+L6 Reception Filter disable (see struct proto_config_s)">
+         0x00</Parameter>
+</ParameterList>
+
+</tns:ParamCfg>

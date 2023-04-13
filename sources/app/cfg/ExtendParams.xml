@@ -5,11 +5,27 @@
     <!-- ******************************************************************* -->
     <!-- Extend Parameters -->
     <!-- ******************************************************************* -->
-    <Parameter id="F9" loc="RW" rem="NA" size="1"
+    <!--   -->
+    <Parameter id="D0" loc="RW" rem="NA" size="1"
                ref="REF_N" 
                name="EXTEND_FLAGS"
-               desc="Get or Set the extend flags. b[0] if 1: Clear MCU low power domain on next reboot, b[1] if 1 : Disable ATCI +DBG">
-          0</Parameter>   
+               desc="
+Get or Set the extend flags.
+b[0] if 1: Disable ATCI +DBG;
+b[1] : Reserved;
+b[2] : Reserved;
+b[3] : Reserved;
+b[4] if 1: Activate the immediat update when image is ready;
+b[5] if 1: Activate the WDT (bootcount for roll-back FW);
+b[6] if 1: Activate the device id writing in NVM;
+b[7] if 1: Activate the keys writing in NVM;
+">
+          0</Parameter>
+    <!-- ******************************************************************* -->
+    
+    <!-- Wize Core form id="DA" to  id="EF" -->
+    
+    <!-- ******************************************************************* -->
 </ParameterList>
 
 </tns:ParamCfg>
