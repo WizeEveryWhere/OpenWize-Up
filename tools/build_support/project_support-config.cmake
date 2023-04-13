@@ -21,11 +21,22 @@ option(USE_FREERTOS "" OFF)
 find_package(build_support REQUIRED)
 
 ################################################################################
-# Add WizeUp
+# if not given in command line
+if(NOT BUILD_CFG_DIR)
+    # if is given as ENV 
+    if($ENV{BUILD_CFG_DIR})
+        set(BUILD_CFG_DIR $ENV{BUILD_CFG_DIR} )
+    else()
+        # set Build Config directory
+        set(BUILD_CFG_DIR "${CMAKE_SOURCE_DIR}/sources" )
+    endif()
+endif()
 
-#include(sources/WizeUp.cmake)
-set(BUILD_CFG "WizeUp")
-set(BUILD_CFG_DIR "${CMAKE_SOURCE_DIR}/sources")
+# Add WizeUp as default
+if(NOT DEFINED BUILD_CFG)
+    set(BUILD_CFG "WizeUp")
+endif()
+
 get_cfg()
 
 ################################################################################
