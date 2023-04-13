@@ -1335,6 +1335,9 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
  */
 static void _frame_it(void *p_CbParam, void *p_Arg)
 {
+#ifdef HAS_HIRES_TIME_MEAS
+	HiResTime_Capture(1);
+#endif
 	phydev_t *pPhydev = (phydev_t *) p_CbParam;
     adf7030_1_device_t* pDevice = (adf7030_1_device_t*)pPhydev->pCxt;
     adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
@@ -1353,6 +1356,9 @@ static void _frame_it(void *p_CbParam, void *p_Arg)
 		{
 			if(u32IrqStatus & PREAMBLE_IRQn_Msk )
 			{
+				#ifdef HAS_HIRES_TIME_MEAS
+					HiResTime_Capture(3);
+				#endif
 				pDevice->bDetected = 1;
 			}
 			if(u32IrqStatus & SYNCWORD_IRQn_Msk )
@@ -1370,11 +1376,17 @@ static void _frame_it(void *p_CbParam, void *p_Arg)
 	{
 		if (pDevice->eState & ADF7030_1_STATE_TRANSMITTING)
 		{
+			#ifdef HAS_HIRES_TIME_MEAS
+				HiResTime_Capture(2);
+			#endif
 			eEvt = PHYDEV_EVT_TX_COMPLETE;
 			pDevice->eState &= ~ADF7030_1_STATE_TRANSMITTING;
 		}
 		else if (pDevice->eState & ADF7030_1_STATE_RECEIVING)
 		{
+			#ifdef HAS_HIRES_TIME_MEAS
+				HiResTime_Capture(4);
+			#endif
 			eEvt = PHYDEV_EVT_RX_COMPLETE;
 			pDevice->eState &= ~ADF7030_1_STATE_RECEIVING;
 		}
