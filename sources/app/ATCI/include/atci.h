@@ -43,6 +43,18 @@
  * DEFINES
  *============================================================================*/
 
+#ifndef ATI_BOARD_NAME
+#define ATI_BOARD_NAME "WIZEUP"
+#endif
+
+#ifndef ATI_BOARD_VENDOR
+#define ATI_BOARD_VENDOR "ALCIOM"
+#endif
+
+#ifndef ATI_BOARD_MODEL
+#define ATI_BOARD_MODEL "WZ1000"
+#endif
+
 /*!
  * @cond INTERNAL
  * @{
@@ -76,11 +88,16 @@
  *   ---> 471 bytes
  * -----------------------------------------------------------------------------
  */
+#ifndef AT_CMD_DATA_MAX_LEN
+#define AT_CMD_DATA_MAX_LEN		256	// 230// maximum length for all parameter of a command (after conversion; in bytes; note: maximum data is ATSEND_L7_MAX_MSG_LEN for ATSEND command)
+#endif
+#ifndef AT_CMD_BUF_LEN
 #define AT_CMD_BUF_LEN			512 // 471 // maximum received command length (as text)
+#endif
+
 #define AT_CMD_CODE_MIN_LEN		2	// minimum command code length (reformatted text)
 #define AT_CMD_CODE_MAX_LEN		16	// maximum command code length (reformatted text)
 #define AT_CMD_MAX_NB_PARAM		6	// maximum number of parameters for a command/response
-#define AT_CMD_DATA_MAX_LEN		256	// 230// maximum length for all parameter of a command (after conversion; in bytes; note: maximum data is ATSEND_L7_MAX_MSG_LEN for ATSEND command)
 
 #define ATKMAC_KEY_LEN			16
 #define ATKENC_KEY_LEN			16
@@ -192,6 +209,7 @@ typedef enum
 	CMD_ATPING,  /*!<  */
 	CMD_ATFC,    /*!<  */
 	CMD_ATTEST,  /*!<  */
+	CMD_ATZC,    /*!<  */
 	// ----
 	NB_AT_CMD //used to get number of commands
 } atci_cmd_code_t;

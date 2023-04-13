@@ -45,21 +45,7 @@
 #include "atci_resp.h"
 #include "console.h"
 
-#include "bsp.h"
-
-#include "wize_app.h"
-
-#include "parameters.h"
-#include "parameters_cfg.h"
-#include "crypto.h"
-#include "storage.h"
-
-#include "phy_test.h"
-
-#include "rtos_macro.h"
-
-extern uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi);
-#define LO_ITF_TMO_EVT 0xFFFFFFFF
+#include "app_entry.h"
 
 /*==============================================================================
  * GLOBAL VARIABLES
@@ -127,7 +113,18 @@ static uint8_t _bTestMode_;
 /*==============================================================================
  * FUNCTIONS
  *============================================================================*/
+#include "bsp.h"
+#include "platform.h"
+extern void* hAtciTask;
 
+static void _atci_itf_evt_(void *p_CbParam,  uint32_t evt)
+{
+	if (p_CbParam)
+	{
+		((atci_cmd_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
+	}
+	sys_flag_set_isr(hAtciTask, evt);
+}
 /*!-----------------------------------------------------------------------------
  * @internal
  * @brief		AT command interpreter task
@@ -145,6 +142,7 @@ void Atci_Task(void const *argument)
 	atci_status_t status;
 	uint8_t bPaState;
 	uint8_t eLPmode;
+	uint8_t eRebootMode;
 
 	//Inits
 
@@ -162,10 +160,19 @@ void Atci_Task(void const *argument)
 	Atci_Exec_Cmd[CMD_ATPING] = Exec_ATPING_Cmd;
 	Atci_Exec_Cmd[CMD_ATFC] = Exec_ATFC_Cmd;
 	Atci_Exec_Cmd[CMD_ATTEST] = Exec_ATTEST_Cmd;
+	Atci_Exec_Cmd[CMD_ATZC] = Exec_AT_Cmd; //something to do in states machine only
 
 	EX_PHY_SetCpy();
 	bPaState = EX_PHY_GetPa();
 	eLPmode = _atci_init_lp_var_();
+
+	eRebootMode = 0;
+
+	uint8_t ret;
+	// ---
+	ret = BSP_Uart_Init(UART_ID_COM, END_OF_CMD_CHAR, UART_MODE_EOB);
+	ret |= BSP_Uart_SetCallback(UART_ID_COM, _atci_itf_evt_, &atciCmdData);
+	// ---
 
 	//Loop
 	while(1)
@@ -196,7 +203,6 @@ void Atci_Task(void const *argument)
 				EX_PHY_SetPa(bPaState);
 
 				Atci_Send_Wakeup_Msg();
-				Atci_Restart_Rx(&atciCmdData);
 				atciState = ATCI_WAIT;
 				break;
 
@@ -210,10 +216,8 @@ void Atci_Task(void const *argument)
 					case ATCI_RX_CMD_ERR:
 						Atci_Resp_Ack(ATCI_RX_CMD_ERR);
 						Atci_Debug_Str("Command RX error!!!");
-						Atci_Restart_Rx(&atciCmdData);
 						break;
 					case ATCI_RX_CMD_TIMEOUT:
-						Atci_Restart_Rx(&atciCmdData);
 						if (!_bTestMode_ && eLPmode)
 						{
 							Atci_Send_Sleep_Msg();
@@ -243,9 +247,10 @@ void Atci_Task(void const *argument)
 				if(status == ATCI_OK)
 				{
 					Atci_Resp_Ack(status);
-					Atci_Restart_Rx(&atciCmdData);
 					switch(atciCmdData.cmdCode)
 					{
+						case CMD_ATZC:
+							eRebootMode = 1; // Clear backup domain
 						case CMD_ATZ:
 							atciState = ATCI_RESET;
 							break;
@@ -264,7 +269,6 @@ void Atci_Task(void const *argument)
 				else
 				{
 					Atci_Resp_Ack(status);
-					/////////////////////////
 					switch(status)
 					{
 						case ATCI_ERR_INV_NB_PARAM:
@@ -286,8 +290,6 @@ void Atci_Task(void const *argument)
 							Atci_Debug_Str("Command execution error!!!");
 							break;
 					}
-					/////////////////////////
-					Atci_Restart_Rx(&atciCmdData);
 					atciState = ATCI_WAIT;
 				}
 				break;
@@ -297,12 +299,11 @@ void Atci_Task(void const *argument)
 			case ATCI_RESET:
 				Atci_Debug_Str("Reset");
 				atciState = ATCI_WAKEUP;
-				BSP_Boot_Reboot(1);
+				BSP_Boot_Reboot(eRebootMode);
 				break;
 		}
 	}
 }
-
 
 /*==============================================================================
  * LOCAL FUNCTIONS - commands executions
@@ -350,15 +351,15 @@ atci_status_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 	//Get infos: TODO
 	Atci_Cmd_Param_Init(atciCmdData);
 	//	Name
-	strcpy(atciCmdData->params[atciCmdData->nbParams].str, "WIZEUP");
+	strcpy(atciCmdData->params[atciCmdData->nbParams].str, ATI_BOARD_NAME);
 	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
 	//	Manufacturer
-	strcpy(atciCmdData->params[atciCmdData->nbParams].str, "ALCIOM");
+	strcpy(atciCmdData->params[atciCmdData->nbParams].str,ATI_BOARD_VENDOR);
 	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
 	//	Model
-	strcpy(atciCmdData->params[atciCmdData->nbParams].str, "WZ1000");
+	strcpy(atciCmdData->params[atciCmdData->nbParams].str, ATI_BOARD_MODEL);
 	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
 
@@ -668,7 +669,9 @@ atci_status_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData)
 			return status;
 
 		//check KENC number
-		if((*(atciCmdData->params[0].val8) < KEY_ENC_MIN) || (*(atciCmdData->params[0].val8) > KEY_ENC_MAX))
+		// FIXME : KCHG
+		//if((*(atciCmdData->params[0].val8) < KEY_ENC_MIN) || (*(atciCmdData->params[0].val8) > KEY_ENC_MAX))
+		if((*(atciCmdData->params[0].val8) < KEY_ENC_MIN) || (*(atciCmdData->params[0].val8) > KEY_MAX_NB))
 			return ATCI_ERR_INV_PARAM_VAL;
 
 		if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
@@ -845,7 +848,7 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 	{
 		return ATCI_ERR_INV_NB_PARAM;
 	}
-	Param_LocalAccess(L7TRANSMIT_LENGTH_MAX, &i, 0);
+	Param_Access(L7TRANSMIT_LENGTH_MAX, &i, 0);
 	if (atciCmdData->params[1].size > i)
 	{
 		return ATCI_ERR_INV_NB_PARAM;
@@ -853,8 +856,8 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 
 	// -------------------------------------------------------------------------
 	Atci_Debug_Param_Data("Send Frame.", atciCmdData);/////////
-	uint32_t ret;
-	uint32_t ulEvent;
+
+	int32_t ret;
 	//send frame and...
 	if( WIZE_API_SUCCESS != WizeApp_Send(atciCmdData->paramsMem, atciCmdData->params[1].size+1) )
 	{
@@ -862,18 +865,13 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR;
 	}
 	// ...wait for response:
-	do
+	ret = WizeApp_WaitSesComplete(SES_ADM);
+	if ( ret < 0 )
 	{
-		if ( sys_flag_wait(&ulEvent, LO_ITF_TMO_EVT) == 0 )
-		{
-			// Timeout
-			return ATCI_ERR;
-		}
-		ret = WizeApp_Common(ulEvent);
-	} while ( !(ulEvent & SES_FLG_ADM_COMPLETE) );
-
+		return ATCI_ERR;
+	}
 	// if session is complete without error and CMD is WRITE_PARAM
-	if ( (ret == ADM_WRITE_PARAM) && !(ulEvent & SES_FLG_ADM_ERROR) )
+	if ( ret > 0 )
 	{
 		// APP-ADMIN write command reception
 		// msg format: <cmd ID 1 (1 byte)><cmd val 1 (s1 bytes)>...<cmd ID n (1 byte)><cmd val n (sn bytes)>
@@ -961,7 +959,7 @@ atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 	nbPong = 0;
 	Param_Access(PING_NBFOUND, &nbPong, 1);
 
-	uint32_t ulEvent;
+	int32_t ret;
 	// start install session and...
 	if( WIZE_API_SUCCESS != WizeApp_Install() )
 	{
@@ -969,16 +967,11 @@ atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR;
 	}
 	// ...wait for complete
-	do
+	ret = WizeApp_WaitSesComplete(SES_INST);
+	if ( ret < 0 )
 	{
-		if ( sys_flag_wait(&ulEvent, LO_ITF_TMO_EVT) == 0 )
-		{
-			// Timeout
-			return ATCI_ERR;
-		}
-		WizeApp_Common(ulEvent);
-	} while ( !(ulEvent & SES_FLG_INST_COMPLETE) );
-
+		return ATCI_ERR;
+	}
 
 	Param_Access(PING_NBFOUND, &nbPong, 0);
 	if(nbPong > 8)

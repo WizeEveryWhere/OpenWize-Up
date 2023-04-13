@@ -43,11 +43,35 @@
 
 #include "atci.h"
 #include "console.h"
+#include "common.h"
 
 /*==============================================================================
  * GLOBAL VARIABLES
  *============================================================================*/
+/*! @internal */
+/*
+struct status_id_s
+{
+	atci_status_t status;
+	const char *str;
+};
 
+const struct status_id_s atci_rsp_status_str[NB_AT_CMD] =
+{
+	{ATCI_OK               , "OK"},
+	{ATCI_ERR_INV_NB_PARAM , "Invalid number of parameters!!!"},
+	{ATCI_ERR_INV_PARAM_LEN, "Invalid parameter length!!!"},
+	{ATCI_ERR_INV_PARAM_VAL, "Invalid parameter value!!!"},
+	{ATCI_ERR_UNKNOWN_CMD  , "Unknown command!!!"},
+	{ATCI_ERR_INV_CMD_LEN  , "Invalid command length!!!"},
+	{ATCI_AVAIL_AT_CMD     , "Command available"},
+	{ATCI_NO_AT_CMD        , "No Command available"},
+	{ATCI_RX_CMD_ERR       , "RX command error"},
+	{ATCI_RX_CMD_TIMEOUT   , "RX command timeout"},
+	{ATCI_ERR              , "Command execution error!!!"},
+};
+*/
+/*! @endinternal */
 
 /*==============================================================================
  * LOCAL FUNCTIONS PROTOTYPES
@@ -143,7 +167,7 @@ void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii(*(atciCmdData->params[i].val16), 2);
+			Console_Send_Nb_To_Hex_Ascii( __ntohs( *(atciCmdData->params[i].val16) ), 2);
 		}
 		else if(atciCmdData->params[i].size == PARAM_INT32)
 		{
@@ -151,7 +175,7 @@ void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii(*(atciCmdData->params[i].val32), 4);
+			Console_Send_Nb_To_Hex_Ascii( __ntohl( *(atciCmdData->params[i].val32) ), 4);
 		}
 		else if(IS_PARAM_STR(atciCmdData->params[i].size))
 		{
@@ -216,7 +240,7 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii(*(atciCmdData->params[i].val16), 2);
+			Console_Send_Nb_To_Hex_Ascii( __ntohs( *(atciCmdData->params[i].val16) ), 2);
 		}
 		else if(atciCmdData->params[i].size == PARAM_INT32)
 		{
@@ -224,7 +248,7 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii(*(atciCmdData->params[i].val32), 4);
+			Console_Send_Nb_To_Hex_Ascii( __ntohl( *(atciCmdData->params[i].val32) ), 4);
 		}
 		else if(IS_PARAM_STR(atciCmdData->params[i].size))
 		{

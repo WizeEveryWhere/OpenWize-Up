@@ -159,9 +159,11 @@ uint8_t Console_Wait_Rx_Byte(uint8_t *data)
  *----------------------------------------------------------------------------*/
 void Console_Rx_Flush(void)
 {
-	//TODO
-	uint8_t tmp;///////////
-	while(HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, &tmp, 1, 0) == 0);/////////////flush RX reg
+	uint8_t tmp;
+	register uint32_t u32Tmo = aDevUart[UART_ID_COM].u32RxTmo;
+	BSP_Console_SetRXTmo(0);
+	while( BSP_Console_Received(&tmp, 1) == 0);
+	BSP_Console_SetRXTmo(u32Tmo);
 }
 
 /*==============================================================================

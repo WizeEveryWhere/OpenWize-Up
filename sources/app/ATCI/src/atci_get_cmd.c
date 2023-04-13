@@ -45,10 +45,39 @@
 #include "atci_get_cmd.h"
 #include "console.h"
 
+#include "common.h"
+
+#include "bsp.h"
+#include "platform.h"
+#include "rtos_macro.h"
+
+#ifndef ATCI_ITF_RX_TMO_EVT
+#define ATCI_ITF_RX_TMO_EVT 0xFFFFFFFF
+#endif
 
 /*==============================================================================
  * GLOBAL VARIABLES
  *============================================================================*/
+/*! @internal */
+const char * const atci_cmd_code_str[NB_AT_CMD] =
+{
+	[CMD_AT]      = "AT",
+	[CMD_ATI]     = "ATI",
+	[CMD_ATZ]     = "ATZ",
+	[CMD_ATQ]     = "ATQ",
+	[CMD_ATF]     = "AT&F",
+	[CMD_ATW]     = "AT&W",
+	[CMD_ATPARAM] = "ATPARAM",
+	[CMD_ATKMAC]  = "ATKMAC",
+	[CMD_ATKENC]  = "ATKENC",
+	[CMD_ATIDENT] = "ATIDENT",
+	[CMD_ATSEND]  = "ATSEND",
+	[CMD_ATPING]  = "ATPING",
+	[CMD_ATFC]    = "ATFC",
+	[CMD_ATTEST]  = "ATTEST",
+	[CMD_ATZC]    = "ATZC",
+};
+/*! @endinternal */
 
 /*==============================================================================
  * LOCAL FUNCTIONS PROTOTYPES
@@ -84,42 +113,43 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t val
 atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status = ATCI_NO_AT_CMD;
+	uint32_t ulEvent;
 
-	switch(Console_Wait_Rx_Byte(&(atciCmdData->buf[atciCmdData->len])))
+	atciCmdData->len = 0;
+
+	uint8_t ret = 0;
+	// ---
+	ret |= BSP_Uart_Receive(UART_ID_COM, atciCmdData->buf, (uint16_t)AT_CMD_BUF_LEN);
+	if ( ret == DEV_SUCCESS )
 	{
-		case CONSOLE_RX_ERR:
-			status = ATCI_RX_CMD_ERR;
-			atciCmdData->len = 0;
-			break;
-
-		case CONSOLE_BYTE_RX:
-			if(atciCmdData->buf[atciCmdData->len] == END_OF_CMD_CHAR)
+		if ( sys_flag_wait(&ulEvent, ATCI_ITF_RX_TMO_EVT) )
+		{
+			switch(ulEvent)
 			{
-				if(atciCmdData->len != 0)
-					status = ATCI_AVAIL_AT_CMD;
+				case UART_EVT_RX_ABT: // buffer overflow
+					if (atciCmdData->buf[atciCmdData->len] != END_OF_CMD_CHAR)
+					{
+						// If the last char is not the character match one
+						status = ATCI_RX_CMD_ERR;
+						break;
+					}
+				case UART_EVT_RX_CPLT:
+					if ( atciCmdData->len != 0 )
+					{
+						status = ATCI_AVAIL_AT_CMD;
+					}
+					break;
+				default:
+					break;
 			}
-			else if(atciCmdData->buf[atciCmdData->len] == BACK_SPACE_CHAR)
-			{
-				if(atciCmdData->len != 0)
-					atciCmdData->len--;
-			}
-			else if(atciCmdData->len >= AT_CMD_BUF_LEN)
-			{
-				status = ATCI_RX_CMD_ERR;
-				atciCmdData->len = 0;
-			}
-			else if(IS_PRINTABLE_CHAR(atciCmdData->buf[atciCmdData->len]))
-				atciCmdData->len++;
-			break;
-
-		case CONSOLE_TIMEOUT:
+		}
+		else
+		{
+			// Timeout
+			BSP_Uart_AbortReceive(UART_ID_COM);
 			status = ATCI_RX_CMD_TIMEOUT;
-			break;
-
-		default:
-			break;
+		}
 	}
-
 	return status;
 }
 
@@ -164,45 +194,25 @@ void Atci_Restart_Rx(atci_cmd_t *atciCmdData)
 atci_status_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
 {
 	atci_status_t status;
+	uint8_t i;
 
 	atciCmdData->idx = 0;
 	status = Atci_Buf_Get_Cmd_Str(atciCmdData);
 
 	if(status != ATCI_OK)
-		return status;
-	else if(strcmp(atciCmdData->cmdCodeStr, "AT") == 0)
-		atciCmdData->cmdCode = CMD_AT;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATI") == 0)
-		atciCmdData->cmdCode = CMD_ATI;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATZ") == 0)
-		atciCmdData->cmdCode = CMD_ATZ;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATQ") == 0)
-		atciCmdData->cmdCode = CMD_ATQ;
-	else if(strcmp(atciCmdData->cmdCodeStr, "AT&F") == 0)
-		atciCmdData->cmdCode = CMD_ATF;
-	else if(strcmp(atciCmdData->cmdCodeStr, "AT&W") == 0)
-		atciCmdData->cmdCode = CMD_ATW;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATPARAM") == 0)
-		atciCmdData->cmdCode = CMD_ATPARAM;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATKMAC") == 0)
-		atciCmdData->cmdCode = CMD_ATKMAC;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATKENC") == 0)
-		atciCmdData->cmdCode = CMD_ATKENC;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATIDENT") == 0)
-		atciCmdData->cmdCode = CMD_ATIDENT;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATSEND") == 0)
-		atciCmdData->cmdCode = CMD_ATSEND;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATPING") == 0)
-		atciCmdData->cmdCode = CMD_ATPING;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATFC") == 0)
-		atciCmdData->cmdCode = CMD_ATFC;
-	else if(strcmp(atciCmdData->cmdCodeStr, "ATTEST") == 0)
-		atciCmdData->cmdCode = CMD_ATTEST;
-	else
 	{
-		return ATCI_ERR_UNKNOWN_CMD;
+		return status;
 	}
-	return ATCI_OK;
+
+	for (i = 0; i < NB_AT_CMD; i++)
+	{
+		if(strcmp(atciCmdData->cmdCodeStr, atci_cmd_code_str[i]) == 0)
+		{
+			atciCmdData->cmdCode = i;
+			return ATCI_OK;
+		}
+	}
+	return ATCI_ERR_UNKNOWN_CMD;
 }
 
 /*!-----------------------------------------------------------------------------
@@ -577,12 +587,12 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTy
 			case PARAM_INT16:
 				if(atciCmdData->paramsMemIdx > (AT_CMD_DATA_MAX_LEN-2))
 					return ATCI_ERR_INV_CMD_LEN;
-				*(atciCmdData->params[atciCmdData->nbParams].val16) = (uint16_t) val;
+				*(atciCmdData->params[atciCmdData->nbParams].val16) = __htons((uint16_t)val);
 				break;
 			case PARAM_INT32:
 				if(atciCmdData->paramsMemIdx > (AT_CMD_DATA_MAX_LEN-2))
 					return ATCI_ERR_INV_CMD_LEN;
-				*(atciCmdData->params[atciCmdData->nbParams].val32) = val;
+				*(atciCmdData->params[atciCmdData->nbParams].val32) = __htonl(val);
 				break;
 		}
 		atciCmdData->params[atciCmdData->nbParams].size = valType;
