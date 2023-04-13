@@ -46,9 +46,12 @@ extern "C" {
  * @cond INTERNAL
  * @{
  */
-
+#ifndef FLASH_PAGE_SIZE
 #define FLASH_PAGE_SIZE 2048
+#endif
+#ifndef NB_STORE_PART
 #define NB_STORE_PART 3
+#endif
 
 /*!
  * @}

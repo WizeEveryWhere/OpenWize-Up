@@ -120,7 +120,7 @@ static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt)
 			{
 				aDevUart[id].pfEvent(aDevUart[id].pCbParam, evt);
 			}
-			break;
+			//break;
 		}
 	}
 }

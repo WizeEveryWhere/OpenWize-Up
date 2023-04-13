@@ -72,7 +72,6 @@ typedef enum
 {
 	UART_MODE_NONE, /*!< None (wait until the buffer reach the geiven size) */
 	UART_MODE_EOB,  /*!< Event is sent when character match the end of block */
-	UART_MODE_ADDR, /*!< Event is sent when character match the start of block */
 } uart_mode_e;
 
 /*!
@@ -131,7 +130,7 @@ uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo);
 
 uint8_t BSP_Uart_Enable(uint8_t u8DevId);
 uint8_t BSP_Uart_Disable(uint8_t u8DevId);
-uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode, uint32_t u32Tmo);
+uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode);
 uint8_t BSP_Uart_SetCallback (uint8_t u8DevId, pfEvtCb_t const pfEvtCb, void *pCbParam);
 uint8_t BSP_Uart_Transmit(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length);
 uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length);
