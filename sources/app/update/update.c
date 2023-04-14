@@ -62,7 +62,7 @@ admin_ann_fw_info_t sFwAnnInfo;
 struct update_ctx_s sUpdateCtx;
 struct update_area_s sUpdateArea;
 
-extern uint32_t __header_size__;
+extern unsigned int __header_size__;
 
 #ifndef BUILD_STANDALAONE_APP
 	const struct __exch_info_s *p = (const struct __exch_info_s *)&(__exchange_area_org__);
@@ -81,9 +81,9 @@ void Update_Task(void const * argument)
 #warning "*** Ensure that CRC computation is enable in the bootstrap ***"
 #ifdef HAS_CRC_COMPUTE
 	// check the CRC
-	crc_init();
-	crc = crc_compute( (uint32_t*)p, (uint32_t)(sizeof(struct __exch_info_s) - 4));
-	crc_deinit();
+	BSP_CRC_Init();
+	crc = BSP_CRC_Compute( (uint32_t*)p, (uint32_t)(sizeof(struct __exch_info_s) - 4));
+	BSP_CRC_Deinit();
 #endif
 	if ( p->crc == crc )
 	{
@@ -104,9 +104,7 @@ void Update_Task(void const * argument)
 
 	sUpdateCtx.ePendUpdate = UPD_PEND_NONE;
 	sUpdateCtx.eUpdateStatus = UPD_STATUS_UNK;
-	/*
-	FIXME : #define IMG_MAX_SZ FLASH_IMG_SIZE
-	*/
+
 	if( ImgStore_Setup(
 			sUpdateArea.u32ImgAdd,
 			sUpdateArea.u32ImgMaxSz,

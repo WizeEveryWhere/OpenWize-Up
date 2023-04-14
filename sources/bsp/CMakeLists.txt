@@ -18,6 +18,7 @@ target_sources(${MODULE_NAME}
         src/bsp_lp.c
         src/bsp_rtc.c
         src/bsp_uart.c
+        src/bsp_crc.c
         src/bsp.c
         src/fault_handler.c
         src/platform.c

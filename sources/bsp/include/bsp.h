@@ -48,6 +48,10 @@ extern "C" {
 
 #include <bsp_uart.h>
 
+#ifdef HAS_CRC_COMPUTE
+#include <bsp_crc.h>
+#endif
+
 #ifdef USE_SPI
 #include <bsp_spi.h>
 #endif

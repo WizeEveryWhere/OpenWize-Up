@@ -79,6 +79,9 @@ set(PARAM_XML_FILE_LIST "${PARAM_XML_FILE_LIST} ${DEFAULT_CFG_FILE_DIR}/DefaultR
 #-------------------------------------------------------------------------------
 if(BUILD_STANDALAONE_APP)
     add_compile_definitions(BUILD_STANDALAONE_APP=1)
+else(BUILD_STANDALAONE_APP)
+    set(HAL_CRC_MODULE_ENABLE ON)
+    add_compile_definitions(HAS_CRC_COMPUTE=1)
 endif(BUILD_STANDALAONE_APP)
 
 #-------------------------------------------------------------------------------
