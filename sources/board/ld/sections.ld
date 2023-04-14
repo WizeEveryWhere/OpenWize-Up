@@ -114,6 +114,23 @@ SECTIONS
     _edata = .;        /* define a global symbol at data end */
     
   } >RAM AT> FLASH
+  
+  _eidata = _sidata + SIZEOF(.data);
+
+  .got :
+  {
+		. = ALIGN(4);
+	    __got = .;
+	    __got_location = LOADADDR(.got) ;
+	    __got_start = ABSOLUTE(.);
+	    *(.got)
+	    *(.got*)
+	    /* .got            : { *(.got.plt) *(.igot.plt) *(.got) *(.igot) }  */
+	    __got_end = ABSOLUTE(.);
+	    . = ALIGN(4);
+    
+	} >RAM AT> FLASH
+	__end_prog = __got_location + SIZEOF(.got);
 
   /* Uninitialized data section into "RAM" Ram type memory */
   . = ALIGN(4);

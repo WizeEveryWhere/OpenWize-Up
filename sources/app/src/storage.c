@@ -243,6 +243,7 @@ struct _store_special_s
   */
 void Storage_Init(uint8_t bForce)
 {
+	uint8_t temp;
 	pStorage_FlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
 	if(bForce || pStorage_FlashArea->sHeader.u16Status == 0xFFFF)
 	{
@@ -258,6 +259,11 @@ void Storage_Init(uint8_t bForce)
 		// error
 		printf("Flash : Failed to read ");
 	}
+
+	// Get some immutable parameters from default table
+	// VERS_HW_TRX
+	// VERS_FW_TRX
+	memcpy(a_ParamValue, a_ParamDefault, 4);
 }
 
 /*!

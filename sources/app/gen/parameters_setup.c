@@ -1,6 +1,6 @@
 /*!
   * @file parameters_setup.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-04-13 20:15:24.539323322 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-04-14 07:39:52.313643119 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 13/04/2023 20:15 [neo]
+  * @par x.x.x : 14/04/2023 07:39 [neo]
   *
   */
 
