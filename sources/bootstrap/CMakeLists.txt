@@ -7,7 +7,7 @@ set(LD_SCRIPT STM32L451CEUX_def.ld)
 set(STARTUP   startup_stm32l4xx.s)
 
 ################################################################################
-option(HAS_CRC_COMPUTE      "TODO : description." OFF)
+option(HAS_CRC_COMPUTE      "TODO : description." ON)
 option(HAS_SHA256_COMPUTE   "TODO : description." OFF)
 option(HAS_AES256_COMPUTE   "TODO : description." OFF)
 ################################################################################
@@ -39,6 +39,7 @@ target_link_options(${MODULE_NAME}
     PUBLIC
         --specs=nano.specs 
         -Wl,-Map=${MODULE_NAME}.map 
+        -Wl,--gc-sections
         "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/${LD_SCRIPT}"
         "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/definition.ld"
         "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/alias.ld"
