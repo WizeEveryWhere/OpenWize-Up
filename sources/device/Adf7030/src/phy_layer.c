@@ -115,6 +115,15 @@ const char * const aTestModeTXStr[TMODE_TX_NB] = {
 };
 
 /*!
+ * @brief This convenient table hold the human test mode representation
+ */
+const char * const aPhyPwrStr[PHY_NB_PWR] = {
+    [PHY_PMAX_minus_0db]  = "Pmax -0db",
+    [PHY_PMAX_minus_6db]  = "Pmax -6db",
+    [PHY_PMAX_minus_12db] = "Pmax -12db",
+};
+
+/*!
  * @brief This table hold the Transmission Power setup
  */
 phy_power_t aPhyPower[PHY_NB_PWR] __attribute__(( weak )) =
@@ -895,16 +904,10 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode)
 {
     int32_t eStatus = PHY_STATUS_ERROR;
-	uint8_t eRet = 0;
 	phy_ctl_e eCmd;
 
     adf7030_1_device_t* pDevice = pPhydev->pCxt;
     adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
-
-	// TX power reconfiguration
-	pDevice->bTxPwrDone = 0;
-	// full reconfiguration
-	pDevice->bCfgDone = 0;
 
     // Set to ready
     eStatus = _do_cmd(pPhydev, PHY_CTL_CMD_READY);
@@ -928,10 +931,6 @@ static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode)
 		}
 		else
 		{
-			// Set to test mode
-			test_modes0.TEST_MODES0_b.PER_EN = 1;
-			test_modes0.TEST_MODES0_b.PER_IRQ_SELF_CLEAR = 1;
-
 			if (pPhydev->eTestMode < PHY_TST_MODE_TX )
 			{
 				// RX test mode
@@ -942,6 +941,10 @@ static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode)
 
 				if (pPhydev->eTestMode == PHY_TST_MODE_PER_RX)
 				{
+					// Set to test mode
+					test_modes0.TEST_MODES0_b.PER_EN = 1;
+					test_modes0.TEST_MODES0_b.PER_IRQ_SELF_CLEAR = 1;
+
 					eCmd = PHY_CMD_CCA;
 					// Disable AFC
 					config_t afc_config;
@@ -990,6 +993,11 @@ static int32_t _test_seq(phydev_t *pPhydev, test_modes_tx_e eTxMode)
 			}
 			TRACE_PHY_LAYER("- Channel    : %s\n", aChanStr[pPhydev->eChannel]);
 			TRACE_PHY_LAYER("- Modulation : %s\n", aModulationStr[pPhydev->eModulation]);
+			TRACE_PHY_LAYER("- Power      : %s (%02hx, %02hx, %02hx)\n",
+					aPhyPwrStr[pPhydev->eTxPower],
+					aPhyPower[pPhydev->eTxPower].coarse,
+					aPhyPower[pPhydev->eTxPower].fine,
+					aPhyPower[pPhydev->eTxPower].micro);
 		}
 		else
 		{
@@ -1842,6 +1850,9 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 					break;
 				case PHY_CTL_GET_ERR:
 					*(uint8_t*)args = ((adf7030_1_device_t*)pPhydev->pCxt)->SPIInfo.eXferResult;
+					break;
+				case PHY_CTL_GET_STATE:
+					*(uint8_t*)args = ((adf7030_1_device_t*)pPhydev->pCxt)->eState;
 					break;
 				default:
 					break;

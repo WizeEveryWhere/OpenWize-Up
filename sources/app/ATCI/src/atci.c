@@ -286,6 +286,9 @@ void Atci_Task(void const *argument)
 						case ATCI_ERR_INV_CMD_LEN:
 							Atci_Debug_Str("Invalid command length!!!");
 							break;
+						case ATCI_ERR_FORBIDDEN_CMD:
+							Atci_Debug_Str("Forbidden command in the current state!!!");
+							break;
 						default:
 							Atci_Debug_Str("Command execution error!!!");
 							break;
@@ -840,6 +843,12 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 	}
 
+	// if is currently in test mode
+	if(_bTestMode_)
+	{
+		return ATCI_ERR_FORBIDDEN_CMD;
+	}
+
 	// -------------------------------------------------------------------------
 	//get L7 message
 	status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_VARIABLE_LEN);
@@ -952,6 +961,12 @@ atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
 		return ATCI_ERR_INV_NB_PARAM;
+
+	// if is currently in test mode
+	if(_bTestMode_)
+	{
+		return ATCI_ERR_FORBIDDEN_CMD;
+	}
 
 	Atci_Debug_Str("Send PING");/////////
 

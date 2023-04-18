@@ -153,7 +153,7 @@ extern const char * const aChanStr[PHY_NB_CH];
 extern const char * const aModulationStr[PHY_NB_MOD];
 extern const char * const aTestModeStr[PHY_NB_TST_MODE];
 extern const char * const aTestModeTXStr[TMODE_TX_NB];
-
+extern const char * const aPhyPwrStr[PHY_NB_PWR];
 /******************************************************************************/
 
 #ifdef __cplusplus

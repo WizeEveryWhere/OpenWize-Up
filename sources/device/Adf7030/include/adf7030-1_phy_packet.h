@@ -313,9 +313,12 @@ typedef union {
     uint32_t TEST_MODES0; /*!< Test Mode Configuration 0 */
     struct {
         uint32_t PER_EN             : 1;
-        uint32_t                    : 10;
+        uint32_t                    : 11;
         uint32_t PER_IRQ_SELF_CLEAR : 1;
+        uint32_t                    : 3;
         uint32_t TX_TEST            : 4;  /*!< Continuous Tx test modes */
+        uint32_t                    : 12;
+
 /*
 #define TEST_MODES0_b_PER_EN
 #define TEST_MODES0_b_PER_RANDOM_PAYLOAD_DATA

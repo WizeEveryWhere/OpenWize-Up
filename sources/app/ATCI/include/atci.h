@@ -131,11 +131,14 @@
 
 #define FC_TX_PWR_CFG_NB_VAL	3
 
+// PWR_COARSE is coded on 4 bits
 #define FC_TX_PWR_COARSE_MIN	1
 #define FC_TX_PWR_COARSE_MAX	6
+// PWR_FINE is coded on 7 bits
 #define FC_TX_PWR_FINE_MIN		3
 #define FC_TX_PWR_FINE_MAX		127
-#define FC_TX_PWR_MICRO_MIN		1
+// PWR_MICRO is coded on 7 bits
+#define FC_TX_PWR_MICRO_MIN		0 //1
 #define FC_TX_PWR_MICRO_MAX		31
 
 #define TEST_MODE_DIS			0x00
@@ -181,6 +184,7 @@ typedef enum
 	ATCI_ERR_INV_PARAM_VAL,	/*!< Invalid parameter value */
 	ATCI_ERR_UNKNOWN_CMD,	/*!< Unknown command code */
 	ATCI_ERR_INV_CMD_LEN,	/*!< Invalid command length (too short or too long to be decoded) */
+	ATCI_ERR_FORBIDDEN_CMD,	/*!< Command is forbidden in the current state */
 	//AT commands reception status
 	ATCI_AVAIL_AT_CMD,      /*!<  */
 	ATCI_NO_AT_CMD,         /*!<  */

@@ -243,7 +243,6 @@ struct _store_special_s
   */
 void Storage_Init(uint8_t bForce)
 {
-	uint8_t temp;
 	pStorage_FlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
 	if(bForce || pStorage_FlashArea->sHeader.u16Status == 0xFFFF)
 	{

@@ -202,6 +202,7 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
   */
 phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 {
+#define EXPECTED_STATE (ADF7030_1_STATE_OPENED | ADF7030_1_STATE_INITIALIZED | ADF7030_1_STATE_CONFIGURED | ADF7030_1_STATE_READY)
 	static test_sport_t eTestSport = {
 		.eGpioData = ADF7030_1_SPORT_DATA_GPIO_PHY_PIN,
 		.eGpioClk = ADF7030_1_SPORT_CLK_GPIO_PHY_PIN,
@@ -209,16 +210,21 @@ phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 		.bGpioData = 0
 	};
 
+	uint32_t state;
 	uint8_t eStatus = PHY_STATUS_OK;
 
-	if (sPhyDev.pIf->pfUnInit(&sPhyDev) == PHY_STATUS_OK)
+	sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_STATE, (uint32_t)&state);
+	if ( (adf7030_1_state_e)( state & EXPECTED_STATE) != EXPECTED_STATE)
 	{
-		eStatus = sPhyDev.pIf->pfInit(&sPhyDev);
-	}
-	else
-	{
-		// FIXME
-		return PHY_TST_MODE_NONE;
+		if (sPhyDev.pIf->pfUnInit(&sPhyDev) == PHY_STATUS_OK)
+		{
+			eStatus = sPhyDev.pIf->pfInit(&sPhyDev);
+		}
+		else
+		{
+			// FIXME
+			return PHY_TST_MODE_NONE;
+		}
 	}
 
 	if (eTestModeInfo.eTestMode && eStatus == PHY_STATUS_OK)
@@ -247,6 +253,7 @@ phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
 		}
 		eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
+		sPhyDev.pIf->pfUnInit(&sPhyDev);
 	}
 	return eTestModeInfo.eTestMode;
 }
