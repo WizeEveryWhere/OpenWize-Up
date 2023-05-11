@@ -14,7 +14,12 @@ function(display_option)
     
     message ("      -> BUILD_STANDALAONE_APP           : ${BUILD_STANDALAONE_APP}")
     message ("      -> BUILD_NVM_BINARY                : ${BUILD_NVM_BINARY}")
-
+    
+    message ("      -> HAS_ATKEY_CMD                   : ${HAS_ATKEY_CMD}")
+    message ("      -> HAS_ATUID_CMD                   : ${HAS_ATUID_CMD}")
+    message ("      -> HAS_ATCCLK_CMD                  : ${HAS_ATCCLK_CMD}")
+    message ("      -> HAS_ATSTAT_CMD                  : ${HAS_ATSTAT_CMD}")
+    
     message ("      -> HW_NAME         : ${HW_NAME}")
     message ("      -> HW_VENDOR       : ${HW_VENDOR}")
     message ("      -> HW_MODEL        : ${HW_MODEL}")
@@ -46,6 +51,12 @@ option(HAS_EXTEND_PARAMETER              "Use the extended parameter xml file." 
 option(BUILD_STANDALAONE_APP             "Use this option when the bootstrap is not used." OFF)
 option(BUILD_NVM_BINARY                  "Build the non-volatile memory area content and produce a binary and elf files." OFF)
 
+# AT cmd option
+option(HAS_ATKEY_CMD                     "ATKENC and ATKMAC are replaced by the ATKEY unique command." OFF)
+option(HAS_ATUID_CMD                     "AT%UID command is defined." OFF)
+option(HAS_ATCCLK_CMD                    "AT%CCLK command is defined." OFF)
+option(HAS_ATSTAT_CMD                    "AT%STAT command is defined." OFF)
+
 # HW info
 set(HW_NAME    "WIZEUP" CACHE STRING "Define the board name print when ATI command is called.")
 set(HW_VENDOR  "ALCIOM" CACHE STRING "Define the board vendor print when ATI command is called.")
@@ -54,6 +65,9 @@ set(HW_VER_MAJ 0 CACHE STRING "Define the board major version number.")
 set(HW_VER_MIN 1 CACHE STRING "Define the board minor version number.")
 set(HW_VER_REV 0 CACHE STRING "Define the board revision version number.")
 set(HW_DATE ${TODAY} CACHE STRING "Define the board date.")
+
+# TODO :
+# add_compile_definitions(COM_SWAP_PINS=1)
 
 #-------------------------------------------------------------------------------
 if(USE_PHY_TRIG)
@@ -111,6 +125,23 @@ if(BUILD_NVM_BINARY)
     add_compile_definitions(BUILD_NVM_BINARY=1)
 endif(BUILD_NVM_BINARY)
 
+#-------------------------------------------------------------------------------
+# AT cmd option
+if(HAS_ATKEY_CMD)
+    add_compile_definitions(HAS_ATKEY_CMD=1)
+endif(HAS_ATKEY_CMD)
+
+if(HAS_ATUID_CMD)
+    add_compile_definitions(HAS_ATUID_CMD=1)
+endif(HAS_ATUID_CMD)
+
+if(HAS_ATCCLK_CMD)
+    add_compile_definitions(HAS_ATCCLK_CMD=1)
+endif(HAS_ATCCLK_CMD)
+
+if(HAS_ATSTAT_CMD)
+    add_compile_definitions(HAS_ATSTAT_CMD=1)
+endif(HAS_ATSTAT_CMD)
 
 #-------------------------------------------------------------------------------
 display_option()

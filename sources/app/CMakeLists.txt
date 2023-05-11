@@ -6,6 +6,7 @@ set(MODULE_NAME App_WizeUp)
 
 ################################################################################
 add_subdirectory(ATCI)
+add_subdirectory(extra)
 
 # Add executable 
 add_executable(${MODULE_NAME})
@@ -21,7 +22,6 @@ target_sources(${MODULE_NAME}
         sys/default_device_config.c 
         gen/parameters_cfg.c
         gen/parameters_default.c
-        extra/phy_test.c 
         update/update.c
     )
     
@@ -33,7 +33,6 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/sys
         ${CMAKE_CURRENT_SOURCE_DIR}/gen
-        ${CMAKE_CURRENT_SOURCE_DIR}/extra
         ${CMAKE_CURRENT_SOURCE_DIR}/update
     )
 
@@ -52,6 +51,7 @@ setup_install(
     DEPENDS 
         Board_WizeUp 
         atci 
+        extra 
         adf7030 
         flashstorage 
         bsp 

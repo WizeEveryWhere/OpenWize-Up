@@ -11,16 +11,16 @@
                name="EXTEND_FLAGS"
                desc="
 Get or Set the extend flags.
-b[0] if 1: Disable ATCI +DBG;
+b[0] if 1: Enable ATCI +DBG;
 b[1] : Reserved;
-b[2] : Reserved;
-b[3] : Reserved;
-b[4] if 1: Activate the immediat update when image is ready;
-b[5] if 1: Activate the WDT (bootcount for roll-back FW);
+b[2] if 1: Activate the immediate update when image is ready;
+b[3] if 1: Activate the WDT (bootcount for roll-back FW);
+b[4] : Reserved;
+b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
 b[6] if 1: Activate the device id writing in NVM;
 b[7] if 1: Activate the keys writing in NVM;
 ">
-          0</Parameter>
+         0x00</Parameter>
     <!-- ******************************************************************* -->
     
     <!-- Wize Core form id="DA" to  id="EF" -->

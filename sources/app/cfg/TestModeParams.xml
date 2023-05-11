@@ -16,7 +16,7 @@
                ref="REF_N" 
                name="TEST_MODE_MODULATION" 
                desc="Get or Set the current test mode modulation">
-          0</Parameter>    
+          0</Parameter>
 </ParameterList>
 
 </tns:ParamCfg>

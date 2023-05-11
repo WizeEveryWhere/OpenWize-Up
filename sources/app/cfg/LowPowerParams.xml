@@ -8,7 +8,7 @@
     <Parameter id="FC" loc="RW" rem="RW" size="1"
                ref="REF_N" 
                name="LOW_POWER_MODE" 
-               desc="Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manuel only).">
+               desc="Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manual only).">
         0x51</Parameter>    
 </ParameterList>
 
