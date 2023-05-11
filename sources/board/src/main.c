@@ -30,11 +30,12 @@
 /******************************************************************************/
 #include "main.h"
 #include "bsp.h"
+#include "platform.h"
 
 /******************************************************************************/
 RTC_HandleTypeDef hrtc;
-SPI_HandleTypeDef hspi1;
-UART_HandleTypeDef huart4;
+extern SPI_HandleTypeDef hspi1;
+extern UART_HandleTypeDef huart4;
 
 /******************************************************************************/
 void SystemClock_Config(void);
@@ -102,8 +103,7 @@ int main(void)
   PeriphClock_Config();
   MX_GPIO_Init();
 
-  MX_UART4_Init();
-  MX_SPI1_Init();
+  BSP_Uart_Init(UART_ID_COM, '\r', UART_MODE_NONE);
   BSP_PwrLine_Init();
 
   app_entry();
@@ -199,60 +199,6 @@ void LSEClock_Config(void)
 
 /**
   * @static
-  * @brief SPI1 Initialization Function
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
-{
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 7;
-  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-/**
-  * @static
-  * @brief UART4 Initialization Function
-  * @retval None
-  */
-static void MX_UART4_Init(void)
-{
-  huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
-  huart4.Init.WordLength = UART_WORDLENGTH_8B;
-  huart4.Init.StopBits = UART_STOPBITS_1;
-  huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
-  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
-  huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
-
-  huart4.AdvancedInit.Swap = UART_ADVFEATURE_SWAP_ENABLE;
-
-  if (HAL_UART_Init(&huart4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-/**
-  * @static
   * @brief GPIO Initialization Function
   * @retval None
   */
@@ -260,75 +206,73 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+  //------------------------------------
+  // GPIO Reset values are :
+  // ---
+  // GPIOA_MODER    = 0xABFF FFFF
+  // GPIOB_MODER    = 0xFFFF FEBF
+  // GPIOC..E_MODER = 0xFFFF FFFF
+  // GPIOH_MODER    = 0x0000 000F
+  // ---
+  // GPIOx_OTYPER   = 0x0000 0000
+  // ---
+  // GPIOA_OSPEEDR  = 0x0C00 0000
+  // GPIOx_OSPEEDR  = 0x0000 0000
+  // ---
+  // GPIOA_PUPDR      = 0x6400 0000
+  // GPIOB_PUPDR      = 0x0000 0100
+  // GPIOC..E,H_PUPDR = 0x0000 0000
+  // ---
+  // GPIOx_AFRL  = 0x0000 0000
+  // ---
+  // GPIOx_ODR   = 0x0000 0000
+
+  //------------------------------------
+  // So :
+  // PORT A :
+  // - Analog as default for : FE_TRX_Pin, IO6_Pin, IO5_Pin, IO4_Pin, IO3_Pin
+  // - Set by its driver for : ADF7030_RST_Pin, ADF7030_SS_Pin, SPI_CLK_Pin, SPI_MISO_Pin, SPI_MOSI_Pin
+  // - Set by its driver for :
+  // - Set as output         : FE_EN_Pin
+  // PORT B :
+  // - Analog as default for : IO2_Pin, IO1_Pin
+  // - Set by its driver for : ADF7030_GPIO5_Pin, ADF7030_GPIO4_Pin, ADF7030_GPIO3_Pin, ADF7030_GPIO2_Pin, ADF7030_GPIO1_Pin, ADF7030_GPIO0_Pin
+  // - Set by its driver for : SDA_1_INT_Pin, SCL_1_INT_Pin
+  // - Set by its driver for : SCL_EXT_Pin, SDA_EXT_Pin
+  // - Set as output         : FE_BYP_Pin, EEPROM_CTRL_Pin
+  // PORT C :
+  // - Set as output         : V_RF_EN_Pin
+
+  //------------------------------------
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(V_RF_EN_GPIO_Port, V_RF_EN_Pin, GPIO_PIN_RESET);
-
+  //HAL_GPIO_WritePin(GPIOC, V_RF_EN_Pin, GPIO_PIN_RESET);
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, ADF7030_RST_Pin|ADF7030_SS_Pin|FE_EN_Pin, GPIO_PIN_RESET);
-
+  //HAL_GPIO_WritePin(GPIOA, ADF7030_RST_Pin|ADF7030_SS_Pin|FE_EN_Pin, GPIO_PIN_RESET);
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, FE_BYP_Pin|EEPROM_CTRL_Pin|IO1_Pin|IO6_Pin, GPIO_PIN_RESET);
+  //HAL_GPIO_WritePin(GPIOB, FE_BYP_Pin|EEPROM_CTRL_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : V_RF_EN_Pin */
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+  GPIO_InitStruct.Pin = FE_EN_Pin;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = FE_BYP_Pin | EEPROM_CTRL_Pin;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   GPIO_InitStruct.Pin = V_RF_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(V_RF_EN_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PH0 PH1 PH3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_3;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : FE_TRX_Pin IO6_Pin IO5_Pin IO4_Pin 
-                           IO3_Pin PA15 */
-  GPIO_InitStruct.Pin = FE_TRX_Pin|IO6_Pin|IO5_Pin|IO4_Pin 
-                          |IO3_Pin|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : ADF7030_RST_Pin ADF7030_SS_Pin FE_EN_Pin */
-  GPIO_InitStruct.Pin = ADF7030_RST_Pin|ADF7030_SS_Pin|FE_EN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : ADF7030_GPIO5_Pin ADF7030_GPIO4_Pin ADF7030_GPIO2_Pin ADF7030_GPIO1_Pin 
-                           ADF7030_GPIO0_Pin PB3 PB4 IO2_Pin 
-                           IO1_Pin */
-  GPIO_InitStruct.Pin = ADF7030_GPIO5_Pin|ADF7030_GPIO4_Pin|ADF7030_GPIO2_Pin|ADF7030_GPIO1_Pin 
-                          |ADF7030_GPIO0_Pin|GPIO_PIN_3|GPIO_PIN_4|IO2_Pin|IO1_Pin
-						  |SCL_EXT_Pin|SDA_EXT_Pin|SDA_1_INT_Pin|SCL_1_INT_Pin ;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ADF7030_GPIO3_Pin */
-  GPIO_InitStruct.Pin = ADF7030_GPIO3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ADF7030_GPIO3_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : FE_BYP_Pin EEPROM_CTRL_Pin */
-  GPIO_InitStruct.Pin = FE_BYP_Pin|EEPROM_CTRL_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
   HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
 }
 
 /**

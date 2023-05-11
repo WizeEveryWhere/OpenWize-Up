@@ -128,8 +128,8 @@ uint8_t BSP_Console_Received(uint8_t *pData, uint16_t u16Length);
 uint8_t BSP_Console_SetRXTmo(uint32_t u32Tmo);
 uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo);
 
-uint8_t BSP_Uart_Enable(uint8_t u8DevId);
-uint8_t BSP_Uart_Disable(uint8_t u8DevId);
+uint8_t BSP_Uart_Open(uint8_t u8DevId);
+uint8_t BSP_Uart_Close(uint8_t u8DevId);
 uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode);
 uint8_t BSP_Uart_SetCallback (uint8_t u8DevId, pfEvtCb_t const pfEvtCb, void *pCbParam);
 uint8_t BSP_Uart_Transmit(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length);

@@ -362,7 +362,13 @@ int32_t Phy_adf7030_setup(
                 eExtLnaPin
                 )))
         {
-        	i32Ret = PHY_STATUS_OK;
+            /* Set to default the SPI struct */
+        	BSP_Spi_SetDefault(pCtx->SPIInfo.hSPIDevice);
+        	/* Init the SPI peripheral */
+            if ( !(BSP_Spi_Init(pCtx->SPIInfo.hSPIDevice)) )
+            {
+            	i32Ret = PHY_STATUS_OK;
+            }
         }
     }
     return i32Ret;
@@ -1282,9 +1288,6 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 				case PHY_CTL_CMD_READY:
 					eStatus = _ready_seq(pPhydev);
 					break;
-				//case PHY_CMD_TEST_MODE:
-				//	eStatus = _test_seq(pPhydev);
-				//	break;
 				case PHY_CTL_CMD_SLEEP:
 					eStatus = _sleep_seq(pPhydev);
 					break;

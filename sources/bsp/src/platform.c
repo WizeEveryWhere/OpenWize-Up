@@ -52,8 +52,8 @@ extern "C" {
 
 extern RTC_HandleTypeDef hrtc;
 
-//extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart4;
+// UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart4 = { .Instance = UART4};
 
 uart_dev_t aDevUart[UART_ID_MAX] =
 {
@@ -203,29 +203,8 @@ void BSP_LowPower_OnStopEnter(lp_mode_e eLpMode)
 
 	BSP_Gpio_InputEnable( LINE_INIT(WKUP_PIN_NAME), 1);
     BSP_GpioIt_ConfigLine( LINE_INIT(WKUP_PIN_NAME), GPIO_IRQ_FALLING_EDGE);
-    BSP_GpioIt_SetLine( LINE_INIT(WKUP_PIN_NAME), 1);
     BSP_GpioIt_SetCallback( LINE_INIT(WKUP_PIN_NAME), NULL, NULL );
-
-
-    i8LineId = BSP_GpioIt_GetLineId( GP_PIN(WKUP_PIN_NAME));
-    if (i8LineId < 5)
-    {
-    	// IT line from 0, 1, 2, 3 and 4
-    	HAL_NVIC_EnableIRQ(EXTI0_IRQn + i8LineId);
-    }
-    else
-    {
-        if(i8LineId < 10)
-        {
-        	// IT line from 5 to 9
-        	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-        }
-        else
-        {
-        	// IT line from 10 to 15
-        	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-        }
-    }
+    BSP_GpioIt_SetLine( LINE_INIT(WKUP_PIN_NAME), 1);
 
     // Disable all clock
 	RCC->APB1ENR1 = 0;
@@ -264,7 +243,7 @@ void BSP_LowPower_OnStopExit(lp_mode_e eLpMode)
 #ifdef USE_SPI
 #if defined(HAL_SPI_MODULE_ENABLED)
 
-extern SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi1 = {.Instance = SPI1};
 
 SPI_HandleTypeDef *paSPI_BusHandle[SPI_ID_MAX] =
 {
@@ -285,8 +264,8 @@ spi_dev_t spi_ADF7030 =
 #ifdef USE_I2C
 #if defined(HAL_I2C_MODULE_ENABLED)
 
-extern I2C_HandleTypeDef hi2c1;
-extern I2C_HandleTypeDef hi2c2;
+I2C_HandleTypeDef hi2c1 = {.Instance = I2C1};
+I2C_HandleTypeDef hi2c2 = {.Instance = I2C2};
 
 I2C_HandleTypeDef *paI2C_BusHandle[I2C_ID_MAX] =
 {
@@ -311,11 +290,11 @@ i2c_dev_t i2c_EEPROM =
 #if defined(HAL_LPTIM_MODULE_ENABLED)
 
 #if defined (LPTIM1)
-extern LPTIM_HandleTypeDef hlptim1;
+LPTIM_HandleTypeDef hlptim1;
 #endif
 
 #if defined (LPTIM2)
-extern LPTIM_HandleTypeDef hlptim2;
+LPTIM_HandleTypeDef hlptim2;
 #endif
 
 #endif
