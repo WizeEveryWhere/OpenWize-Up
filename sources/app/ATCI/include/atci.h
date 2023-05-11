@@ -37,23 +37,11 @@
 #ifndef INC_ATCI_H_
 #define INC_ATCI_H_
 
-#include "phy_layer.h"
+#include "version.h"
 
 /*==============================================================================
  * DEFINES
  *============================================================================*/
-
-#ifndef ATI_BOARD_NAME
-#define ATI_BOARD_NAME "WIZEUP"
-#endif
-
-#ifndef ATI_BOARD_VENDOR
-#define ATI_BOARD_VENDOR "ALCIOM"
-#endif
-
-#ifndef ATI_BOARD_MODEL
-#define ATI_BOARD_MODEL "WZ1000"
-#endif
 
 /*!
  * @cond INTERNAL
@@ -163,11 +151,14 @@
  */
 typedef enum
 {
-	ATCI_WAKEUP,    /*!<  */
-	ATCI_WAIT,      /*!<  */
-	ATCI_EXEC_CMD,  /*!<  */
-	ATCI_SLEEP,     /*!<  */
-    ATCI_RESET      /*!<  */
+	ATCI_WAKEUP,   /*!<  */
+	ATCI_WAIT,     /*!<  */
+	ATCI_EXEC_CMD, /*!<  */
+	ATCI_SLEEP,    /*!<  */
+    ATCI_RESET,    /*!<  */
+
+	ATCI_SESSION,  /*!<  */
+	ATCI_COMMAND,  /*!<  */
 } atci_state_t;
 
 
@@ -206,14 +197,45 @@ typedef enum
 	CMD_ATF,     /*!<  */
 	CMD_ATW,     /*!<  */
 	CMD_ATPARAM, /*!<  */
-	CMD_ATKMAC,  /*!<  */
-	CMD_ATKENC,  /*!<  */
 	CMD_ATIDENT, /*!<  */
 	CMD_ATSEND,  /*!<  */
 	CMD_ATPING,  /*!<  */
 	CMD_ATFC,    /*!<  */
 	CMD_ATTEST,  /*!<  */
+	// ----
 	CMD_ATZC,    /*!<  */
+	// ----
+#ifndef HAS_ATKEY_CMD
+	CMD_ATKMAC,  /*!<  */
+	CMD_ATKENC,  /*!<  */
+#else
+	CMD_ATKEY,   /*!<  */
+#endif
+	// ----
+#ifdef HAS_LO_UPDATE_CMD
+	CMD_ATANN,
+	CMD_ATBLK,
+	CMD_ATUPD,
+#ifdef HAS_LO_ATBMAP_CMD
+	CMD_ATBMAP,
+#endif
+#endif
+	// ----
+#ifdef HAS_EXTERNAL_FW_UPDATE
+	CMD_ATADMANN,
+#endif
+	// ----
+#ifdef HAS_ATSTAT_CMD
+	CMD_ATSTAT,
+#endif
+	// ----
+#ifdef HAS_ATCCLK_CMD
+	CMD_ATCCLK,
+#endif
+	// ----
+#ifdef HAS_ATUID_CMD
+	CMD_ATUID,
+#endif
 	// ----
 	NB_AT_CMD //used to get number of commands
 } atci_cmd_code_t;

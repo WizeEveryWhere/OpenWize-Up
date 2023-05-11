@@ -57,8 +57,21 @@
 #define CMD_HEX_CHAR	'$'
 #define CMD_NEG_CHAR	'-'
 
+#define CMD_LF_CHAR	0x0A
+
+
+#define CHAR_EQUAL	'='
+#define CHAR_DOLLAR	'$'
+#define CHAR_PLUS	'+'
+#define CHAR_MINUS	'-'
+#define CHAR_ESCAPE	'\\'
+#define CHAR_DQUOTE	'"'
+#define CHAR_SPACE	' '
+
+
 #define IS_PRINTABLE_CHAR(c) (((c) >= 0x20) && ((c) <= 0x7E)) //from space to tilde
 #define TO_MAG(c)		((c)-0x20)
+#define UPPERCASE(c)	((c)-0x20)
 
 /*! @} @endcond */
 
@@ -76,10 +89,20 @@ typedef enum
 	PARAM_ERR
 } atci_param_state_t;
 
+extern const char * const atci_cmd_code_str[NB_AT_CMD];
 
 /*==============================================================================
  * FUNCTIONS PROTOTYPES - Command reception
  *============================================================================*/
+
+/*!-----------------------------------------------------------------------------
+ * @brief		Set the RX command timeout
+ *
+ * @param[in]	The timeout value in ms
+ *
+ * @return		None
+ *----------------------------------------------------------------------------*/
+void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Receive AT command from UART interface

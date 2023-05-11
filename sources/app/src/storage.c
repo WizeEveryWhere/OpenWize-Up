@@ -40,6 +40,9 @@ extern "C" {
 #include <string.h>
 #include "storage.h"
 
+DECLARE_FWINFO();
+DECLARE_HWINFO();
+
 /*!
  * @cond INTERNAL
  * @{
@@ -247,22 +250,21 @@ void Storage_Init(uint8_t bForce)
 	if(bForce || pStorage_FlashArea->sHeader.u16Status == 0xFFFF)
 	{
 		Storage_SetDefault();
-		if ( Storage_Store() == 1)
+	}
+	else
+	{
+		if ( Storage_Get() == 1)
 		{
 			// error
-			printf("Flash : Failed to store ");
+			printf("Flash : Failed to read ");
 		}
-	}
-	if ( Storage_Get() == 1)
-	{
-		// error
-		printf("Flash : Failed to read ");
 	}
 
 	// Get some immutable parameters from default table
 	// VERS_HW_TRX
 	// VERS_FW_TRX
-	memcpy(a_ParamValue, a_ParamDefault, 4);
+	memcpy(&a_ParamValue[0], &sHwInfo.version[1], 2);
+	memcpy(&a_ParamValue[2], &sFwInfo.version[1], 2);
 }
 
 /*!
@@ -293,12 +295,43 @@ uint8_t Storage_Store(void)
 {
 	struct _store_special_s store_special;
 	struct storage_area_s sStorageArea;
+
+	uint8_t u8ExtFlags = EXT_FLAGS_PHYCAL_WRITE_EN_MSK | EXT_FLAGS_IDENT_WRITE_EN_MSK | EXT_FLAGS_KEYS_WRITE_EN_MSK;
+
+	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
+
 	// Prepare first part with device ID, phy power and rssi cal. values
-	WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
-	memcpy(&(store_special.aPhyPower), aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
+	if(pStorage_FlashArea->sHeader.u16Status != 0xFFFF)
+	{
+#ifdef HAS_EXTEND_PARAMETER
+		Param_Access(EXTEND_FLAGS, &u8ExtFlags, 0);
+#endif
+
+		struct _store_special_s* p = ((struct _store_special_s*)sStorageArea.pFlashArea->sHeader.u32PartAddr[1]);
+		memcpy(&store_special,	p, sizeof(struct _store_special_s));
+
+		// Write key in Flash is forbidden
+		if( !(u8ExtFlags & EXT_FLAGS_KEYS_WRITE_EN_MSK))
+		{
+			// Get keys from storage area
+			memcpy(_a_Key_, (void*)sStorageArea.pFlashArea->sHeader.u32PartAddr[0], sizeof(_a_Key_));
+		}
+	}
+
+	// Write phy calibration in Flash is enable
+	if( (u8ExtFlags & EXT_FLAGS_PHYCAL_WRITE_EN_MSK))
+	{
+		memcpy(&(store_special.aPhyPower), aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
+		store_special.i16PhyRssiOffset = i16RssiOffsetCal;
+		Phy_GetCal(store_special.aPhyCalRes);
+	}
+	// Write ident in Flash is enable
+	if( (u8ExtFlags & EXT_FLAGS_IDENT_WRITE_EN_MSK))
+	{
+		WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
+	}
+
 	store_special.bPaState = EX_PHY_GetPa();
-	store_special.i16PhyRssiOffset = i16RssiOffsetCal;
-	Phy_GetCal(store_special.aPhyCalRes);
 
 	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
 	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
@@ -308,7 +341,6 @@ uint8_t Storage_Store(void)
 	sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
 	sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
 
-	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;;
 	if ( FlashStorage_StoreInit(&sStorageArea) != DEV_SUCCESS)
 	{
 		return 1;

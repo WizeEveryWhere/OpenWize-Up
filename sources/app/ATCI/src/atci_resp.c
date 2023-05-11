@@ -49,37 +49,33 @@
  * GLOBAL VARIABLES
  *============================================================================*/
 /*! @internal */
-/*
-struct status_id_s
-{
-	atci_status_t status;
-	const char *str;
-};
 
-const struct status_id_s atci_rsp_status_str[NB_AT_CMD] =
-{
-	{ATCI_OK               , "OK"},
-	{ATCI_ERR_INV_NB_PARAM , "Invalid number of parameters!!!"},
-	{ATCI_ERR_INV_PARAM_LEN, "Invalid parameter length!!!"},
-	{ATCI_ERR_INV_PARAM_VAL, "Invalid parameter value!!!"},
-	{ATCI_ERR_UNKNOWN_CMD  , "Unknown command!!!"},
-	{ATCI_ERR_INV_CMD_LEN  , "Invalid command length!!!"},
-	{ATCI_AVAIL_AT_CMD     , "Command available"},
-	{ATCI_NO_AT_CMD        , "No Command available"},
-	{ATCI_RX_CMD_ERR       , "RX command error"},
-	{ATCI_RX_CMD_TIMEOUT   , "RX command timeout"},
-	{ATCI_ERR              , "Command execution error!!!"},
-};
-*/
 /*! @endinternal */
 
 /*==============================================================================
  * LOCAL FUNCTIONS PROTOTYPES
  *============================================================================*/
+static uint8_t _bDbgEn_;
+static void _atci_send_(atci_cmd_t *atciCmdData);
 
 /*==============================================================================
  * FUNCTIONS - AT responses
  *============================================================================*/
+
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
+ * @brief		Enable / Disable the debug messages
+ *
+ * @return		None
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
+
+void Atci_Send_Dbg_Enable(uint8_t bFlag)
+{
+	_bDbgEn_ = bFlag;
+}
 
 /*!-----------------------------------------------------------------------------
  * @internal
@@ -129,7 +125,6 @@ void Atci_Resp_Ack(atci_status_t errCode)
 		Console_Send_Str("\r\nOK\r\n");
 }
 
-
 /*!-----------------------------------------------------------------------------
  * @internal
  *
@@ -144,58 +139,9 @@ void Atci_Resp_Ack(atci_status_t errCode)
  *----------------------------------------------------------------------------*/
 void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 {
-	uint8_t i;
-
 	Console_Send_Str("\r\n+"); //new line + prefix (beginning)
 	Console_Send_Str(cmdCodeStr); //command code
-
-	//each parameter data
-	for(i=0; i<atciCmdData->nbParams; i++)
-	{
-		//parameter data as hexadecimal number / bytes array or string
-		if(atciCmdData->params[i].size == PARAM_INT8)
-		{
-			if(i==0)
-				Console_Send_Str(":$"); //command code / data separator + hex flag
-			else
-				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii(*(atciCmdData->params[i].val8), 1);
-		}
-		else if(atciCmdData->params[i].size == PARAM_INT16)
-		{
-			if(i==0)
-				Console_Send_Str(":$"); //command code / data separator + hex flag
-			else
-				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii( __ntohs( *(atciCmdData->params[i].val16) ), 2);
-		}
-		else if(atciCmdData->params[i].size == PARAM_INT32)
-		{
-			if(i==0)
-				Console_Send_Str(":$"); //command code / data separator + hex flag
-			else
-				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Nb_To_Hex_Ascii( __ntohl( *(atciCmdData->params[i].val32) ), 4);
-		}
-		else if(IS_PARAM_STR(atciCmdData->params[i].size))
-		{
-			if(i==0)
-				Console_Send_Str(":\""); //command code / data separator + string flag
-			else
-				Console_Send_Str(",\"");//data separator + string flag
-			Console_Send_Str(atciCmdData->params[i].str);
-			Console_Tx_Byte('\"');//string flag
-		}
-		else
-		{
-			if(i==0)
-				Console_Send_Str(":$"); //command code / data separator + hex flag
-			else
-				Console_Send_Str(",$");//data separator + hex flag
-			Console_Send_Array_To_Hex_Ascii(atciCmdData->params[i].data, atciCmdData->params[i].size);
-		}
-	}
-
+	_atci_send_(atciCmdData);
 	Console_Send_Str("\r\n"); //new line (end)
 }
 
@@ -217,10 +163,33 @@ void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
  *----------------------------------------------------------------------------*/
 void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 {
-	uint8_t i;
+	if( _bDbgEn_ )
+	{
+		Console_Send_Str("\r\n+DBG: "); //new line + prefix (beginning) + debug code
+		Console_Send_Str(dbgMsd); //command code
+		if(atciCmdData)
+		{
+			_atci_send_(atciCmdData);
+		}
+		Console_Send_Str("\r\n"); //new line (end)
+	}
+}
 
-	Console_Send_Str("\r\n+DBG: "); //new line + prefix (beginning) + debug code
-	Console_Send_Str(dbgMsd); //debug message
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
+ * @brief		Send AT response data or Debug
+ *
+ * @param[in]	cmdCodeStr Command code as string
+ * @param[in]	atciCmdData Pointer on "atci_cmd_t" structure:
+ * 					- nbParams: number of parameters in command response
+ * 					- params: parameters list (with size and data)
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
+static void _atci_send_(atci_cmd_t *atciCmdData)
+{
+	uint8_t i;
 
 	//each parameter data
 	for(i=0; i<atciCmdData->nbParams; i++)
@@ -268,10 +237,7 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 			Console_Send_Array_To_Hex_Ascii(atciCmdData->params[i].data, atciCmdData->params[i].size);
 		}
 	}
-
-	Console_Send_Str("\r\n"); //new line (end)
 }
-
 /*********************************** EOF **************************************/
 
 /*! @} */

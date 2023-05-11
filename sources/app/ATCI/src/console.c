@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bsp.h"
 #include "platform.h"
 
 #include "console.h"
@@ -70,13 +69,29 @@ extern uart_dev_t aDevUart[UART_ID_MAX];//////////
 /*!-----------------------------------------------------------------------------
  * @internal
  *
+ * @brief		Init the UART console
+ *
+ * @endinternal
+ *----------------------------------------------------------------------------*/
+void Console_Init(const char cMatch, pfEvtCb_t const pfEvtCb, void *pCbParam)
+{
+	uint8_t ret;
+	// ---
+	ret = BSP_Uart_Init(UART_ID_COM, cMatch, UART_MODE_EOB);
+	ret |= BSP_Uart_SetCallback(UART_ID_COM, pfEvtCb, pCbParam);
+	assert(ret == DEV_SUCCESS);
+}
+
+/*!-----------------------------------------------------------------------------
+ * @internal
+ *
  * @brief		Enable the UART console
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
 void Console_Enable(void)
 {
-	BSP_Uart_Enable(UART_ID_COM);
+	BSP_Uart_Open(UART_ID_COM);
 }
 
 /*!-----------------------------------------------------------------------------
@@ -88,82 +103,7 @@ void Console_Enable(void)
  *----------------------------------------------------------------------------*/
 void Console_Disable(void)
 {
-	BSP_Uart_Disable(UART_ID_COM);
-}
-
-/*!-----------------------------------------------------------------------------
- * @internal
- *
- * @brief		Receive byte from console UART
- *
- * @details 	This function is non blocking
- *
- * @param[out] data Byte received
- *
- * @retval CONSOLE_BYTE_RX if byte received
- * @retval CONSOLE_RX_EMPTY if no byte received
- * @retval CONSOLE_RX_ERR if reception error
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-uint8_t Console_Rx_Byte(uint8_t *data)
-{
-	//!!! not implemented !!!
-	return CONSOLE_RX_ERR;
-}
-
-/*!-----------------------------------------------------------------------------
- * @internal
- *
- * @brief		Wait and receive byte from console UART
- *
- * @details 	This function is blocking until a character is received or reception error
- *
- * @param [out] data Byte received
- *
- * @retval CONSOLE_BYTE_RX if byte received
- * @retval CONSOLE_TIMEOUT if no byte received after a timeout time
- * @retval CONSOLE_RX_ERR if reception error
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-uint8_t Console_Wait_Rx_Byte(uint8_t *data)
-{
-	dev_res_e eRet;
-	eRet = BSP_Console_Received(data, 1);
-
-	if ( eRet == DEV_SUCCESS )
-	{
-		return CONSOLE_BYTE_RX;
-	}
-	else if ( eRet ==  DEV_TIMEOUT )
-	{
-		return CONSOLE_TIMEOUT;
-	}
-	else
-	{
-		return CONSOLE_RX_ERR;
-	}
-}
-
-/*!-----------------------------------------------------------------------------
- * @internal
- *
- * @brief		Flush UART Reception
- *
- * @details		This function is used to delete last received data
- *
- * @return		None
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-void Console_Rx_Flush(void)
-{
-	uint8_t tmp;
-	register uint32_t u32Tmo = aDevUart[UART_ID_COM].u32RxTmo;
-	BSP_Console_SetRXTmo(0);
-	while( BSP_Console_Received(&tmp, 1) == 0);
-	BSP_Console_SetRXTmo(u32Tmo);
+	BSP_Uart_Close(UART_ID_COM);
 }
 
 /*==============================================================================
@@ -186,23 +126,6 @@ void Console_Tx_Byte(uint8_t data)
 {
 	BSP_Console_Send(&data, 1);
 
-}
-
-/*!-----------------------------------------------------------------------------
- * @internal
- *
- * @brief		Send data to console
- *
- * @param[in]	data Data array to send
- * @param[in]	len  Array length (in bytes)
- *
- * @return		None
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-void Console_Send(uint8_t *data, uint16_t len)
-{
-	BSP_Console_Send(data, len);
 }
 
 /*!-----------------------------------------------------------------------------

@@ -46,23 +46,11 @@
 #include "console.h"
 
 #include "app_entry.h"
+#include "platform.h"
 
 /*==============================================================================
  * GLOBAL VARIABLES
  *============================================================================*/
-
-/*!
- * @cond INTERNAL
- * @{
- */
-atci_status_t (*Atci_Exec_Cmd[NB_AT_CMD])(atci_cmd_t *atciCmdData);
-
-extern phydev_t sPhyDev;
-
-/*!
- * @}
- * @endcond
- */
 
 /*==============================================================================
  * LOCAL FUNCTIONS PROTOTYPES
@@ -73,19 +61,78 @@ atci_status_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATF_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATW_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData);
-atci_status_t Exec_ATKMAC_Cmd(atci_cmd_t *atciCmdData);
-atci_status_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
 atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
 
+#ifndef HAS_ATKEY_CMD
+	atci_status_t Exec_ATKMAC_Cmd(atci_cmd_t *atciCmdData);
+	atci_status_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData);
+#else
+	#include "at_key_cmd.h"
+#endif
+
+#include "at_extend_cmd.h"
+
+#ifdef HAS_LO_UPDATE_CMD
+	#include "at_lo_update_cmd.h"
+#endif
+
+#ifdef HAS_EXTERNAL_FW_UPDATE
+	#include "at_ext_update_cmd.h"
+#endif
+
 /*!
  * @cond INTERNAL
  * @{
  */
- 
+typedef atci_status_t (*pf_exec_cmd_t)(atci_cmd_t *atciCmdData);
+
+const pf_exec_cmd_t Atci_Exec_Cmd[NB_AT_CMD] =
+{
+	[CMD_AT] = Exec_AT_Cmd, //nothing to do
+	[CMD_ATI] = Exec_ATI_Cmd,
+	[CMD_ATZ] = Exec_AT_Cmd, //something to do in states machine only
+	[CMD_ATQ] = Exec_AT_Cmd, //something to do in states machine only
+	[CMD_ATF] = Exec_ATF_Cmd,
+	[CMD_ATW] = Exec_ATW_Cmd,
+	[CMD_ATPARAM] = Exec_ATPARAM_Cmd,
+	[CMD_ATIDENT] = Exec_ATIDENT_Cmd,
+	[CMD_ATSEND] = Exec_ATSEND_Cmd,
+	[CMD_ATPING] = Exec_ATPING_Cmd,
+	[CMD_ATFC] = Exec_ATFC_Cmd,
+	[CMD_ATTEST] = Exec_ATTEST_Cmd,
+	[CMD_ATZC] = Exec_AT_Cmd, //something to do in states machine only
+#ifndef HAS_ATKEY_CMD
+	[CMD_ATKMAC] = Exec_ATKMAC_Cmd,
+	[CMD_ATKENC] = Exec_ATKENC_Cmd,
+#else
+	[CMD_ATKEY] = Exec_ATKEY_Cmd,
+#endif
+#ifdef HAS_LO_UPDATE_CMD
+	[CMD_ATANN] = Exec_ATANN_Cmd,
+	[CMD_ATBLK] = Exec_ATBLK_Cmd,
+	[CMD_ATUPD] = Exec_ATUPD_Cmd,
+#ifdef HAS_LO_ATBMAP_CMD
+	[CMD_ATBMAP] = Exec_ATBMAP_Cmd,
+#endif
+#endif
+#ifdef HAS_ATSTAT_CMD
+	[CMD_ATSTAT] = Exec_ATSTAT_Cmd,
+#endif
+#ifdef HAS_ATCCLK_CMD
+	[CMD_ATCCLK] = Exec_ATCCLK_Cmd,
+#endif
+#ifdef HAS_EXTERNAL_FW_UPDATE
+	[CMD_ATADMANN] = Exec_ATADMANN_Cmd,
+#endif
+#ifdef HAS_ATUID_CMD
+	[CMD_ATUID] = Exec_ATUID_Cmd,
+#endif
+};
+
 static test_mode_info_t _atci_init_test_var_(void);
 static uint8_t _atci_init_lp_var_(void);
 
@@ -104,7 +151,6 @@ static uint8_t _atci_init_lp_var_(void);
 
 static uint8_t _bTestMode_;
 
-
 /*!
  * @}
  * @endcond
@@ -113,18 +159,37 @@ static uint8_t _bTestMode_;
 /*==============================================================================
  * FUNCTIONS
  *============================================================================*/
-#include "bsp.h"
-#include "platform.h"
-extern void* hAtciTask;
 
-static void _atci_itf_evt_(void *p_CbParam,  uint32_t evt)
+extern void* hLoItfTask;
+
+static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
 {
 	if (p_CbParam)
 	{
 		((atci_cmd_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
 	}
-	sys_flag_set_isr(hAtciTask, evt);
+	sys_flag_set_isr(hLoItfTask, evt);
 }
+
+void _loitf_sleep_(void)
+{
+	//EX_PHY_OnOff(0);
+	EX_PHY_SetPa(0);
+
+	Console_Disable();
+
+	BSP_LowPower_Enter(LP_STOP2_MODE);
+	//WizeApp_Sleep();
+}
+
+void _loitf_wakeup_(uint8_t bPaState)
+{
+	Console_Enable();
+
+	//EX_PHY_OnOff(1);
+	EX_PHY_SetPa(bPaState);
+}
+
 /*!-----------------------------------------------------------------------------
  * @internal
  * @brief		AT command interpreter task
@@ -145,35 +210,13 @@ void Atci_Task(void const *argument)
 	uint8_t eRebootMode;
 
 	//Inits
-
-	Atci_Exec_Cmd[CMD_AT] = Exec_AT_Cmd; //nothing to do
-	Atci_Exec_Cmd[CMD_ATI] = Exec_ATI_Cmd;
-	Atci_Exec_Cmd[CMD_ATZ] = Exec_AT_Cmd; //something to do in states machine only
-	Atci_Exec_Cmd[CMD_ATQ] = Exec_AT_Cmd; //something to do in states machine only
-	Atci_Exec_Cmd[CMD_ATF] = Exec_ATF_Cmd;
-	Atci_Exec_Cmd[CMD_ATW] = Exec_ATW_Cmd;
-	Atci_Exec_Cmd[CMD_ATPARAM] = Exec_ATPARAM_Cmd;
-	Atci_Exec_Cmd[CMD_ATKMAC] = Exec_ATKMAC_Cmd;
-	Atci_Exec_Cmd[CMD_ATKENC] = Exec_ATKENC_Cmd;
-	Atci_Exec_Cmd[CMD_ATIDENT] = Exec_ATIDENT_Cmd;
-	Atci_Exec_Cmd[CMD_ATSEND] = Exec_ATSEND_Cmd;
-	Atci_Exec_Cmd[CMD_ATPING] = Exec_ATPING_Cmd;
-	Atci_Exec_Cmd[CMD_ATFC] = Exec_ATFC_Cmd;
-	Atci_Exec_Cmd[CMD_ATTEST] = Exec_ATTEST_Cmd;
-	Atci_Exec_Cmd[CMD_ATZC] = Exec_AT_Cmd; //something to do in states machine only
+	Console_Init(END_OF_CMD_CHAR, _loitf_evt_, &atciCmdData);
 
 	EX_PHY_SetCpy();
 	bPaState = EX_PHY_GetPa();
 	eLPmode = _atci_init_lp_var_();
 
 	eRebootMode = 0;
-
-	uint8_t ret;
-	// ---
-	ret = BSP_Uart_Init(UART_ID_COM, END_OF_CMD_CHAR, UART_MODE_EOB);
-	ret |= BSP_Uart_SetCallback(UART_ID_COM, _atci_itf_evt_, &atciCmdData);
-	// ---
-
 	//Loop
 	while(1)
 	{
@@ -182,30 +225,17 @@ void Atci_Task(void const *argument)
 			case ATCI_SLEEP:
 				if (!_bTestMode_ && eLPmode)
 				{
-					Atci_Debug_Str("Sleep");
-
+					Atci_Send_Sleep_Msg();
 					bPaState = EX_PHY_GetPa();
-					EX_PHY_OnOff(0);
-					EX_PHY_SetPa(0);
-
-					Console_Disable();
-
-					BSP_LowPower_Enter(LP_STOP2_MODE);
+					_loitf_sleep_();
 				}
 				atciState = ATCI_WAKEUP;
 				break;
-
 			case ATCI_WAKEUP:
-
-				Console_Enable();
-
-				EX_PHY_OnOff(1);
-				EX_PHY_SetPa(bPaState);
-
+				_loitf_wakeup_(bPaState);
 				Atci_Send_Wakeup_Msg();
 				atciState = ATCI_WAIT;
 				break;
-
 			case ATCI_WAIT:
 			{
 				switch(Atci_Rx_Cmd(&atciCmdData))
@@ -220,11 +250,11 @@ void Atci_Task(void const *argument)
 					case ATCI_RX_CMD_TIMEOUT:
 						if (!_bTestMode_ && eLPmode)
 						{
-							Atci_Send_Sleep_Msg();
 							atciState = ATCI_SLEEP;
+							break;
 						}
-						break;
 					default:
+						atciState = ATCI_WAIT;
 						break;
 				}
 				break;
@@ -257,10 +287,9 @@ void Atci_Task(void const *argument)
 						case CMD_ATQ:
 							if (!_bTestMode_ && eLPmode)
 							{
-								Atci_Send_Sleep_Msg();
 								atciState = ATCI_SLEEP;
+								break;
 							}
-							break;
 						default: //other commands
 							atciState = ATCI_WAIT;
 							break;
@@ -335,7 +364,7 @@ atci_status_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
  *
  * @details		Command format: "ATI".
  *
- * 	Response format: "+ATI :"WIZEUP",<manufacturer>,<model>,<hw version>,<major sw version>,<minor sw version>"
+ * 	Response format: "+ATI :"name",<manufacturer>,<model>,<hw version>,<major sw version>,<minor sw version>"
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
  *
@@ -346,46 +375,71 @@ atci_status_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
  *----------------------------------------------------------------------------*/
 atci_status_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 {
-	uint16_t tmp;
+	int sz;
+	int len;
+	uint8_t next = 0;
 
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
 		return ATCI_ERR_INV_NB_PARAM;
 
-	//Get infos: TODO
 	Atci_Cmd_Param_Init(atciCmdData);
-	//	Name
-	strcpy(atciCmdData->params[atciCmdData->nbParams].str, ATI_BOARD_NAME);
-	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-	//	Manufacturer
-	strcpy(atciCmdData->params[atciCmdData->nbParams].str,ATI_BOARD_VENDOR);
-	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-	//	Model
-	strcpy(atciCmdData->params[atciCmdData->nbParams].str, ATI_BOARD_MODEL);
-	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
 
-	// HW version
-	Param_Access(VERS_HW_TRX, (uint8_t *) &tmp, 0);
-	sprintf(atciCmdData->params[atciCmdData->nbParams].str, "%04X", tmp);
-	atciCmdData->params[atciCmdData->nbParams].size = (strlen(atciCmdData->params[atciCmdData->nbParams].str) + 1) | PARAM_STR;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-	// Major SW version
-	Param_Access(VERS_FW_TRX, (uint8_t *) &tmp, 0);
-	*(atciCmdData->params[atciCmdData->nbParams].val8) = (uint8_t) (tmp>>8);
+	sz = (AT_CMD_DATA_MAX_LEN - 1);
+	do
+	{
+		switch(next)
+		{
+			case 0:
+				//	Name
+				len = snprintf(atciCmdData->params[atciCmdData->nbParams].str, sz, "%s", sHwInfo.name);
+				break;
+			case 1:
+				//	Manufacturer
+				len = snprintf(atciCmdData->params[atciCmdData->nbParams].str, sz, "%s", sHwInfo.vendor);
+				break;
+			case 2:
+				//	Model
+				len = snprintf(atciCmdData->params[atciCmdData->nbParams].str, sz, "%s", sHwInfo.model);
+				break;
+			case 3:
+				// Board version
+				len = snprintf(atciCmdData->params[atciCmdData->nbParams].str, sz, "%02X%02X", sHwInfo.version[1], sHwInfo.version[2]);
+				break;
+			default:
+				len = 0;
+				break;
+		}
+		next++;
+		if (len > 0)
+		{
+			len++;
+			atciCmdData->params[atciCmdData->nbParams].size = len | PARAM_STR;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+			sz -= len;
+		}
+	}
+	while(next < 4);
+
+	// Major FW version
+	*(atciCmdData->params[atciCmdData->nbParams].val8) = sFwInfo.version[1];
 	atciCmdData->params[atciCmdData->nbParams].size = PARAM_INT8;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
-	// Minor SW version
-	*(atciCmdData->params[atciCmdData->nbParams].val8) = (uint8_t) tmp;
+	// Minor FW version
+	*(atciCmdData->params[atciCmdData->nbParams].val8) = sFwInfo.version[2];
 	atciCmdData->params[atciCmdData->nbParams].size = PARAM_INT8;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
-
 
 	Atci_Resp_Data("ATI", atciCmdData); //"\r\n+ATI:\"WIZEUP\",\"ALCIOM\",\"WZ1000\",\"1C\",$00,$00\r\n"
 
-	Atci_Debug_Printf("Compilation date: %s", __DATE__);//////////////////
-
+	// ---
+	Atci_Cmd_Param_Init(atciCmdData);
+	len = snprintf(atciCmdData->params[atciCmdData->nbParams].str, (AT_CMD_DATA_MAX_LEN-1), "%s", sFwInfo.build_date);
+	if (len > 0)
+	{
+		atciCmdData->params[atciCmdData->nbParams].size = (len + 1) | PARAM_STR;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+		Atci_Debug_Param_Data("Compilation date", atciCmdData);
+	}
 	return ATCI_OK;
 }
 
@@ -581,7 +635,7 @@ atci_status_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_INV_NB_PARAM;
 
 }
-
+#ifndef HAS_ATKEY_CMD
 /*!-----------------------------------------------------------------------------
  * @brief		Execute ATKMAC command (Modify the value of the Kmac key)
  *
@@ -716,6 +770,7 @@ atci_status_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData)
 	else
 		return ATCI_ERR_INV_NB_PARAM;
 }
+#endif
 
 /*!-----------------------------------------------------------------------------
  * @brief		Execute ATIDENT command (Modify/read the value of M-field and A-field)
@@ -783,10 +838,10 @@ atci_status_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 				//write M-field & A-field:
 				if ( WizeApi_SetDeviceId( (device_id_t *)(atciCmdData->params[0].data) ) != WIZE_API_SUCCESS)
 				{
-					Atci_Debug_Param_Data("Write IDENT Failed", atciCmdData);/////////
+					Atci_Debug_Param_Data("Write IDENT", atciCmdData);/////////
 					return ATCI_ERR;
 				}
-				Atci_Debug_Param_Data("Write IDENT succeed", atciCmdData);/////////
+				Atci_Debug_Param_Data("Write IDENT", atciCmdData);/////////
 
 				return ATCI_OK;
 			}
@@ -895,21 +950,29 @@ atci_status_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 				//write RSSI in ???
 				atciCmdData->params[2].val8
 				);
-		if (size > 1)
+		if ( ret == 1)
 		{
-			i = 0;
-			while (i < size)
+			if (size > 1)
 			{
-				//get param ID (1st byte of received message)
-				atciCmdData->params[0].data = &(atciCmdData->paramsMem[i++]);
-				//get param Value (next bytes of received message)
-				atciCmdData->params[1].size = (uint16_t) Param_GetSize(*(atciCmdData->params[0].val8));
-				atciCmdData->params[1].data = &(atciCmdData->paramsMem[i]);
-				i += atciCmdData->params[1].size;
+				i = 0;
+				while (i < size)
+				{
+					//get param ID (1st byte of received message)
+					atciCmdData->params[0].data = &(atciCmdData->paramsMem[i++]);
+					//get param Value (next bytes of received message)
+					atciCmdData->params[1].size = (uint16_t) Param_GetSize(*(atciCmdData->params[0].val8));
+					atciCmdData->params[1].data = &(atciCmdData->paramsMem[i]);
+					i += atciCmdData->params[1].size;
 
-				//send received APP-ADMIN command
-				Atci_Resp_Data("ATADMWRITE", atciCmdData);
+					// send received APP-ADMIN WRITE command
+					Atci_Resp_Data("ATADMWRITE", atciCmdData);
+				}
 			}
+		}
+		else // if ( ret == 2)
+		{
+			//send received APP-ADMIN ANN_DOWNLOAD command
+			Atci_Resp_Data("ATADMANN", atciCmdData);
 		}
 #if 0
 		// FIXME : The following is not Wize 1.0 compliant
@@ -1323,6 +1386,9 @@ atci_status_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 }
 
 /******************************************************************************/
+
+/******************************************************************************/
+/******************************************************************************/
 /*!
  * @cond INTERNAL
  * @{
@@ -1372,8 +1438,9 @@ static uint8_t _atci_init_lp_var_(void)
 		u32LPdelay = 0xFFFFFFFF;
 	}
 #endif
-	BSP_Console_SetRXTmo(u32LPdelay);
 	BSP_Console_SetTXTmo(CONSOLE_TX_TIMEOUT);
+	//BSP_Console_SetRXTmo(u32LPdelay);
+	Atci_Rx_Cmd_Tmo(u32LPdelay);
 	return eLPmode;
 }
 
