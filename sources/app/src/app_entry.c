@@ -64,13 +64,13 @@ void app_entry(void)
  * @{
  */
 
-void* hAtciTask;
+void* hLoItfTask;
 extern void Atci_Task(void const * argument);
-#define ATCI_TASK_NAME atci
-#define ATCI_TASK_FCT Atci_Task
-#define ATCI_STACK_SIZE 800
-#define ATCI_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
-SYS_TASK_CREATE_DEF(atci, ATCI_STACK_SIZE, ATCI_PRIORITY);
+#define LOITF_TASK_NAME loitf
+#define LOITF_TASK_FCT Atci_Task
+#define LOITF_STACK_SIZE 800
+#define LOITF_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
+SYS_TASK_CREATE_DEF(loitf, LOITF_STACK_SIZE, LOITF_PRIORITY);
 
 
 //void* hUpdateTask;
@@ -87,7 +87,7 @@ void Monitor_Task(void const * argument);
 #define MONITOR_TASK_FCT Monitor_Task
 #define MONITOR_STACK_SIZE 800
 #define MONITOR_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
-SYS_TASK_CREATE_DEF(main, MONITOR_STACK_SIZE, MONITOR_PRIORITY);
+SYS_TASK_CREATE_DEF(monitor, MONITOR_STACK_SIZE, MONITOR_PRIORITY);
 
 /*!
  * @}
@@ -101,10 +101,17 @@ extern struct update_ctx_s sUpdateCtx;
   */
 void App_Init(void)
 {
-	sUpdateCtx.hTask = SYS_TASK_CREATE_CALL(update, UPDATE_TASK_FCT, NULL);
+	uint8_t u8ExtFlags = 0b11100101;
 
-	hAtciTask = SYS_TASK_CREATE_CALL(atci, ATCI_TASK_FCT, NULL);
-	hMonitorTask = SYS_TASK_CREATE_CALL(main, MONITOR_TASK_FCT, NULL);
+#ifdef HAS_EXTEND_PARAMETER
+	Param_Access(EXTEND_FLAGS, &u8ExtFlags, 0);
+#endif
+	Atci_Send_Dbg_Enable( (u8ExtFlags & EXT_FLAGS_DBG_MSG_EN_MSK) );
+
+	sUpdateCtx.hTask = SYS_TASK_CREATE_CALL(update, UPDATE_TASK_FCT, NULL);
+	//_setup_wakeup_loitf_();
+	hLoItfTask = SYS_TASK_CREATE_CALL(loitf, LOITF_TASK_FCT, NULL);
+	hMonitorTask = SYS_TASK_CREATE_CALL(monitor, MONITOR_TASK_FCT, NULL);
 
 	// FIXME
 	WizeApp_Init();
@@ -176,7 +183,10 @@ b[7] if 1: Activate the keys writing in NVM;
 				// Periodic Install
 				if (ret & WIZEAPP_INFO_PERIO_INST)
 				{
-					WizeApp_Install();
+					if ( WizeApp_Install() == WIZE_API_SUCCESS)
+					{
+						WizeApp_WaitSesComplete(SES_INST);
+					}
 				}
 				// Back Full Power
 				if (ret & WIZEAPP_INFO_FULL_POWER)
@@ -276,6 +286,10 @@ int32_t WizeApp_WaitSesComplete(ses_type_t eSesId)
 				if (ret == ADM_WRITE_PARAM)
 				{
 					return 1;
+				}
+				else if ( ret == ADM_ANNDOWNLOAD)
+				{
+					return 2;
 				}
 			}
 			return 0;

@@ -74,7 +74,7 @@ atci_status_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData)
 		return status;
 
 	//check key number
-	if ((*(atciCmdData->params[0].val8) < KEY_ENC_MIN) || (*(atciCmdData->params[0].val8) > KEY_MAX_NB))
+	if ((*(atciCmdData->params[0].val8) < KEY_ENC_MIN) || (*(atciCmdData->params[0].val8) >= KEY_MAX_NB))
 	{
 		return ATCI_ERR_INV_PARAM_VAL;
 	}

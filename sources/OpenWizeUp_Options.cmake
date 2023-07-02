@@ -53,9 +53,9 @@ option(BUILD_NVM_BINARY                  "Build the non-volatile memory area con
 
 # AT cmd option
 option(HAS_ATKEY_CMD                     "ATKENC and ATKMAC are replaced by the ATKEY unique command." OFF)
-option(HAS_ATUID_CMD                     "AT%UID command is defined." OFF)
-option(HAS_ATCCLK_CMD                    "AT%CCLK command is defined." OFF)
-option(HAS_ATSTAT_CMD                    "AT%STAT command is defined." OFF)
+option(HAS_ATUID_CMD                     "AT%UID command is defined." ON)
+option(HAS_ATCCLK_CMD                    "AT%CCLK command is defined." ON)
+option(HAS_ATSTAT_CMD                    "AT%STAT command is defined." ON)
 
 # HW info
 set(HW_NAME    "WIZEUP" CACHE STRING "Define the board name print when ATI command is called.")
