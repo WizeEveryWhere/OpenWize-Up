@@ -53,6 +53,8 @@
  * FUNCTIONS PROTOTYPES - AT responses
  *============================================================================*/
 
+const char* Atci_Get_Dbg_Str(atci_error_t error);
+
 /*!-----------------------------------------------------------------------------
  * @brief		Enable / Disable the debug messages
  *

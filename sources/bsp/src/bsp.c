@@ -125,9 +125,11 @@ void usleep(uint32_t microsecond)
 uint64_t BSP_GetUid(void)
 {
 	uint32_t uuid[2];
-	uuid[1] = __htonl(HAL_GetUIDw1());
-	uuid[0] = __htonl(HAL_GetUIDw0());
-	return (uint64_t)uuid;
+	uuid[1] = HAL_GetUIDw1();
+	uuid[0] = HAL_GetUIDw0();
+	//uint32_t lot;
+	//lot = HAL_GetUIDw2();
+	return *(uint64_t*)(uuid);
 }
 
 /******************************************************************************/

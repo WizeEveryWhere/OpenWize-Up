@@ -36,15 +36,19 @@ extern "C" {
 #include "atci.h"
 
 #ifdef HAS_ATSTAT_CMD
-atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
+atci_error_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
 #endif
 
 #ifdef HAS_ATCCLK_CMD
-atci_status_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
+atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
 #endif
 
 #ifdef HAS_ATUID_CMD
-atci_status_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
+atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
+#endif
+
+#ifdef HAS_ATZn_CMD
+atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
 #endif
 
 #ifdef __cplusplus

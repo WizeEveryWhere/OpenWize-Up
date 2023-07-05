@@ -144,11 +144,11 @@ void Atci_Restart_Rx(atci_cmd_t *atciCmdData);
  * 					- cmdCode [out]: received command code (CMD_AT ... CMD_ATPING) (other fields are used internally)
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
+atci_error_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Extract one command parameter from buffer (parameter is a 8, 16 or 32 bits integer)
@@ -173,11 +173,11 @@ atci_status_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
  * @endparblock
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize);
+atci_error_t Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize);
 
 
 /*==============================================================================
@@ -203,11 +203,11 @@ void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData);
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
+atci_error_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Update last param length and update next param pointer
@@ -216,11 +216,11 @@ atci_status_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
  * @param[in] 	    newSize     The size of parameter
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize);
+atci_error_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize);
 
 
 

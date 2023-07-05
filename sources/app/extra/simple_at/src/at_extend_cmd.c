@@ -65,9 +65,9 @@ void _format_stats_(uint8_t *pData, net_stats_t *pStats)
  *
  * @retval
  */
-atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
+atci_error_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 {
-	atci_status_t status = ATCI_OK;
+	atci_error_t status = ATCI_ERR_NONE;
 	net_stats_t sStats;
 
 	Atci_Cmd_Param_Init(atciCmdData);
@@ -77,7 +77,7 @@ atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 		// Add param of size sizeof(net_stats_t)
 		atciCmdData->params[0].size = sizeof(net_stats_t);
 		status = Atci_Add_Cmd_Param_Resp(atciCmdData);
-		if (status == ATCI_OK)
+		if (status == ATCI_ERR_NONE)
 		{
 			NetMgr_Open(NULL);
 			if (NetMgr_Ioctl(NETDEV_CTL_GET_STATS, (uint32_t)(&sStats)) == NET_STATUS_OK)
@@ -88,7 +88,7 @@ atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 			}
 			else
 			{
-				status = ATCI_ERR;
+				status = ATCI_ERR_UNK;
 			}
 			NetMgr_Close();
 		}
@@ -96,11 +96,11 @@ atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 	else if (atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
 	{
 		status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
-		if (status == ATCI_OK)
+		if (status == ATCI_ERR_NONE)
 		{
 			if (atciCmdData->cmdType != AT_CMD_WITH_PARAM)
 			{
-				status = ATCI_ERR_INV_NB_PARAM;
+				status = ATCI_ERR_PARAM_NB;
 			}
 			else
 			{
@@ -109,7 +109,7 @@ atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 				if (NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, (uint32_t)(&sStats)))
 				{
 					// error
-					status = ATCI_ERR;
+					status = ATCI_ERR_UNK;
 				}
 				NetMgr_Close();
 			}
@@ -117,7 +117,7 @@ atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 	}
 	else
 	{
-		status = ATCI_ERR_INV_NB_PARAM;
+		status = ATCI_ERR_PARAM_NB;
 	}
 
 	return status;
@@ -131,10 +131,10 @@ atci_status_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
  *
  * @retval
  */
-atci_status_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
+atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
-		return ATCI_ERR_INV_NB_PARAM;
+		return ATCI_ERR_PARAM_NB;
 
 	Atci_Cmd_Param_Init(atciCmdData);
 
@@ -155,7 +155,7 @@ atci_status_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
 	*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
 
 	Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-	return ATCI_OK;
+	return ATCI_ERR_NONE;
 }
 #endif
 
@@ -167,10 +167,10 @@ atci_status_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
  *
  * @retval
  */
-atci_status_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
+atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
-		return ATCI_ERR_INV_NB_PARAM;
+		return ATCI_ERR_PARAM_NB;
 
 	Atci_Cmd_Param_Init(atciCmdData);
 
@@ -179,13 +179,67 @@ atci_status_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
 
 	// Get the UID
-	*(uint64_t*)(atciCmdData->params[0].data) = BSP_GetUid();
+	uint64_t uuid = BSP_GetUid();
+	((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
+	((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
 
 	Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-	return ATCI_OK;
+	return ATCI_ERR_NONE;
 }
 #endif
 
+#ifdef HAS_ATZn_CMD
+/*!
+ * @brief This function
+ *
+ * @retval
+ */
+atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	uint8_t eRebootMode = 0;
+	switch (atciCmdData->cmdCode)
+	{
+	/*
+	 * 	ATZ or ATZ0 : (cold reboot)
+	 * 	-	Restore all registers from last stored ones in NVM
+	 * 	-	Clear the current clock initialize flag value
+	 * 	-	Clear all internal counters.
+	 */
+		case CMD_ATZ:
+		case CMD_ATZ0:
+			eRebootMode = 1;
+			break;
+	/*
+	 * 	ATZ1 : (warm reboot)
+	 * 	-	Keep all registers from RAM
+	 * 	-	Keep the current clock initialize flag value
+	 * 	-	Keep all internal counters.
+	 */
+		case CMD_ATZ1: // (warm reboot)
+		default:
+			break;
+	}
+
+	Atci_Resp_Ack(ATCI_ERR_NONE);
+	if(eRebootMode)
+	{
+		Atci_Debug_Str("Cold Reboot");
+		Storage_SetDefault();
+	}
+	else
+	{
+		Atci_Debug_Str("Warm Reboot");
+	}
+
+
+	BSP_Boot_Reboot(eRebootMode);
+
+	return ATCI_ERR_NONE;
+}
+#endif
 
 #ifdef __cplusplus
 }

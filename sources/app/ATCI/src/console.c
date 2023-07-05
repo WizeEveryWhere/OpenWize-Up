@@ -51,9 +51,8 @@
 
 /*! @cond INTERNAL @{ */
 
-console_tx_buf_t consoleTxBuf;
-
-extern uart_dev_t aDevUart[UART_ID_MAX];//////////
+console_buf_t consoleTxBuf;
+console_buf_t consoleRxBuf;
 
 /*! @} @endcond */
 
@@ -125,7 +124,6 @@ void Console_Disable(void)
 void Console_Tx_Byte(uint8_t data)
 {
 	BSP_Console_Send(&data, 1);
-
 }
 
 /*!-----------------------------------------------------------------------------
@@ -144,13 +142,13 @@ void Console_Send_Array_To_Hex_Ascii(uint8_t *data, uint16_t len)
 {
 	uint16_t i;
 
-	consoleTxBuf.len = 0;
+	if (len > (CONSOLE_BUF_LEN >> 1))
+	{
+		len = CONSOLE_BUF_LEN >> 1;
+	}
 
-	if(len > (CONSOLE_TX_BUF_LEN>>1))
-		len = CONSOLE_TX_BUF_LEN>>1;
-
 	consoleTxBuf.len = 0;
-	for(i=0; i<len; i++)
+	for (i = 0; i < len; i++)
 	{
 		consoleTxBuf.data[consoleTxBuf.len++] = nibble2hexascii(data[i] >> 4);
 		consoleTxBuf.data[consoleTxBuf.len++] = nibble2hexascii(data[i] & 0x0F);
@@ -208,8 +206,8 @@ void Console_Send_Nb_To_Hex_Ascii(uint32_t data, uint8_t size)
 void Console_Send_Str(char *str)
 {
 	consoleTxBuf.len = strlen(str);
-	if(consoleTxBuf.len>CONSOLE_TX_BUF_LEN)
-		consoleTxBuf.len = CONSOLE_TX_BUF_LEN;
+	if(consoleTxBuf.len > CONSOLE_BUF_LEN)
+		consoleTxBuf.len = CONSOLE_BUF_LEN;
 	memcpy(consoleTxBuf.data, str, consoleTxBuf.len);
 
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
@@ -233,7 +231,7 @@ void Console_Printf(char *format, ...)
 	va_list argList;
 
 	va_start(argList, format);
-	vsnprintf((char *) consoleTxBuf.data, (CONSOLE_TX_BUF_LEN - 1), format, argList);
+	vsnprintf((char *) consoleTxBuf.data, (CONSOLE_BUF_LEN - 1), format, argList);
 	consoleTxBuf.len = strlen((char *) consoleTxBuf.data);
 	va_end(argList);
 

@@ -58,6 +58,44 @@
 static uint8_t _bDbgEn_;
 static void _atci_send_(atci_cmd_t *atciCmdData);
 
+typedef struct
+{
+	uint8_t code;
+	const char *str;
+} atci_dbg_str_t;
+
+const atci_dbg_str_t atci_dbg_tab[] =
+{
+	{ATCI_ERR_PARAM_NB,      "Invalid number of parameters!!!"},
+	{ATCI_ERR_PARAM_LEN,     "Invalid parameter length!!!"},
+	{ATCI_ERR_PARAM_VAL,     "Invalid parameter value!!!"},
+	{ATCI_ERR_CMD_UNK,       "Unknown command!!!"},
+	{ATCI_ERR_CMD_LEN,       "Invalid command length!!!"},
+	{ATCI_ERR_CMD_FORBIDDEN, "Forbidden command in the current state!!!"},
+	{ATCI_ERR_RX_CMD,        "Com. RX error!!!"},
+	{ATCI_ERR_RX_TMO,        "Com. RX timeout!!!"},
+	// ---
+	{ATCI_ERR_UNK,           "Command execution error!!!"},
+};
+
+const char* Atci_Get_Dbg_Str(atci_error_t error)
+{
+	uint32_t i;
+	for (i = 0; i < sizeof(atci_dbg_tab) / sizeof(atci_dbg_str_t); i++)
+	{
+		if (atci_dbg_tab[i].code == error)
+		{
+			break;
+		}
+	}
+
+	if (i == (sizeof(atci_dbg_tab)/ sizeof(atci_dbg_str_t) ))
+	{
+		i--;
+	}
+	return atci_dbg_tab[i].str;
+}
+
 /*==============================================================================
  * FUNCTIONS - AT responses
  *============================================================================*/
@@ -117,12 +155,17 @@ void Atci_Send_Sleep_Msg(void)
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-void Atci_Resp_Ack(atci_status_t errCode)
+void Atci_Resp_Ack(atci_error_t errCode)
 {
 	if(errCode)
+	{
 		Console_Printf("\r\nERROR:%02X\r\n", errCode);
+		_Atci_Debug_Param_Data(Atci_Get_Dbg_Str(errCode), NULL);
+	}
 	else
+	{
 		Console_Send_Str("\r\nOK\r\n");
+	}
 }
 
 /*!-----------------------------------------------------------------------------
@@ -192,36 +235,38 @@ static void _atci_send_(atci_cmd_t *atciCmdData)
 	uint8_t i;
 
 	//each parameter data
-	for(i=0; i<atciCmdData->nbParams; i++)
+	for (i = 0; i < atciCmdData->nbParams; i++)
 	{
+		// TODO : optim. if/else with i==0
+		//
 		//parameter data as hexadecimal number / bytes array or string
-		if(atciCmdData->params[i].size == PARAM_INT8)
+		if (atciCmdData->params[i].size == PARAM_INT8)
 		{
-			if(i==0)
+			if (i == 0)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
 			Console_Send_Nb_To_Hex_Ascii(*(atciCmdData->params[i].val8), 1);
 		}
-		else if(atciCmdData->params[i].size == PARAM_INT16)
+		else if (atciCmdData->params[i].size == PARAM_INT16)
 		{
-			if(i==0)
+			if (i == 0)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
 			Console_Send_Nb_To_Hex_Ascii( __ntohs( *(atciCmdData->params[i].val16) ), 2);
 		}
-		else if(atciCmdData->params[i].size == PARAM_INT32)
+		else if (atciCmdData->params[i].size == PARAM_INT32)
 		{
-			if(i==0)
+			if (i == 0)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag
 			Console_Send_Nb_To_Hex_Ascii( __ntohl( *(atciCmdData->params[i].val32) ), 4);
 		}
-		else if(IS_PARAM_STR(atciCmdData->params[i].size))
+		else if (IS_PARAM_STR(atciCmdData->params[i].size))
 		{
-			if(i==0)
+			if (i == 0)
 				Console_Send_Str(":\""); //command code / data separator + string flag
 			else
 				Console_Send_Str(",\"");//data separator + string flag
@@ -230,7 +275,7 @@ static void _atci_send_(atci_cmd_t *atciCmdData)
 		}
 		else
 		{
-			if(i==0)
+			if (i == 0)
 				Console_Send_Str(":$"); //command code / data separator + hex flag
 			else
 				Console_Send_Str(",$");//data separator + hex flag

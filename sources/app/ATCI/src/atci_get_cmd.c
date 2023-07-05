@@ -73,13 +73,33 @@ const char * const atci_cmd_code_str[NB_AT_CMD] =
 	[CMD_ATPING]  = "ATPING",
 	[CMD_ATFC]    = "ATFC",
 	[CMD_ATTEST]  = "ATTEST",
+
+#ifndef HAS_ATZn_CMD
 	[CMD_ATZC]    = "ATZC",
+#else
+	[CMD_ATZ0]    = "ATZ0",
+	[CMD_ATZ1]    = "ATZ1",
+#endif
+
 #ifndef HAS_ATKEY_CMD
 	[CMD_ATKMAC]  = "ATKMAC",
 	[CMD_ATKENC]  = "ATKENC",
 #else
 	[CMD_ATKEY]   = "ATKEY",
 #endif
+
+#ifdef HAS_ATSTAT_CMD
+	[CMD_ATSTAT] = "AT%STAT",
+#endif
+
+#ifdef HAS_ATCCLK_CMD
+	[CMD_ATCCLK] = "AT%CCLK",
+#endif
+
+#ifdef HAS_ATUID_CMD
+	[CMD_ATUID] = "AT%UID",
+#endif
+
 #ifdef HAS_LO_UPDATE_CMD
 	[CMD_ATANN] = "ATANN",
 	[CMD_ATBLK] = "ATBLK",
@@ -88,15 +108,7 @@ const char * const atci_cmd_code_str[NB_AT_CMD] =
 	[CMD_ATBMAP] = "ATBMAP",
 #endif
 #endif
-#ifdef HAS_ATSTAT_CMD
-	[CMD_ATSTAT] = "AT%STAT",
-#endif
-#ifdef HAS_ATCCLK_CMD
-	[CMD_ATCCLK] = "AT%CCLK",
-#endif
-#ifdef HAS_ATUID_CMD
-	[CMD_ATUID] = "AT%UID",
-#endif
+
 };
 /*! @endinternal */
 
@@ -104,94 +116,15 @@ const char * const atci_cmd_code_str[NB_AT_CMD] =
  * LOCAL FUNCTIONS PROTOTYPES
  *============================================================================*/
 
-atci_status_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData);
-atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType);
-atci_status_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen);
+atci_error_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData);
+atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType);
+atci_error_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen);
 
-static uint32_t _u32_rx_cmd_tmo_;
+
 
 /*==============================================================================
  * FUNCTIONS - Command reception
  *============================================================================*/
-
-/*!-----------------------------------------------------------------------------
- * @internal
- *
- * @brief		Set the RX command timeout
- *
- * @param[in]	The timeout value in ms
- *
- * @return		None
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo)
-{
-	_u32_rx_cmd_tmo_ = pdMS_TO_TICKS(u32Tmo);
-}
-
-/*!-----------------------------------------------------------------------------
- * @internal
- *
- * @brief		Receive AT command from UART interface
- *
- * @details		This function is blocking until a character has been received by UART or an error occurred
- *
- * @param[out]	atciCmdData Pointer "atci_cmd_t" structure:
- * 					- buf [in,out]: buffer to receive command (as text) from console
- * 					- len [in,out]: actual received command length (other fields are unused)
- *
- * @retval ATCI_NO_AT_CMD if no cmd received
- * @retval ATCI_AVAIL_AT_CMD if full command received
- * @retval ATCI_RX_ERR if buffer overflow or RX error
- * @retval ATCI_RX_CMD_TIMEOUT if no characters received for a specified time
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
-{
-	atci_status_t status = ATCI_NO_AT_CMD;
-	uint32_t ulEvent;
-
-	atciCmdData->len = 0;
-
-	uint8_t ret = 0;
-	// ---
-	ret |= BSP_Uart_Receive(UART_ID_COM, atciCmdData->buf, (uint16_t)AT_CMD_BUF_LEN);
-	if ( ret == DEV_SUCCESS )
-	{
-		if ( sys_flag_wait(&ulEvent, _u32_rx_cmd_tmo_) )
-		{
-			switch(ulEvent)
-			{
-				case UART_EVT_RX_ABT: // buffer overflow
-					if (atciCmdData->buf[atciCmdData->len] != END_OF_CMD_CHAR)
-					{
-						// If the last char is not the character match one
-						status = ATCI_RX_CMD_ERR;
-						break;
-					}
-				case UART_EVT_RX_CPLT:
-					if ( atciCmdData->len > AT_CMD_CODE_MIN_LEN )
-					{
-						status = ATCI_AVAIL_AT_CMD;
-					}
-					// Don't take the END_OF_CMD_CHAR
-					atciCmdData->len--;
-					break;
-				default:
-					break;
-			}
-		}
-		else
-		{
-			// Timeout
-			BSP_Uart_AbortReceive(UART_ID_COM);
-			status = ATCI_RX_CMD_TIMEOUT;
-		}
-	}
-	return status;
-}
 
 /*==============================================================================
  * FUNCTIONS - command decoding
@@ -211,20 +144,20 @@ atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
  * 					- cmdCode [out]: received command code (CMD_AT ... CMD_ATPING) (other fields are used internally)
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
+atci_error_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
 {
-	atci_status_t status;
+	atci_error_t status;
 	uint8_t i;
 
 	atciCmdData->idx = 0;
 	status = Atci_Buf_Get_Cmd_Str(atciCmdData);
 
-	if(status != ATCI_OK)
+	if(status != ATCI_ERR_NONE)
 	{
 		return status;
 	}
@@ -234,10 +167,10 @@ atci_status_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
 		if (strcmp(atciCmdData->cmdCodeStr, atci_cmd_code_str[i]) == 0)
 		{
 			atciCmdData->cmdCode = i;
-			return ATCI_OK;
+			return ATCI_ERR_NONE;
 		}
 	}
-	return ATCI_ERR_UNKNOWN_CMD;
+	return ATCI_ERR_CMD_UNK;
 }
 
 /*!-----------------------------------------------------------------------------
@@ -265,12 +198,12 @@ atci_status_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
  * @endparblock
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize)
+atci_error_t Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize)
 {
 	if(IS_PARAM_INT(valTypeSize))
 		return Atci_Buf_Get_Cmd_Param_Val(atciCmdData, valTypeSize);
@@ -311,12 +244,12 @@ void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData)
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_ERR)
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData)
+atci_error_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->nbParams < AT_CMD_MAX_NB_PARAM)
 	{
@@ -332,10 +265,10 @@ atci_status_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData)
 			if(atciCmdData->nbParams < AT_CMD_MAX_NB_PARAM)
 				atciCmdData->params[atciCmdData->nbParams].data = &(atciCmdData->paramsMem[atciCmdData->paramsMemIdx]);
 		}
-		return ATCI_OK;
+		return ATCI_ERR_NONE;
 	}
 	else
-		return ATCI_ERR;
+		return ATCI_ERR_UNK;
 }
 
 /*!-----------------------------------------------------------------------------
@@ -347,12 +280,12 @@ atci_status_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData)
  * @param[in] 	    newSize     The size of parameter
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_ERR)
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize)
+atci_error_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize)
 {
 	uint16_t newLen;
 
@@ -369,10 +302,10 @@ atci_status_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSiz
 		if(atciCmdData->nbParams < AT_CMD_MAX_NB_PARAM)
 			atciCmdData->params[atciCmdData->nbParams].data = &(atciCmdData->paramsMem[atciCmdData->paramsMemIdx]);
 
-		return ATCI_OK;
+		return ATCI_ERR_NONE;
 	}
 	else
-		return ATCI_ERR;
+		return ATCI_ERR_UNK;
 }
 
 
@@ -393,11 +326,11 @@ atci_status_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSiz
  * 					(other fields are used internally or unused)
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
+atci_error_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
 {
 	uint16_t cmdLen = 0;
 
@@ -441,11 +374,11 @@ atci_status_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
 
 	if (cmdLen < AT_CMD_CODE_MIN_LEN)
 	{
-		return ATCI_ERR_INV_CMD_LEN;
+		return ATCI_ERR_CMD_LEN;
 	}
 	else
 	{
-		return ATCI_OK;
+		return ATCI_ERR_NONE;
 	}
 }
 
@@ -466,11 +399,11 @@ atci_status_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
  * @param[in]	valType: parameter type: PARAM_INT8, PARAM_INT16 or PARAM_INT32 (8, 16 or 32 bits integer)
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType)
+atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType)
 {
 	atci_param_state_t state = PARAM_WAIT_BEGIN;
 	uint32_t val = 0;
@@ -483,7 +416,7 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTy
 
 
 	if((atciCmdData->cmdType != AT_CMD_WITH_PARAM_TO_GET) || (atciCmdData->nbParams >= AT_CMD_MAX_NB_PARAM))
-		return ATCI_ERR_INV_NB_PARAM;
+		return ATCI_ERR_PARAM_NB;
 
 	switch(valType)
 	{
@@ -599,13 +532,13 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTy
 	}
 
 	if(state == PARAM_ERR)
-		return ATCI_ERR_INV_PARAM_VAL;
+		return ATCI_ERR_PARAM_VAL;
 	else if(state == PARAM_WAIT_BEGIN)
-		return ATCI_ERR_INV_PARAM_LEN;
+		return ATCI_ERR_PARAM_LEN;
 	else if((state == PARAM_HEX) && (nbNibbles != 0))
-		return ATCI_ERR_INV_PARAM_LEN;
+		return ATCI_ERR_PARAM_LEN;
 	else if((state == PARAM_DEC_NEG) && (val == 0))
-		return ATCI_ERR_INV_PARAM_VAL;
+		return ATCI_ERR_PARAM_VAL;
 	else
 	{
 		if(state == PARAM_DEC_NEG)
@@ -616,24 +549,24 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTy
 			default:
 			case PARAM_INT8:
 				if(atciCmdData->paramsMemIdx >= AT_CMD_DATA_MAX_LEN)
-					return ATCI_ERR_INV_CMD_LEN;
+					return ATCI_ERR_CMD_LEN;
 				*(atciCmdData->params[atciCmdData->nbParams].val8) = (uint8_t) val;
 				break;
 			case PARAM_INT16:
 				if(atciCmdData->paramsMemIdx > (AT_CMD_DATA_MAX_LEN-2))
-					return ATCI_ERR_INV_CMD_LEN;
+					return ATCI_ERR_CMD_LEN;
 				*(atciCmdData->params[atciCmdData->nbParams].val16) = __htons((uint16_t)val);
 				break;
 			case PARAM_INT32:
 				if(atciCmdData->paramsMemIdx > (AT_CMD_DATA_MAX_LEN-2))
-					return ATCI_ERR_INV_CMD_LEN;
+					return ATCI_ERR_CMD_LEN;
 				*(atciCmdData->params[atciCmdData->nbParams].val32) = __htonl(val);
 				break;
 		}
 		atciCmdData->params[atciCmdData->nbParams].size = valType;
 		Atci_Add_Cmd_Param_Resp(atciCmdData);
 
-		return ATCI_OK;
+		return ATCI_ERR_NONE;
 	}
 }
 
@@ -654,18 +587,18 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTy
  * @param[in]	valLen 0x00 = array of variable length, 0x01~0x7F = array of this wanted length
  *
  * @return
- * 	- ATCI_OK if succeed
+ * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen)
+atci_error_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen)
 {
 	atci_param_state_t state = PARAM_WAIT_BEGIN;
 	uint8_t data;
 	uint16_t nbBytes = 0;
 
 	if((atciCmdData->cmdType != AT_CMD_WITH_PARAM_TO_GET) || (atciCmdData->nbParams >= AT_CMD_MAX_NB_PARAM))
-		return ATCI_ERR_INV_NB_PARAM;
+		return ATCI_ERR_PARAM_NB;
 
 	atciCmdData->cmdType = AT_CMD_WITH_PARAM;
 	for(; atciCmdData->idx < atciCmdData->len; atciCmdData->idx++)
@@ -723,18 +656,18 @@ atci_status_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t val
 	}
 
 	if(state == PARAM_ERR)
-		return ATCI_ERR_INV_PARAM_VAL;
+		return ATCI_ERR_PARAM_VAL;
 	else if(state == PARAM_WAIT_BEGIN)
-		return ATCI_ERR_INV_PARAM_LEN;
+		return ATCI_ERR_PARAM_LEN;
 	else if(state == PARAM_HEX_LSB)
-		return ATCI_ERR_INV_PARAM_LEN;
+		return ATCI_ERR_PARAM_LEN;
 	else if((valLen != PARAM_VARIABLE_LEN) && (valLen != nbBytes))
-		return ATCI_ERR_INV_PARAM_LEN;
+		return ATCI_ERR_PARAM_LEN;
 	else
 	{
 		atciCmdData->params[atciCmdData->nbParams].size = nbBytes;
 		Atci_Add_Cmd_Param_Resp(atciCmdData);
-		return ATCI_OK;
+		return ATCI_ERR_NONE;
 	}
 }
 

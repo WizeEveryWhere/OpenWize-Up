@@ -35,7 +35,12 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
-atci_status_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
+#ifdef HAS_ATKEY_CMD
+	atci_error_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
+#else //ifndef HAS_ATKEY_CMD
+	atci_error_t Exec_ATKMAC_Cmd(atci_cmd_t *atciCmdData);
+	atci_error_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData);
+#endif
 
 #ifdef __cplusplus
 }

@@ -163,27 +163,39 @@ typedef enum
 
 
 /*!
- * @brief This enum define the ATCI status
+ * @brief This enum define the RX ATCI status
  */
 typedef enum
 {
-	//success
-	ATCI_OK,                /*!< Success */
-	//AT commands decoding error
-	ATCI_ERR_INV_NB_PARAM,	/*!< Invalid number of parameters for the current AT command */
-	ATCI_ERR_INV_PARAM_LEN,	/*!< Invalid parameter length */
-	ATCI_ERR_INV_PARAM_VAL,	/*!< Invalid parameter value */
-	ATCI_ERR_UNKNOWN_CMD,	/*!< Unknown command code */
-	ATCI_ERR_INV_CMD_LEN,	/*!< Invalid command length (too short or too long to be decoded) */
-	ATCI_ERR_FORBIDDEN_CMD,	/*!< Command is forbidden in the current state */
-	//AT commands reception status
-	ATCI_AVAIL_AT_CMD,      /*!<  */
-	ATCI_NO_AT_CMD,         /*!<  */
-	ATCI_RX_CMD_ERR,        /*!<  */
-	ATCI_RX_CMD_TIMEOUT,    /*!<  */
-	//generic error
-	ATCI_ERR = 0xFF         /*!<  */
+	ATCI_RX_CMD_OK,       /*!<  */
+	ATCI_RX_CMD_NONE,     /*!<  */
+	ATCI_RX_CMD_ERR,      /*!<  */
+	ATCI_RX_CMD_TIMEOUT,  /*!<  */
 } atci_status_t;
+
+/*!
+ * @brief This enum define the ATCI error code
+ */
+typedef enum
+{
+	// Success
+	ATCI_ERR_NONE          = 0x00,  /*!< Success */
+	//AT commands decoding error
+	ATCI_ERR_PARAM_NB      = 0x01,	/*!< Invalid number of parameters for the current AT command */
+	ATCI_ERR_PARAM_LEN     = 0x02,	/*!< Invalid parameter length */
+	ATCI_ERR_PARAM_VAL     = 0x03,	/*!< Invalid parameter value */
+	ATCI_ERR_CMD_UNK       = 0x04,	/*!< Unknown command code */
+	ATCI_ERR_CMD_LEN       = 0x05,	/*!< Invalid command length (too short or too long to be decoded) */
+	ATCI_ERR_CMD_FORBIDDEN = 0x06,	/*!< Command is forbidden in the current state */
+	// --- Internal error
+	ATCI_ERR_RX_CMD        = 0x10, /*!< Internal error */
+	ATCI_ERR_RX_TMO        = 0x11, /*!< Internal error */
+	// --- Reserved for "user" error codes
+	ATCI_ERR_USER_START    = 0x80, /*!< Reserved for "user" error codes */
+	ATCI_ERR_USER_END      = 0xFE, /*!< Reserved for "user" error codes */
+	// --- Generic "unknown" error
+	ATCI_ERR_UNK           = 0xFF  /*!< Generic "unknown" error */
+} atci_error_t;
 
 /*!
  * @brief This enum define the ATCI command code
@@ -203,13 +215,30 @@ typedef enum
 	CMD_ATFC,    /*!<  */
 	CMD_ATTEST,  /*!<  */
 	// ----
-	CMD_ATZC,    /*!<  */
+#ifdef HAS_ATZn_CMD
+	CMD_ATZ0,     /*!<  */
+	CMD_ATZ1,     /*!<  */
+#else
+	CMD_ATZC,     /*!<  */
+#endif
 	// ----
 #ifndef HAS_ATKEY_CMD
 	CMD_ATKMAC,  /*!<  */
 	CMD_ATKENC,  /*!<  */
 #else
 	CMD_ATKEY,   /*!<  */
+#endif
+	// ----
+#ifdef HAS_ATSTAT_CMD
+	CMD_ATSTAT,
+#endif
+	// ----
+#ifdef HAS_ATCCLK_CMD
+	CMD_ATCCLK,
+#endif
+	// ----
+#ifdef HAS_ATUID_CMD
+	CMD_ATUID,
 #endif
 	// ----
 #ifdef HAS_LO_UPDATE_CMD
@@ -223,18 +252,6 @@ typedef enum
 	// ----
 #ifdef HAS_EXTERNAL_FW_UPDATE
 	CMD_ATADMANN,
-#endif
-	// ----
-#ifdef HAS_ATSTAT_CMD
-	CMD_ATSTAT,
-#endif
-	// ----
-#ifdef HAS_ATCCLK_CMD
-	CMD_ATCCLK,
-#endif
-	// ----
-#ifdef HAS_ATUID_CMD
-	CMD_ATUID,
 #endif
 	// ----
 	NB_AT_CMD //used to get number of commands
@@ -278,16 +295,20 @@ typedef struct
  */
 typedef struct
 {
+	// --- used as uart input buffer
 	uint8_t buf[AT_CMD_BUF_LEN];                  /*!< cmd data buffer used to receive cmd from UART */
 	uint16_t len;                                 /*!< cmd length in buffer */
+	// --- used to extract input command
 	uint16_t idx;                                 /*!< read index in buffer */
 	char cmdCodeStr[AT_CMD_CODE_MAX_LEN];         /*!< reformatted command code string */
 	atci_cmd_code_t cmdCode;                      /*!< command code (decoded) */
 	atci_cmd_type_t cmdType;                      /*!< if command is read or write and if it has parameters or not */
-	uint8_t nbParams;                             /*!< number of command/response parameters */
-	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; /*!< command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters) */
+	// ---
 	uint8_t paramsMem[AT_CMD_DATA_MAX_LEN];       /*!< buffer where parameters data are saved */
 	uint16_t paramsMemIdx;                        /*!< 1st free byte in paramsMem */
+	// ---
+	uint8_t nbParams;                             /*!< number of command/response parameters */
+	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; /*!< command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters) */
 } atci_cmd_t;
 
 /*==============================================================================
