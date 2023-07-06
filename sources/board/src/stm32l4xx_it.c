@@ -3,8 +3,15 @@
 #include "stm32l4xx_it.h"
 
 extern RTC_HandleTypeDef hrtc;
-extern UART_HandleTypeDef huart4;
 extern TIM_HandleTypeDef htim6;
+
+#ifdef USE_UART4
+	extern UART_HandleTypeDef huart4;
+#endif
+
+#ifdef USE_LPUART1
+	extern UART_HandleTypeDef lphuart1;
+#endif
 
 /**
   * @brief This function handles RTC wake-up interrupt through EXTI line 20.
@@ -22,6 +29,7 @@ void RTC_Alarm_IRQHandler(void)
 	HAL_RTC_AlarmIRQHandler(&hrtc);
 }
 
+#ifdef USE_UART4
 /**
   * @brief This function handles UART4 global interrupt.
   */
@@ -36,6 +44,24 @@ void UART4_IRQHandler(void)
 		HAL_UART_IRQHandler(&huart4);
 	}
 }
+#endif
+
+#ifdef USE_LPUART1
+/**
+  * @brief This function handles LPUART1 global interrupt.
+  */
+void LPUART1_IRQHandler(void)
+{
+	if ( lphuart1.Instance->ISR & USART_ISR_RTOF)
+	{
+		lphuart1.RxISR(&lphuart1);
+	}
+	else
+	{
+		HAL_UART_IRQHandler(&lphuart1);
+	}
+}
+#endif
 
 /**
   * @brief This function handles TIM6 global interrupt, DAC channel1 and channel2 underrun error interrupts.

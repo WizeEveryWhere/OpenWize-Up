@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.h
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-04-14 07:39:52.313643119 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-06 16:22:09.564776322 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 14/04/2023 07:39 [neo]
+  * @par x.x.x : 06/07/2023 16:22 [neo]
   *
   */
 
@@ -36,7 +36,7 @@ extern C {
 
 /******************************************************************************/
 #define PARAM_ACCESS_CFG_SZ (0xFF)
-#define PARAM_DEFAULT_SZ (0x9E)
+#define PARAM_DEFAULT_SZ (0x9F)
 
 extern const param_s a_ParamAccess[PARAM_ACCESS_CFG_SZ];
 extern const uint8_t a_ParamDefault[PARAM_DEFAULT_SZ];
@@ -74,7 +74,7 @@ typedef enum {
     PING_RX_LENGTH_MAX = 0x33, /*!< Maximum value of the PING_RX_LENGTH parameter */
     PING_LAST_EPOCH = 0x34, /*!< Execution time of the last connectivity test (INSTPING/INSTPONG) */
     PING_NBFOUND = 0x35, /*!< Number of different INSTPONG messages received in response to the last connectivity test */
-    PING_REPLY1 = 0x36, /*!< Response 1 received for the last connectivity test (Biggest L7RssiDown) */
+    PING_REPLY1 = 0x36, /*!< Response 1 received for the last connectivity test (Best L7RssiDown) */
     PING_REPLY2 = 0x37, /*!< Response 2 received for the last connectivity test */
     PING_REPLY3 = 0x38, /*!< Response 3 received for the last connectivity test */
     PING_REPLY4 = 0x39, /*!< Response 4 received for the last connectivity test */
@@ -83,7 +83,8 @@ typedef enum {
     PING_REPLY7 = 0x3C, /*!< Response 7 received for the last connectivity test */
     PING_REPLY8 = 0x3D, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown) */
     EXECPING_PERIODE = 0x3E, /*!< Periodic time of execping sending by the device, in months */
-    EXTEND_FLAGS = 0xD0, /*!< Get or Set the extend flags. b[0] if 1: Disable ATCI +DBG; b[1] : Reserved; b[2] : Reserved; b[3] : Reserved; b[4] if 1: Activate the immediat update when image is ready; b[5] if 1: Activate the WDT (bootcount for roll-back FW); b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM; */
+    EXTEND_FLAGS = 0xD0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] if 1: Activate the WDT (bootcount for roll-back FW); b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM; */
+    LOCAL_KEY_ID = 0xD1, /*!< Key id used for cipher and authenticate the local update fw blocks. */
     AUTO_ADJ_CLK_FREQ = 0xDA, /*!< Clock and Frequency Offset Auto-Adjustment. MSB : control, LSB : RSSI min. level (see struct adm_config_s). */
     ADM_ANN_DIS_FLT = 0xDD, /*!< ADM ANN Reception Filter disable (see struct adm_config_s) */
     ADM_PARAM_DIS_FLT = 0xDE, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s) */
@@ -100,7 +101,7 @@ typedef enum {
     L6_EXCH_DIS_FLT = 0xEF, /*!< L6 Reception Filter disable (see struct proto_config_s) */
     TEST_MODE_CHANNEL = 0xFA, /*!< Get or Set the current test mode channel */
     TEST_MODE_MODULATION = 0xFB, /*!< Get or Set the current test mode modulation */
-    LOW_POWER_MODE = 0xFC, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manuel only). */
+    LOW_POWER_MODE = 0xFC, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manual only). */
     LOGGER_LEVEL = 0xFD, /*!< Get or Set the Logger level (see logger_level_e for details) */
     LOGGER_TIME_OPT = 0xFE, /*!< Get or Set the Logger time (Unix EPOCH) option (see logger_tstamp_e for details). [b0] : Enable (1) / Disable (0); [b1] : If set : Extended with millisecond; [b2] : If set : Truncated on 5 digits; [b3-b6] Reserved; [b7] Enable/Disable Color. */
     LAST_ID = 0xFE, /*!< Don't remove, it marks the end of table. */

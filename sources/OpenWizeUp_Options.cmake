@@ -3,6 +3,8 @@ string(TIMESTAMP TODAY "%Y-%m-%d %H:%M:%S")
 
 ################################################################################
 function(display_option)
+    message ("      -> USE_LPUART_COM                  : ${USE_LPUART_COM}")
+
     message ("      -> USE_PHY_TRIG                    : ${USE_PHY_TRIG}")
     message ("      -> USE_PHY_LAYER_TRACE             : ${USE_PHY_LAYER_TRACE}")
     message ("      -> HAS_HIRES_TIME_MEAS             : ${HAS_HIRES_TIME_MEAS}")
@@ -27,7 +29,8 @@ function(display_option)
     message ("      -> HW_VER_MAJ      : ${HW_VER_MAJ}")
     message ("      -> HW_VER_MIN      : ${HW_VER_MIN}")
     message ("      -> HW_VER_REV      : ${HW_VER_REV}")
-    message ("      -> HW_DATE         : ${HW_DATE}")
+    message ("      -> HW_DATE         : ${HW_DATE}")   
+
 endfunction(display_option)
 
 ################################################################################
@@ -40,6 +43,8 @@ set(PARAM_XML_FILE_LIST "")
 set(PARAM_XML_FILE_LIST "${PARAM_XML_FILE_LIST} ${DEFAULT_CFG_FILE_DIR}/LANParams.xml")
 
 #-------------------------------------------------------------------------------
+option(USE_LPUART_COM                    "Use the LPUART as COM port (default UART4)" OFF)
+
 option(USE_PHY_TRIG                      "Use the PHY trigger pin as TX/RX command" OFF)
 option(USE_PHY_LAYER_TRACE               "Enable the PHY layer trace messages." ON)
 option(HAS_HIRES_TIME_MEAS               "Define if High-Resolution timer is present (used to get the clock on PONG message)." ON)
@@ -70,7 +75,16 @@ set(HW_DATE ${TODAY} CACHE STRING "Define the board date.")
 
 # TODO :
 # add_compile_definitions(COM_SWAP_PINS=1)
-
+#-------------------------------------------------------------------------------
+if(USE_LPUART_COM)
+    add_compile_definitions(USE_UART_COM_ID=1)
+    add_compile_definitions(USE_UART_LOG_ID=1)
+    add_compile_definitions(USE_LPUART1=1)
+else(USE_LPUART_COM)
+    add_compile_definitions(USE_UART_COM_ID=0)
+    add_compile_definitions(USE_UART_LOG_ID=0)
+    add_compile_definitions(USE_UART4=1)
+endif(USE_LPUART_COM)
 #-------------------------------------------------------------------------------
 if(USE_PHY_TRIG)
 	add_compile_definitions(USE_PHY_TRIG=1)

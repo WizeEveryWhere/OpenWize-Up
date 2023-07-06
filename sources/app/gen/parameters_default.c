@@ -1,6 +1,6 @@
 /*!
   * @file parameters_default.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-04-14 07:39:52.313643119 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-06 16:22:09.564776322 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 14/04/2023 07:39 [neo]
+  * @par x.x.x : 06/07/2023 16:22 [neo]
   *
   */
 
@@ -62,7 +62,7 @@ const uint8_t a_ParamDefault[] = {
    0x14, /*!< Maximum value of the PING_RX_LENGTH parameter*/
    0x0,0x0,0x0,0x0, /*!< Execution time of the last connectivity test (INSTPING/INSTPONG)*/
    0x0, /*!< Number of different INSTPONG messages received in response to the last connectivity test*/
-   0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 1 received for the last connectivity test (Biggest L7RssiDown)*/
+   0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 1 received for the last connectivity test (Best L7RssiDown)*/
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 2 received for the last connectivity test*/
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 3 received for the last connectivity test*/
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 4 received for the last connectivity test*/
@@ -71,7 +71,8 @@ const uint8_t a_ParamDefault[] = {
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 7 received for the last connectivity test*/
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown)*/
    0x6, /*!< Periodic time of execping sending by the device, in months*/
-   0x0, /*!< Get or Set the extend flags. b[0] if 1: Disable ATCI +DBG; b[1] : Reserved; b[2] : Reserved; b[3] : Reserved; b[4] if 1: Activate the immediat update when image is ready; b[5] if 1: Activate the WDT (bootcount for roll-back FW); b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM;*/
+   0x0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] if 1: Activate the WDT (bootcount for roll-back FW); b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM;*/
+   0x1, /*!< Key id used for cipher and authenticate the local update fw blocks.*/
    0x0,0x7d, /*!< Clock and Frequency Offset Auto-Adjustment. MSB : control, LSB : RSSI min. level (see struct adm_config_s).*/
    0x0, /*!< ADM ANN Reception Filter disable (see struct adm_config_s)*/
    0x0, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s)*/
@@ -88,7 +89,7 @@ const uint8_t a_ParamDefault[] = {
    0x0, /*!< L6 Reception Filter disable (see struct proto_config_s)*/
    0x78, /*!< Get or Set the current test mode channel*/
    0x0, /*!< Get or Set the current test mode modulation*/
-   0x51, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manuel only).*/
+   0x51, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manual only).*/
    0x0, /*!< Get or Set the Logger level (see logger_level_e for details)*/
    0x0, /*!< Get or Set the Logger time (Unix EPOCH) option (see logger_tstamp_e for details). [b0] : Enable (1) / Disable (0); [b1] : If set : Extended with millisecond; [b2] : If set : Truncated on 5 digits; [b3-b6] Reserved; [b7] Enable/Disable Color.*/
    };

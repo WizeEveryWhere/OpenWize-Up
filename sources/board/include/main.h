@@ -35,6 +35,12 @@ void Error_Handler(void);
 #define SCL_1_INT_Pin GPIO_PIN_8
 #define SCL_1_INT_GPIO_Port GPIOB
 
+// LPUART1
+#define IOx0_Pin GPIO_PIN_10
+#define IOx0_GPIO_Port GPIOB
+#define IOx1_Pin GPIO_PIN_11
+#define IOx1_GPIO_Port GPIOB
+
 #ifdef __cplusplus
 }
 #endif

@@ -51,49 +51,24 @@ extern "C" {
 /*******************************************************************************/
 // UART related call-back handler
 
-#ifndef USE_UART_LOG_ID
-	#define USE_UART_LOG_ID 4
-#endif
-#ifndef USE_UART_COM_ID
-	#define USE_UART_COM_ID 4
-#endif
-
 #if USE_UART_LOG_ID == 0
-	#define USE_LPUART1 1
-	#define UART_LOG_ID lphuart1
-#elif USE_UART_LOG_ID == 1
-	#define USE_USART1 1
-	#define UART_LOG_ID huart1
-#elif USE_UART_LOG_ID == 2
-	#define USE_USART2 1
-	#define UART_LOG_ID huart2
-#else
 	#define USE_UART4 1
 	#define UART_LOG_ID huart4
+#else
+	#define USE_LPUART1 1
+	#define UART_LOG_ID lphuart1
 #endif
 
 #if USE_UART_COM_ID == 0
-	#define USE_LPUART1 1
-	#define UART_COM_ID lphuart1
-#elif USE_UART_COM_ID == 1
-	#define USE_USART1 1
-	#define UART_COM_ID huart1
-#elif USE_UART_COM_ID == 2
-	#define USE_USART2 1
-	#define UART_LOG_ID huart2
-#else
 	#define USE_UART4 1
 	#define UART_COM_ID huart4
+#else
+	#define USE_LPUART1 1
+	#define UART_COM_ID lphuart1
 #endif
 
 #ifdef USE_LPUART1
-UART_HandleTypeDef huart0 = { .Instance = LPUART1};
-#endif
-#ifdef USE_USART1
-UART_HandleTypeDef huart1 = { .Instance = USART1};
-#endif
-#ifdef USE_USART2
-UART_HandleTypeDef huart2 = { .Instance = USART2};
+UART_HandleTypeDef lphuart1 = { .Instance = LPUART1};
 #endif
 #ifdef USE_UART4
 UART_HandleTypeDef huart4 = { .Instance = UART4};
