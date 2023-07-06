@@ -133,29 +133,36 @@ atci_error_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
  */
 atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
 {
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+	if (
+		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
+		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
+		)
+	{
+		Atci_Cmd_Param_Init(atciCmdData);
+
+		// Add param of size 4
+		atciCmdData->params[0].size = 4;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		// Add param of size 2
+		atciCmdData->params[1].size = 2;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		struct timeval tm;
+		gettimeofday(&tm, NULL);
+
+		// Get the EPOCH (second part)
+		*(uint32_t*)(atciCmdData->params[0].data) = __htonl(tm.tv_sec);
+		// Get the EPOCH (millisecond part)
+		*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
+
+		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		return ATCI_ERR_NONE;
+	}
+	else
+	{
 		return ATCI_ERR_PARAM_NB;
-
-	Atci_Cmd_Param_Init(atciCmdData);
-
-	// Add param of size 4
-	atciCmdData->params[0].size = 4;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-	// Add param of size 2
-	atciCmdData->params[1].size = 2;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-	struct timeval tm;
-	gettimeofday(&tm, NULL);
-
-	// Get the EPOCH (second part)
-	*(uint32_t*)(atciCmdData->params[0].data) = __htonl(tm.tv_sec);
-	// Get the EPOCH (millisecond part)
-	*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
-
-	Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-	return ATCI_ERR_NONE;
+	}
 }
 #endif
 
@@ -169,22 +176,29 @@ atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
  */
 atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
 {
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+	if (
+		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
+		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
+		)
+	{
+		Atci_Cmd_Param_Init(atciCmdData);
+
+		// Add param of size 8
+		atciCmdData->params[0].size = 8;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		// Get the UID
+		uint64_t uuid = BSP_GetUid();
+		((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
+		((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
+
+		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		return ATCI_ERR_NONE;
+	}
+	else
+	{
 		return ATCI_ERR_PARAM_NB;
-
-	Atci_Cmd_Param_Init(atciCmdData);
-
-	// Add param of size 8
-	atciCmdData->params[0].size = 8;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-	// Get the UID
-	uint64_t uuid = BSP_GetUid();
-	((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
-	((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
-
-	Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-	return ATCI_ERR_NONE;
+	}
 }
 #endif
 
