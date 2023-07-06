@@ -11,7 +11,7 @@ extern TIM_HandleTypeDef htim6;
   */
 void RTC_WKUP_IRQHandler(void)
 {
-  HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
+	HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
 }
 
 /**
@@ -19,7 +19,7 @@ void RTC_WKUP_IRQHandler(void)
   */
 void RTC_Alarm_IRQHandler(void)
 {
-  HAL_RTC_AlarmIRQHandler(&hrtc);
+	HAL_RTC_AlarmIRQHandler(&hrtc);
 }
 
 /**
@@ -27,7 +27,6 @@ void RTC_Alarm_IRQHandler(void)
   */
 void UART4_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
 	if ( huart4.Instance->ISR & USART_ISR_RTOF)
 	{
 		huart4.RxISR(&huart4);
@@ -43,7 +42,7 @@ void UART4_IRQHandler(void)
   */
 void TIM6_DAC_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&htim6);
+	HAL_TIM_IRQHandler(&htim6);
 }
 
 

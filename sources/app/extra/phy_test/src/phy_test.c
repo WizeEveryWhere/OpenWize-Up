@@ -70,10 +70,10 @@ static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg)
 	uint8_t b_Level;
 	// copy clk
 	BSP_Gpio_Get((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, &b_Level);
-	BSP_Gpio_Set((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, b_Level);
+	BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, b_Level);
 	// copy data
 	BSP_Gpio_Get((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, &b_Level);
-	BSP_Gpio_Set((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, b_Level);
+	BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, b_Level);
 }
 
 /*!
@@ -102,20 +102,20 @@ static void _phy_sport_cb_(void *pCBParam, void *pArg)
 
 	if( (uint16_t)(sport_data & 0xFFFF) == PHY_WM2400_PREAMBLE_DATA)
 	{
-		BSP_Gpio_Set((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 1);
+		BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 1);
 	}
 	else
 	{
-		BSP_Gpio_Set((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 0);
+		BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 0);
 	}
 
 	if( (uint16_t)(sport_data & 0xFFFF) ==  PHY_WM2400_SYNC_WORD)
 	{
-		BSP_Gpio_Set((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 1);
+		BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 1);
 	}
 	else
 	{
-		BSP_Gpio_Set((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 0);
+		BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 0);
 	}
 }
 
@@ -143,8 +143,8 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, 1);
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, 1);
 			// reconfigure I2C pin as gpio output
-			BSP_Gpio_OutputEnable((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 1);
-			BSP_Gpio_OutputEnable((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 1);
+			BSP_Gpio_OutputEnable((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 1);
+			BSP_Gpio_OutputEnable((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 1);
 #ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 			// set external I2C power on
@@ -177,8 +177,8 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 		BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, 0);
 		BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, 0);
 		// Disable output
-		BSP_Gpio_OutputEnable((uint32_t)EXT_SCL_GPIO_Port, EXT_SCL_Pin, 0);
-		BSP_Gpio_OutputEnable((uint32_t)EXT_SDA_GPIO_Port, EXT_SDA_Pin, 0);
+		BSP_Gpio_OutputEnable((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 0);
+		BSP_Gpio_OutputEnable((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 0);
 #ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 		// Disable I2C power

@@ -108,6 +108,19 @@ typedef enum
 } i2c_id_e;
 #endif
 
+/*!
+  * @brief This enum define the power line id
+  */
+typedef enum {
+	//            9876543210
+	FE_ON     , /*!< FE */
+	PA_ON     , /*!< PA */
+	RF_ON     , /*!< RF */
+	INT_EEPROM, /*!< Internal EEPROM */
+	//
+	MAX_NB_POWER
+} pwr_id_e;
+
 #ifdef __cplusplus
 }
 #endif

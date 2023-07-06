@@ -39,8 +39,7 @@ extern "C" {
 
 #include "bsp_pwrlines.h"
 #include "platform.h"
-
-#include "pin_cfg.h"
+#include <stm32l4xx_hal.h>
 
 /*!
  * @cond INTERNAL
@@ -55,31 +54,12 @@ extern "C" {
 #define TRACE_BSP_PWRLINE(...)
 #endif
 
-#define GP_PORT_NAME(name) name ##_GPIO_Port
-#define GP_PIN_NAME(name) name##_Pin
-
-#define GP_PORT(name) (uint32_t)(GP_PORT_NAME(name))
-#define GP_PIN(name)  GP_PIN_NAME(name)
-#define PWR_LINE_INIT(name) GP_PORT(name), GP_PIN(name)
-
 /*!
  * @}
  * @endcond
  */
 
 /******************************************************************************/
-/*!
-  * @brief This enum define the power line id
-  */
-typedef enum {
-	//            9876543210
-	FE_ON     , /*!< FE */
-	PA_ON     , /*!< PA */
-	RF_ON     , /*!< RF */
-	INT_EEPROM, /*!< Internal EEPROM */
-	//
-	MAX_NB_POWER
-} pwr_id;
 
 /*!
  * @cond INTERNAL
@@ -93,37 +73,19 @@ static const char pwr_name[MAX_NB_POWER][12] = {
 	[INT_EEPROM] = "INT_EEPROM",
 };
 #endif
+
+extern const pwr_line_t pwr_lines[MAX_NB_POWER];
+
 /*!
  * @}
  * @endcond
  */
 
 /*!
-  * @brief This struct define a power line as gpio port and pin
-  */
-typedef struct pwr_line_s
-{
-	uint32_t u32Port; /*!< gpio port  */
-	uint16_t u16Pin;  /*!< gpio pin */
-} pwr_line_t;
-
-/*!
   * @static
   * @brief This variable is use to keep track enabled power lines
   */
 static uint16_t _pwr_lines;
-
-/*!
-  * @static
-  * @brief Table that hold each power lien as gpio port and pin
-  */
-static const pwr_line_t pwr_lines[MAX_NB_POWER] =
-{
-	[FE_ON]      = { PWR_LINE_INIT(FE_EN) },
-	[PA_ON]      = { PWR_LINE_INIT(FE_BYP) },
-	[RF_ON]      = { PWR_LINE_INIT(PA_V_EN) },
-	[INT_EEPROM] = { PWR_LINE_INIT(EEPROM_CTRL) },
-};
 
 /*!
   * @static
@@ -220,6 +182,11 @@ void BSP_PwrLine_Init (void)
 {
 	_pwr_lines = 0;
 	TRACE_BSP_PWRLINE("\n[BSP_PwrLine_Init]\n");
+	uint8_t i;
+	for (i = 0; i < MAX_NB_POWER; i++)
+	{
+		BSP_Gpio_OutputEnable(pwr_lines[i].u32Port, pwr_lines[i].u16Pin, 1);
+	}
 	BSP_PwrLine_Clr((uint16_t)0xFFFF);
 }
 

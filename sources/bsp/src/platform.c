@@ -48,32 +48,117 @@ extern "C" {
  */
 
 /******************************************************************************/
+/*******************************************************************************/
+// UART related call-back handler
 
+#ifndef USE_UART_LOG_ID
+	#define USE_UART_LOG_ID 4
+#endif
+#ifndef USE_UART_COM_ID
+	#define USE_UART_COM_ID 4
+#endif
 
-extern RTC_HandleTypeDef hrtc;
+#if USE_UART_LOG_ID == 0
+	#define USE_LPUART1 1
+	#define UART_LOG_ID lphuart1
+#elif USE_UART_LOG_ID == 1
+	#define USE_USART1 1
+	#define UART_LOG_ID huart1
+#elif USE_UART_LOG_ID == 2
+	#define USE_USART2 1
+	#define UART_LOG_ID huart2
+#else
+	#define USE_UART4 1
+	#define UART_LOG_ID huart4
+#endif
 
-// UART_HandleTypeDef huart2;
+#if USE_UART_COM_ID == 0
+	#define USE_LPUART1 1
+	#define UART_COM_ID lphuart1
+#elif USE_UART_COM_ID == 1
+	#define USE_USART1 1
+	#define UART_COM_ID huart1
+#elif USE_UART_COM_ID == 2
+	#define USE_USART2 1
+	#define UART_LOG_ID huart2
+#else
+	#define USE_UART4 1
+	#define UART_COM_ID huart4
+#endif
+
+#ifdef USE_LPUART1
+UART_HandleTypeDef huart0 = { .Instance = LPUART1};
+#endif
+#ifdef USE_USART1
+UART_HandleTypeDef huart1 = { .Instance = USART1};
+#endif
+#ifdef USE_USART2
+UART_HandleTypeDef huart2 = { .Instance = USART2};
+#endif
+#ifdef USE_UART4
 UART_HandleTypeDef huart4 = { .Instance = UART4};
+#endif
 
 uart_dev_t aDevUart[UART_ID_MAX] =
 {
 	[UART_ID_LOG] = {
 			//.hHandle = &huart2,
-			.hHandle = &huart4,
+			.hHandle = &UART_LOG_ID,
 			.pfEvent = NULL,
 			.u32RxTmo = LOGGER_RX_TIMEOUT,
 			.u32TxTmo = LOGGER_TX_TIMEOUT
 	},
 	[UART_ID_COM]     = {
-			.hHandle = &huart4,
+			.hHandle = &UART_COM_ID,
 			.pfEvent = NULL,
 			.u32RxTmo = CONSOLE_RX_TIMEOUT,
 			.u32TxTmo = CONSOLE_TX_TIMEOUT
 	},
 };
 
+static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt);
+
+__weak void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_TX_CPLT);
+}
+
+__weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_RX_CPLT);
+}
+
+__weak void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_RX_HCPLT);
+}
+
+__weak void HAL_UART_AbortReceiveCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_RX_ABT);
+}
+
+static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt)
+{
+	register uint8_t id;
+	for (id = 0; id < UART_ID_MAX; id++)
+	{
+		if (aDevUart[id].hHandle == huart)
+		{
+			if (aDevUart[id].pfEvent != NULL)
+			{
+				aDevUart[id].pfEvent(aDevUart[id].pCbParam, evt);
+			}
+			//break;
+		}
+	}
+}
+
 /*******************************************************************************/
 // RTC related call-back handler
+
+RTC_HandleTypeDef hrtc = { .Instance = RTC};
+
 pfHandlerCB_t pfWakeUpTimerEvent = NULL;
 void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 {
@@ -103,48 +188,6 @@ void HAL_RTCEx_AlarmBEventCallback(RTC_HandleTypeDef *hrtc)
 		pfAlarmBEvent();
 	}
 }
-
-/*******************************************************************************/
-// UART related call-back handler
-
-static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt);
-
-static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt)
-{
-	register uint8_t id;
-	for (id = 0; id < UART_ID_MAX; id++)
-	{
-		if (aDevUart[id].hHandle == huart)
-		{
-			if (aDevUart[id].pfEvent != NULL)
-			{
-				aDevUart[id].pfEvent(aDevUart[id].pCbParam, evt);
-			}
-			//break;
-		}
-	}
-}
-
-__weak void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_TX_CPLT);
-}
-
-__weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_RX_CPLT);
-}
-
-__weak void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_RX_HCPLT);
-}
-
-__weak void HAL_UART_AbortReceiveCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_RX_ABT);
-}
-
 
 /******************************************************************************/
 // STDBY and SHUTDOWN LP modes related
@@ -328,7 +371,18 @@ void HAL_LPTIM_CompareMatchCallback(LPTIM_HandleTypeDef *hlptim)
 #endif
 
 /*******************************************************************************/
+// PowerLine related
+#define PWR_LINE_INIT(name) GP_PORT(name), GP_PIN(name)
 
+const pwr_line_t pwr_lines[MAX_NB_POWER] =
+{
+	[FE_ON]      = { PWR_LINE_INIT(FE_EN) },
+	[PA_ON]      = { PWR_LINE_INIT(FE_BYP) },
+	[RF_ON]      = { PWR_LINE_INIT(V_RF_EN) },
+	[INT_EEPROM] = { PWR_LINE_INIT(EEPROM_CTRL) },
+};
+
+/*******************************************************************************/
 /*!
  * @}
  * @endcond
