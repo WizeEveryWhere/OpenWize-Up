@@ -1,10 +1,9 @@
 /**
-  * @file at_extend_cmd.h
-  * @brief // TODO This file ...
+  * @file: at_test_cmd.h
+  * @brief: // TODO This file ...
   * 
-  * @details
-  *
-  * @copyright 2019, GRDF, Inc.  All rights reserved.
+  *****************************************************************************
+  * @Copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -18,16 +17,17 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
+  *****************************************************************************
   *
-  * @par Revision history
-  *
-  * @par 1.0.0 : 2023/05/03 [GBI]
+  * Revision history
+  * ----------------
+  * 1.0.0 : 2023/07/10[GBI]
   * Initial version
   *
+  *
   */
-#ifndef AT_EXTEND_CMD_H_
-#define AT_EXTEND_CMD_H_
-
+#ifndef AT_TEST_CMD_H_
+#define AT_TEST_CMD_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,27 +35,10 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
-atci_error_t Exec_ATF_Cmd(atci_cmd_t *atciCmdData);
-atci_error_t Exec_ATW_Cmd(atci_cmd_t *atciCmdData);
-
-#ifdef HAS_ATCCLK_CMD
-atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
-#endif
-
-#ifdef HAS_ATUID_CMD
-atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
-#endif
-
-#ifdef HAS_ATZn_CMD
-atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
-#endif
-
-#ifdef HAS_ATSTAT_CMD
-atci_error_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
-#endif
+atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
+atci_error_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* AT_EXTEND_CMD_H_ */
+#endif /* AT_TEST_CMD_H_ */

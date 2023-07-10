@@ -35,8 +35,198 @@ extern "C" {
 #include "atci_get_cmd.h"
 #include "atci_resp.h"
 
+#include "app_entry.h"
 
 /******************************************************************************/
+
+/*!-----------------------------------------------------------------------------
+ * @brief		Execute AT&F command (Restore registers to their factory settings)
+ *
+ * @details		Command format: "AT&F".
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
+atci_error_t Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	Atci_Debug_Str("Restore to Factory settings");
+	Storage_SetDefault();
+	return ATCI_ERR_NONE;
+}
+
+/******************************************************************************/
+
+/*!-----------------------------------------------------------------------------
+ * @brief		Execute AT&W command (Store current registers values in flash)
+ *
+ * @details		Command format: "AT&W".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ *----------------------------------------------------------------------------*/
+atci_error_t Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	Atci_Debug_Str("Store current registers values in non volatile memory");
+	if ( Storage_Store() == 1)
+	{
+		// error
+		Atci_Debug_Str("Flash : Failed to store ");
+		return ATCI_ERR_UNK;
+	}
+	return ATCI_ERR_NONE;
+}
+
+
+/******************************************************************************/
+
+#ifdef HAS_ATCCLK_CMD
+/*!
+ * @brief This function
+ *
+ * @retval
+ */
+atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
+{
+	if (
+		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
+		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
+		)
+	{
+		Atci_Cmd_Param_Init(atciCmdData);
+
+		// Add param of size 4
+		atciCmdData->params[0].size = 4;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		// Add param of size 2
+		atciCmdData->params[1].size = 2;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		struct timeval tm;
+		gettimeofday(&tm, NULL);
+
+		// Get the EPOCH (second part)
+		*(uint32_t*)(atciCmdData->params[0].data) = __htonl(tm.tv_sec);
+		// Get the EPOCH (millisecond part)
+		*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
+
+		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		return ATCI_ERR_NONE;
+	}
+	else
+	{
+		return ATCI_ERR_PARAM_NB;
+	}
+}
+#endif
+
+/******************************************************************************/
+
+#ifdef HAS_ATUID_CMD
+/*!
+ * @brief This function
+ *
+ * @retval
+ */
+atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
+{
+	if (
+		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
+		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
+		)
+	{
+		Atci_Cmd_Param_Init(atciCmdData);
+
+		// Add param of size 8
+		atciCmdData->params[0].size = 8;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		// Get the UID
+		uint64_t uuid = BSP_GetUid();
+		((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
+		((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
+
+		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		return ATCI_ERR_NONE;
+	}
+	else
+	{
+		return ATCI_ERR_PARAM_NB;
+	}
+}
+#endif
+
+/******************************************************************************/
+
+#ifdef HAS_ATZn_CMD
+/*!
+ * @brief This function
+ *
+ * @retval
+ */
+atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	uint8_t eRebootMode = 0;
+	switch (atciCmdData->cmdCode)
+	{
+	/*
+	 * 	ATZ or ATZ0 : (cold reboot)
+	 * 	-	Restore all registers from last stored ones in NVM
+	 * 	-	Clear the current clock initialize flag value
+	 * 	-	Clear all internal counters.
+	 */
+		case CMD_ATZ:
+		case CMD_ATZ0:
+			eRebootMode = 1;
+			break;
+	/*
+	 * 	ATZ1 : (warm reboot)
+	 * 	-	Keep all registers from RAM
+	 * 	-	Keep the current clock initialize flag value
+	 * 	-	Keep all internal counters.
+	 */
+		case CMD_ATZ1: // (warm reboot)
+		default:
+			break;
+	}
+
+	Atci_Resp_Ack(ATCI_ERR_NONE);
+	if(eRebootMode)
+	{
+		Atci_Debug_Str("Cold Reboot");
+		Storage_SetDefault();
+	}
+	else
+	{
+		Atci_Debug_Str("Warm Reboot");
+	}
+
+
+	BSP_Boot_Reboot(eRebootMode);
+
+	return ATCI_ERR_NONE;
+}
+#endif
+
+/******************************************************************************/
+
 #ifdef HAS_ATSTAT_CMD
 #include "app_entry.h"
 
@@ -123,137 +313,8 @@ atci_error_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 	return status;
 }
 #endif
-/******************************************************************************/
-
-#ifdef HAS_ATCCLK_CMD
-/*!
- * @brief This function
- *
- * @retval
- */
-atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
-{
-	if (
-		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
-		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
-		)
-	{
-		Atci_Cmd_Param_Init(atciCmdData);
-
-		// Add param of size 4
-		atciCmdData->params[0].size = 4;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		// Add param of size 2
-		atciCmdData->params[1].size = 2;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		struct timeval tm;
-		gettimeofday(&tm, NULL);
-
-		// Get the EPOCH (second part)
-		*(uint32_t*)(atciCmdData->params[0].data) = __htonl(tm.tv_sec);
-		// Get the EPOCH (millisecond part)
-		*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
-
-		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-		return ATCI_ERR_NONE;
-	}
-	else
-	{
-		return ATCI_ERR_PARAM_NB;
-	}
-}
-#endif
 
 /******************************************************************************/
-
-#ifdef HAS_ATUID_CMD
-/*!
- * @brief This function
- *
- * @retval
- */
-atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
-{
-	if (
-		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
-		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
-		)
-	{
-		Atci_Cmd_Param_Init(atciCmdData);
-
-		// Add param of size 8
-		atciCmdData->params[0].size = 8;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		// Get the UID
-		uint64_t uuid = BSP_GetUid();
-		((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
-		((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
-
-		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-		return ATCI_ERR_NONE;
-	}
-	else
-	{
-		return ATCI_ERR_PARAM_NB;
-	}
-}
-#endif
-
-#ifdef HAS_ATZn_CMD
-/*!
- * @brief This function
- *
- * @retval
- */
-atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
-{
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
-		return ATCI_ERR_PARAM_NB;
-
-	uint8_t eRebootMode = 0;
-	switch (atciCmdData->cmdCode)
-	{
-	/*
-	 * 	ATZ or ATZ0 : (cold reboot)
-	 * 	-	Restore all registers from last stored ones in NVM
-	 * 	-	Clear the current clock initialize flag value
-	 * 	-	Clear all internal counters.
-	 */
-		case CMD_ATZ:
-		case CMD_ATZ0:
-			eRebootMode = 1;
-			break;
-	/*
-	 * 	ATZ1 : (warm reboot)
-	 * 	-	Keep all registers from RAM
-	 * 	-	Keep the current clock initialize flag value
-	 * 	-	Keep all internal counters.
-	 */
-		case CMD_ATZ1: // (warm reboot)
-		default:
-			break;
-	}
-
-	Atci_Resp_Ack(ATCI_ERR_NONE);
-	if(eRebootMode)
-	{
-		Atci_Debug_Str("Cold Reboot");
-		Storage_SetDefault();
-	}
-	else
-	{
-		Atci_Debug_Str("Warm Reboot");
-	}
-
-
-	BSP_Boot_Reboot(eRebootMode);
-
-	return ATCI_ERR_NONE;
-}
-#endif
 
 #ifdef __cplusplus
 }
