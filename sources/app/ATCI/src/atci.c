@@ -83,11 +83,7 @@ const pf_exec_cmd_t Atci_Exec_Cmd[NB_AT_CMD] =
 {
 	[CMD_AT] = Exec_AT_Cmd, //nothing to do
 	[CMD_ATI] = Exec_ATI_Cmd,
-#ifndef HAS_ATZn_CMD
-	[CMD_ATZ] = Exec_ATI_Cmd,
-#else
 	[CMD_ATZ] = Exec_ATZn_Cmd,
-#endif
 	[CMD_ATQ] = Exec_AT_Cmd, //something to do in states machine only
 	[CMD_ATF] = Exec_ATF_Cmd,
 	[CMD_ATW] = Exec_ATW_Cmd,
@@ -99,7 +95,7 @@ const pf_exec_cmd_t Atci_Exec_Cmd[NB_AT_CMD] =
 	[CMD_ATTEST] = Exec_ATTEST_Cmd,
 
 #ifndef HAS_ATZn_CMD
-	[CMD_ATZC] = Exec_AT_Cmd,
+	[CMD_ATZC] = Exec_ATZn_Cmd,
 #else
 	[CMD_ATZ0] = Exec_ATZn_Cmd,
 	[CMD_ATZ1] = Exec_ATZn_Cmd,
@@ -139,7 +135,8 @@ const pf_exec_cmd_t Atci_Exec_Cmd[NB_AT_CMD] =
 
 };
 
-static uint8_t _atci_init_lp_var_(void);
+static uint8_t _is_lp_allowed_(void);
+static uint8_t _init_lp_var_(void);
 
 /*!
  * @}
@@ -174,25 +171,6 @@ static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
 		((atci_cmd_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
 	}
 	sys_flag_set_isr(hLoItfTask, evt);
-}
-
-void _loitf_sleep_(void)
-{
-	//EX_PHY_OnOff(0);
-	EX_PHY_SetPa(0);
-
-	Console_Disable();
-
-	BSP_LowPower_Enter(LP_STOP2_MODE);
-	//WizeApp_Sleep();
-}
-
-void _loitf_wakeup_(uint8_t bPaState)
-{
-	Console_Enable();
-
-	//EX_PHY_OnOff(1);
-	EX_PHY_SetPa(bPaState);
 }
 
 static uint32_t _u32_rx_cmd_tmo_;
@@ -259,6 +237,33 @@ atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
 	return status;
 }
 
+static uint8_t _bPaState_;
+
+/******************************************************************************/
+void Atci_Init(atci_cmd_t *atciCmdData)
+{
+	Console_Init(END_OF_CMD_CHAR, _loitf_evt_, atciCmdData);
+
+	EX_PHY_SetCpy();
+	_bPaState_ = EX_PHY_GetPa();
+}
+
+void Atci_Sleep(void)
+{
+	Atci_Send_Sleep_Msg();
+	_bPaState_ = EX_PHY_GetPa();
+	EX_PHY_SetPa(0);
+	Console_Disable();
+	BSP_LowPower_Enter(LP_STOP2_MODE);
+}
+
+void Atci_Wakeup(void)
+{
+	Console_Enable();
+	EX_PHY_SetPa(_bPaState_);
+	Atci_Send_Wakeup_Msg();
+}
+
 /*!-----------------------------------------------------------------------------
  * @internal
  * @brief		AT command interpreter task
@@ -274,35 +279,23 @@ void Atci_Task(void const *argument)
 	atci_state_t atciState = ATCI_WAKEUP;
 	atci_cmd_t atciCmdData;
 	atci_error_t status;
-	uint8_t bPaState;
-	uint8_t eLPmode;
-	uint8_t eRebootMode;
+	uint8_t bLpAllowed;
 
 	//Inits
-	Console_Init(END_OF_CMD_CHAR, _loitf_evt_, &atciCmdData);
 
-	EX_PHY_SetCpy();
-	bPaState = EX_PHY_GetPa();
-	eLPmode = _atci_init_lp_var_();
-
-	eRebootMode = 0;
+	Atci_Init(&atciCmdData);
+	bLpAllowed = _is_lp_allowed_();
 	//Loop
 	while(1)
 	{
 		switch(atciState)
 		{
 			case ATCI_SLEEP:
-				if (!bTestMode && eLPmode)
-				{
-					Atci_Send_Sleep_Msg();
-					bPaState = EX_PHY_GetPa();
-					_loitf_sleep_();
-				}
+				Atci_Sleep();
 				atciState = ATCI_WAKEUP;
 				break;
 			case ATCI_WAKEUP:
-				_loitf_wakeup_(bPaState);
-				Atci_Send_Wakeup_Msg();
+				Atci_Wakeup();
 				atciState = ATCI_WAIT;
 				break;
 			case ATCI_WAIT:
@@ -314,16 +307,14 @@ void Atci_Task(void const *argument)
 						break;
 					case ATCI_RX_CMD_ERR:
 						Atci_Resp_Ack(ATCI_ERR_RX_CMD);
-						//Atci_Debug_Str("Command RX error!!!");
 						break;
 					case ATCI_RX_CMD_TIMEOUT:
-						if (!bTestMode && eLPmode)
+						if ( bLpAllowed )
 						{
 							atciState = ATCI_SLEEP;
 							break;
 						}
 					default:
-						atciState = ATCI_WAIT;
 						break;
 				}
 				break;
@@ -331,7 +322,8 @@ void Atci_Task(void const *argument)
 
 			case ATCI_EXEC_CMD:
 			{
-				eLPmode = _atci_init_lp_var_();
+				bLpAllowed = _is_lp_allowed_();
+
 				//decode and execute command
 				status = Atci_Get_Cmd_Code(&atciCmdData);
 				if(status == ATCI_ERR_NONE)
@@ -348,15 +340,8 @@ void Atci_Task(void const *argument)
 					Atci_Resp_Ack(status);
 					switch(atciCmdData.cmdCode)
 					{
-#ifndef HAS_ATZn_CMD
-						case CMD_ATZC:
-							eRebootMode = 1; // Clear backup domain
-						case CMD_ATZ:
-							atciState = ATCI_RESET;
-							break;
-#endif
 						case CMD_ATQ:
-							if (!bTestMode && eLPmode)
+							if (bLpAllowed)
 							{
 								atciState = ATCI_SLEEP;
 								break;
@@ -375,22 +360,13 @@ void Atci_Task(void const *argument)
 			}
 
 			default:
-			case ATCI_RESET:
-#ifndef HAS_ATZn_CMD
-				Atci_Debug_Str("Reset");
-				atciState = ATCI_WAKEUP;
-				BSP_Boot_Reboot(eRebootMode);
-#else
 				Atci_Exec_Cmd[CMD_ATZ](&atciCmdData);
-#endif
 				break;
 		}
 	}
 }
 
-/*==============================================================================
- * LOCAL FUNCTIONS - commands executions
- *============================================================================*/
+/******************************************************************************/
 
 /*!-----------------------------------------------------------------------------
  * @brief		Execute AT command (nothing to do)
@@ -417,14 +393,21 @@ atci_error_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
  * @{
  */
 
-static uint8_t _atci_init_lp_var_(void)
+
+static uint8_t _is_lp_allowed_(void)
+{
+	return (_init_lp_var_() && ( !bTestMode ))?(1):(0);
+}
+
+
+static uint8_t _init_lp_var_(void)
 {
 	// Init LP mode
 	uint32_t u32LPdelay = CONSOLE_RX_TIMEOUT;
 	uint8_t eLPmode = 1;
 #ifdef HAS_LP_PARAMETER
 	/*
-	 *  0b xxxx xxxx
+	 *  0b xxxx xxxxxx00
 	 *  0b xxxx xx00 : disable
 	 *  0b xxxx xx01 : enable
 	 *  0b 0000 xx01 : manual LP (no TMO)

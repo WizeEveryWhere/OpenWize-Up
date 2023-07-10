@@ -172,7 +172,6 @@ atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
-#ifdef HAS_ATZn_CMD
 /*!
  * @brief This function
  *
@@ -184,6 +183,17 @@ atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_PARAM_NB;
 
 	uint8_t eRebootMode = 0;
+
+#ifndef HAS_ATZn_CMD
+	if (atciCmdData->cmdCode == CMD_ATZC)
+	{
+		eRebootMode = 1;
+	}
+
+	Atci_Resp_Ack(ATCI_ERR_NONE);
+	Atci_Debug_Str("Reset");
+
+#else
 	switch (atciCmdData->cmdCode)
 	{
 	/*
@@ -206,7 +216,6 @@ atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 		default:
 			break;
 	}
-
 	Atci_Resp_Ack(ATCI_ERR_NONE);
 	if(eRebootMode)
 	{
@@ -218,12 +227,11 @@ atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 		Atci_Debug_Str("Warm Reboot");
 	}
 
+#endif
 
 	BSP_Boot_Reboot(eRebootMode);
-
 	return ATCI_ERR_NONE;
 }
-#endif
 
 /******************************************************************************/
 
