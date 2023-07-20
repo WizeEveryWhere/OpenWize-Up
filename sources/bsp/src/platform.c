@@ -54,24 +54,28 @@ extern "C" {
 #if USE_UART_LOG_ID == 0
 	#define USE_UART4 1
 	#define UART_LOG_ID huart4
+	#define UART_LOG_IT_LINE UART4_IRQn
 #else
 	#define USE_LPUART1 1
 	#define UART_LOG_ID lphuart1
+	#define UART_LOG_IT_LINE LPUART1_IRQn
 #endif
 
 #if USE_UART_COM_ID == 0
 	#define USE_UART4 1
 	#define UART_COM_ID huart4
+	#define UART_COM_IT_LINE UART4_IRQn
 #else
 	#define USE_LPUART1 1
 	#define UART_COM_ID lphuart1
+	#define UART_COM_IT_LINE LPUART1_IRQn
 #endif
 
 #ifdef USE_LPUART1
-UART_HandleTypeDef lphuart1 = { .Instance = LPUART1};
+	UART_HandleTypeDef lphuart1 = { .Instance = LPUART1};
 #endif
 #ifdef USE_UART4
-UART_HandleTypeDef huart4 = { .Instance = UART4};
+	UART_HandleTypeDef huart4 = { .Instance = UART4};
 #endif
 
 uart_dev_t aDevUart[UART_ID_MAX] =
@@ -81,13 +85,15 @@ uart_dev_t aDevUart[UART_ID_MAX] =
 			.hHandle = &UART_LOG_ID,
 			.pfEvent = NULL,
 			.u32RxTmo = LOGGER_RX_TIMEOUT,
-			.u32TxTmo = LOGGER_TX_TIMEOUT
+			.u32TxTmo = LOGGER_TX_TIMEOUT,
+			.i8ItLine = UART_LOG_IT_LINE,
 	},
 	[UART_ID_COM]     = {
 			.hHandle = &UART_COM_ID,
 			.pfEvent = NULL,
 			.u32RxTmo = CONSOLE_RX_TIMEOUT,
-			.u32TxTmo = CONSOLE_TX_TIMEOUT
+			.u32TxTmo = CONSOLE_TX_TIMEOUT,
+			.i8ItLine = UART_COM_IT_LINE,
 	},
 };
 
@@ -180,11 +186,17 @@ const uint16_t u16LpPuPortC = 0 & AVAILABLE_PIN_PORTC_MSK;
 const uint16_t u16LpPdPortC = 0 & AVAILABLE_PIN_PORTC_MSK;
 
 // STOP 0, 1, 2 LP modes related
-#define COM_TXD_Pin GPIO_PIN_0
-#define COM_TXD_GPIO_Port GPIOA
-
-#define COM_RXD_Pin GPIO_PIN_1
-#define COM_RXD_GPIO_Port GPIOA
+#if USE_UART_COM_ID == 0 // USE_UART4
+	#define COM_TXD_Pin GPIO_PIN_0
+	#define COM_TXD_GPIO_Port GPIOA
+	#define COM_RXD_Pin GPIO_PIN_1
+	#define COM_RXD_GPIO_Port GPIOA
+#else // USE_LPUART1
+	#define COM_TXD_Pin IOx1_Pin
+	#define COM_TXD_GPIO_Port IOx1_GPIO_Port
+	#define COM_RXD_Pin IOx0_Pin
+	#define COM_RXD_GPIO_Port IOx0_GPIO_Port
+#endif
 
 #ifdef COM_SWAP_PINS
 	#define WKUP_PIN_NAME COM_TXD

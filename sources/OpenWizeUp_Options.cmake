@@ -46,7 +46,7 @@ set(PARAM_XML_FILE_LIST "${PARAM_XML_FILE_LIST} ${DEFAULT_CFG_FILE_DIR}/LANParam
 option(USE_LPUART_COM                    "Use the LPUART as COM port (default UART4)" OFF)
 
 option(USE_PHY_TRIG                      "Use the PHY trigger pin as TX/RX command" OFF)
-option(USE_PHY_LAYER_TRACE               "Enable the PHY layer trace messages." ON)
+option(USE_PHY_LAYER_TRACE               "Enable the PHY layer trace messages." OFF)
 option(HAS_HIRES_TIME_MEAS               "Define if High-Resolution timer is present (used to get the clock on PONG message)." ON)
 option(HAS_WIZE_CORE_EXTEND_PARAMETER    "Use the low power xml file." ON)
 option(HAS_LOW_POWER_PARAMETER           "Use the low power xml file." ON)

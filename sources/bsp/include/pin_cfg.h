@@ -82,11 +82,28 @@ extern "C" {
 #define FE_TRX_Pin GPIO_PIN_2
 #define FE_TRX_GPIO_Port GPIOA
 
-// IO
+
+
+/******************************************************************************/
+/* IOs
+ *
+ * These can be used as :
+       | I2C1 | I2C2 | USART1 | USART3 | LPUART1 | TIM1 | TIM2 |
+|------|------|------|--------|--------|---------|------|------|
+| IO6  |  SCL |      |   TX   |        |         |  CH2 |      |
+| IO5  |  SDA |      |   RX   |        |         |  CH3 |      |
+|------|------|------|--------|--------|---------|------|------|
+| IO2  | SMBA |      |        |        |         |      |      |
+|------|------|------|--------|--------|---------|------|------|
+| IOx0 |      |  SCL |        |   TX   |    RX   |      |  CH3 |
+| IOx1 |      |  SDA |        |   RX   |    TX   |      |  CH4 |
+ *
+ */
 #define IO6_Pin GPIO_PIN_9
 #define IO6_GPIO_Port GPIOA
 #define IO5_Pin GPIO_PIN_10
 #define IO5_GPIO_Port GPIOA
+
 #define IO4_Pin GPIO_PIN_11
 #define IO4_GPIO_Port GPIOA
 #define IO3_Pin GPIO_PIN_12

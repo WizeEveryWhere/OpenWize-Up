@@ -82,6 +82,7 @@ typedef struct
     uint8_t bus_id;       /*!< Peripheral Bus Id */
    	uint8_t u8Mode;       /*!< Current UART device mode */
     uint8_t u8CharMatch;  /*!< Character to match (if mode is enabled) */
+    int8_t  i8ItLine;     /*!< Interrupt line id (NVIC) */
    	uint32_t u32RxTmo;    /*!< Rx Time-out value (0 : disable) */
    	uint32_t u32TxTmo;    /*!< Tx Time-out value (0 : disable) */
     pfEvtCb_t pfEvent;    /*!< Function pointer on event call-back */
@@ -127,6 +128,7 @@ uint8_t BSP_Console_Send(uint8_t *pData, uint16_t u16Length);
 uint8_t BSP_Console_Received(uint8_t *pData, uint16_t u16Length);
 uint8_t BSP_Console_SetRXTmo(uint32_t u32Tmo);
 uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo);
+void BSP_Console_FluxRx(void);
 
 uint8_t BSP_Uart_Open(uint8_t u8DevId);
 uint8_t BSP_Uart_Close(uint8_t u8DevId);
