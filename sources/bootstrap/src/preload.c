@@ -148,10 +148,16 @@ static void init_exch_info(
 	pp->src_sz = 0;
 	pp->dest_sz = 0;
 	pp->magic = 0x0;
+	pp->header_sz = HEADER_SZ;
+
+	register unsigned int i;
+	for (i = 0; i < 10; i++)
+	{
+		pp->reserved[i] = 0x0;
+	}
 
 	if (dest_id < PART_NB)
 	{
-		//dest = (unsigned int)part_tab[dest_id];
 		pp->dest = (unsigned int)p[dest_id];
 		pp->dest_sz = s[dest_id];
 	}
@@ -171,18 +177,21 @@ static void init_exch_info(
 		register const unsigned int *m = (const unsigned int *)__get_magic_tab__();
 		if(src_id == PART_ACTIVE)
 		{
-			if (*(unsigned int *)(p[PART_ACTIVE]) == m[PART_INACTIVE_0])
+			if (*(unsigned int *)(p[PART_ACTIVE]) == m[0])
 			{
-				pp->magic = m[PART_INACTIVE_1];
+				dest_id = PART_INACTIVE_1;
 			}
 			else
 			{
-				pp->magic = m[PART_INACTIVE_0];
+				dest_id = PART_INACTIVE_0;
 			}
+			pp->magic = m[dest_id - 1];
+			pp->dest = (unsigned int)p[dest_id];
+			pp->dest_sz = s[dest_id];
 		}
 		else
 		{
-			pp->magic = m[src_id];
+			pp->magic = m[src_id - 1];
 		}
 	}
 	pp->request = BOOT_REQ_NONE;

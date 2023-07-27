@@ -92,6 +92,11 @@ inline uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo)
 	return DEV_SUCCESS;
 }
 
+inline void BSP_Console_FluxRx(void)
+{
+	uint8_t tmp;
+	while( HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, &tmp, 1, 0) == 0);
+}
 /******************************************************************************/
 /*!
   * @brief Enable the given uart and its related GPIO
@@ -134,6 +139,7 @@ uint8_t BSP_Uart_Close(uint8_t u8DevId)
 	{
 		return DEV_INVALID_PARAM;
 	}
+	HAL_NVIC_DisableIRQ(aDevUart[u8DevId].i8ItLine);
 	__HAL_UART_DISABLE(huart);
 	HAL_UART_MspDeInit(huart);
 	return DEV_SUCCESS;
@@ -365,6 +371,7 @@ uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
 
 		//__HAL_UART_SEND_REQ(huart, UART_MUTE_MODE_REQUEST);
 
+		HAL_NVIC_EnableIRQ(aDevUart[u8DevId].i8ItLine);
 		return DEV_SUCCESS;
 	}
 	else
@@ -411,6 +418,7 @@ uint8_t BSP_Uart_AbortReceive(uint8_t u8DevId)
 		/* Restore huart->RxState to Ready */
 	    huart->RxState = HAL_UART_STATE_READY;
 	}
+	HAL_NVIC_DisableIRQ(aDevUart[u8DevId].i8ItLine);
 	return DEV_SUCCESS;
 }
 

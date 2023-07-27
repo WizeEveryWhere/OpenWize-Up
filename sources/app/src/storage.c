@@ -140,9 +140,15 @@ const device_id_t sDefaultDevId =
  */
 const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 {
-	[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
-	[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
-	[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
+		/*
+		[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
+		[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
+		[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
+		*/
+		// Correction values from Alciom measurement (2023/07/25)
+		[PHY_PMAX_minus_0db]  = {.coarse = 1, .fine = 0x25, .micro = 1}, //   0 dBm
+		[PHY_PMAX_minus_6db]  = {.coarse = 1, .fine = 0x11, .micro = 1}, //  -6 dBm
+		[PHY_PMAX_minus_12db] = {.coarse = 1, .fine = 0x09, .micro = 1}, // -12 dBm
 };
 
 /*!

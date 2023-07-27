@@ -69,7 +69,7 @@ static uint32_t RAMFUNCTION hal_flash_wait_last_op(uint32_t Timeout)
 
 	SysTick_StopTmoMs();
 
-	error = *sr & FLASH_FLAG_SR_ERRORS;
+	error = *sr & ( FLASH_FLAG_SR_ERRORS  & ~(FLASH_FLAG_PEMPTY));
 	// Clear Errors and End of Operation flag
 	*sr = error | FLASH_SR_EOP;
 	return error;
@@ -78,7 +78,7 @@ static uint32_t RAMFUNCTION hal_flash_wait_last_op(uint32_t Timeout)
 /******************************************************************************/
 void RAMFUNCTION hal_flash_clear_errors(void)
 {
-	WRITE_REG(FLASH->SR, (FLASH_FLAG_SR_ERRORS));
+	WRITE_REG(FLASH->SR, (FLASH_FLAG_SR_ERRORS & ~(FLASH_FLAG_PEMPTY) ));
 }
 
 uint32_t RAMFUNCTION hal_flash_get_page(register uint32_t u32Address)

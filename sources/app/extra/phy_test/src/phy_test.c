@@ -328,7 +328,11 @@ inline int32_t EX_PHY_GetPa(void)
  */
 inline int32_t EX_PHY_RssiCalibrate(int8_t i8RssiRefLevel)
 {
-	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_RSSI_CAL, (uint32_t)i8RssiRefLevel);
+	int32_t i32Ret;
+	EX_PHY_OnOff(1);
+	i32Ret = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_RSSI_CAL, (uint32_t)i8RssiRefLevel);
+	EX_PHY_OnOff(0);
+	return i32Ret;
 }
 
 /*!
@@ -341,7 +345,11 @@ inline int32_t EX_PHY_RssiCalibrate(int8_t i8RssiRefLevel)
  */
 inline int32_t EX_PHY_AutoCalibrate(void)
 {
-	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_AUTO_CAL, (uint32_t)0);
+	int32_t i32Ret;
+	EX_PHY_OnOff(1);
+	i32Ret = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_AUTO_CAL, (uint32_t)0);
+	EX_PHY_OnOff(0);
+	return i32Ret;
 }
 
 

@@ -183,9 +183,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-		/* UART4 interrupt Init */
+		/* UART4 interrupt priority */
 		HAL_NVIC_SetPriority(UART4_IRQn, 5, 0);
-		HAL_NVIC_EnableIRQ(UART4_IRQn);
 	}
 #endif
 
@@ -202,9 +201,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		GPIO_InitStruct.Alternate = GPIO_AF8_LPUART1;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-		/* LPUART1 interrupt Init */
+		/* LPUART1 interrupt priority */
 		HAL_NVIC_SetPriority(LPUART1_IRQn, 5, 0);
-		HAL_NVIC_EnableIRQ(LPUART1_IRQn);
 	}
 #endif
 }
@@ -222,9 +220,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 	{
 		__HAL_RCC_UART4_CLK_DISABLE();
 		HAL_GPIO_DeInit(GPIOA, UART_TXD_Pin|UART_RXD_Pin);
-
-		/* UART4 interrupt DeInit */
-		HAL_NVIC_DisableIRQ(UART4_IRQn);
 	}
 #endif
 
@@ -233,9 +228,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 	{
 		__HAL_RCC_LPUART1_CLK_DISABLE();
 		HAL_GPIO_DeInit(GPIOB, IOx0_Pin|IOx1_Pin);
-
-		/* UART4 interrupt DeInit */
-		HAL_NVIC_DisableIRQ(LPUART1_IRQn);
 	}
 #endif
 }
