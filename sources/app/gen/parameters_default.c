@@ -1,6 +1,6 @@
 /*!
   * @file parameters_default.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-06 16:22:09.564776322 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-27 14:50:34.283474634 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 06/07/2023 16:22 [neo]
+  * @par x.x.x : 27/07/2023 14:50 [neo]
   *
   */
 
@@ -72,7 +72,6 @@ const uint8_t a_ParamDefault[] = {
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown)*/
    0x6, /*!< Periodic time of execping sending by the device, in months*/
    0x0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] if 1: Activate the WDT (bootcount for roll-back FW); b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM;*/
-   0x1, /*!< Key id used for cipher and authenticate the local update fw blocks.*/
    0x0,0x7d, /*!< Clock and Frequency Offset Auto-Adjustment. MSB : control, LSB : RSSI min. level (see struct adm_config_s).*/
    0x0, /*!< ADM ANN Reception Filter disable (see struct adm_config_s)*/
    0x0, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s)*/

@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.h
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-06 16:22:09.564776322 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-27 14:50:34.283474634 +0200).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 06/07/2023 16:22 [neo]
+  * @par x.x.x : 27/07/2023 14:50 [neo]
   *
   */
 
@@ -36,7 +36,7 @@ extern C {
 
 /******************************************************************************/
 #define PARAM_ACCESS_CFG_SZ (0xFF)
-#define PARAM_DEFAULT_SZ (0x9F)
+#define PARAM_DEFAULT_SZ (0x9E)
 
 extern const param_s a_ParamAccess[PARAM_ACCESS_CFG_SZ];
 extern const uint8_t a_ParamDefault[PARAM_DEFAULT_SZ];
@@ -84,7 +84,6 @@ typedef enum {
     PING_REPLY8 = 0x3D, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown) */
     EXECPING_PERIODE = 0x3E, /*!< Periodic time of execping sending by the device, in months */
     EXTEND_FLAGS = 0xD0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] if 1: Activate the WDT (bootcount for roll-back FW); b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM; */
-    LOCAL_KEY_ID = 0xD1, /*!< Key id used for cipher and authenticate the local update fw blocks. */
     AUTO_ADJ_CLK_FREQ = 0xDA, /*!< Clock and Frequency Offset Auto-Adjustment. MSB : control, LSB : RSSI min. level (see struct adm_config_s). */
     ADM_ANN_DIS_FLT = 0xDD, /*!< ADM ANN Reception Filter disable (see struct adm_config_s) */
     ADM_PARAM_DIS_FLT = 0xDE, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s) */
