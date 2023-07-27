@@ -82,7 +82,7 @@ void Update_Task(void const * argument)
 #ifdef HAS_CRC_COMPUTE
 	// check the CRC
 	BSP_CRC_Init();
-	crc = BSP_CRC_Compute( (uint32_t*)p, (uint32_t)(sizeof(struct __exch_info_s) - 4));
+	crc = BSP_CRC_Compute( (uint32_t*)p, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
 	BSP_CRC_Deinit();
 #endif
 	if ( p->crc == crc )

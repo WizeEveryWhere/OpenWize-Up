@@ -101,7 +101,7 @@ void boot_strap(void)
 
 #ifdef HAS_CRC_COMPUTE
 	crc_init();
-	pp->crc = crc_compute( (uint32_t*)pp, (uint32_t)(sizeof(struct __exch_info_s) - 4));
+	pp->crc = crc_compute( (uint32_t*)pp, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
 	crc_deinit();
 #else
 	pp->crc = 0;
