@@ -134,7 +134,7 @@ void _set_current_time(time_t t)
 void _time_wakeup_enable(void);
 void _time_wakeup_reload(void);
 void _time_update_set_handler(pfTimeEvt_HandlerCB_t const pfCb);
-void _time_wakeup_force(void);
+void _time_wakeup_force(uint32_t wakup_cycles);
 
 /*!
   * @brief Enable the RTC wake-up timer
@@ -170,9 +170,9 @@ void _time_update_set_handler(pfTimeEvt_HandlerCB_t const pfCb)
   * @brief Force the RTC wake-up timer notify
   */
 inline
-void _time_wakeup_force(void)
+void _time_wakeup_force(uint32_t wakup_cycles)
 {
-	BSP_Rtc_Time_ForceNotify();
+	BSP_Rtc_Time_ForceNotify(wakup_cycles);
 }
 
 #ifdef __cplusplus

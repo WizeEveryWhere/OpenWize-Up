@@ -77,6 +77,9 @@ typedef enum {
 	// ----
 	PHY_CMD_SPORT    , /*!< Set the SPORT ini/out */
 	PHY_CMD_TEST     , /*!< Test mode */
+	PHY_CMD_AUTO_CAL , /*!< Auto calibration */
+	PHY_CMD_RSSI_CAL , /*!< RSSI calibration ( plus auto-calibration) */
+
 } phy_cmd_e;
 
 /*!
@@ -87,6 +90,11 @@ typedef struct {
 	uint8_t fine;   /*!< TX power fine value */
 	uint8_t micro;  /*!< TX power micro value */
 } phy_power_t;
+
+typedef struct {
+	phy_power_e eEntryId;
+	phy_power_t sEntryValue;
+} phy_power_entry_t;
 
 
 /*!
@@ -129,19 +137,9 @@ int32_t Phy_adf7030_setup(
 );
 
 /******************************************************************************/
-void Phy_OnOff(phydev_t *pPhydev, uint8_t bOn);
-
-void Phy_SetPa(uint8_t bEnable);
-int32_t Phy_GetPa(void);
-
-int32_t Phy_SetPowerEntry(phydev_t *pPhydev, phy_power_e eEntryId, phy_power_t sPwrEntry);
-int32_t Phy_GetPowerEntry(phydev_t *pPhydev, phy_power_e eEntryId, phy_power_t *sPwrEntry);
-
 int32_t Phy_GetCal(uint8_t *pBuf);
 int32_t Phy_SetCal(uint8_t *pBuf);
 int32_t Phy_ClrCal(void);
-int32_t Phy_AutoCalibrate(phydev_t *pPhydev);
-int32_t Phy_RssiCalibrate(phydev_t *pPhydev, int8_t i8RssiRefLevel);
 
 #ifdef PHY_USE_POWER_RAMP
 	extern pa_ramp_rate_e pa_ramp_rate;
@@ -155,7 +153,7 @@ extern const char * const aChanStr[PHY_NB_CH];
 extern const char * const aModulationStr[PHY_NB_MOD];
 extern const char * const aTestModeStr[PHY_NB_TST_MODE];
 extern const char * const aTestModeTXStr[TMODE_TX_NB];
-
+extern const char * const aPhyPwrStr[PHY_NB_PWR];
 /******************************************************************************/
 
 #ifdef __cplusplus

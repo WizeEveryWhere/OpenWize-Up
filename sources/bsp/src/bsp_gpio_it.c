@@ -264,6 +264,20 @@ uint8_t BSP_GpioIt_SetLine (const uint32_t u32Port, const uint16_t u16Pin, const
 		u32_ItLine = (1 << i8_ItLineId);
 		(bEnable)?(EXTI->IMR1 |= u32_ItLine):(EXTI->IMR1 &= (~u32_ItLine));
 		EXTI->PR1 = u32_ItLine;
+
+		IRQn_Type irq = EXTI0_IRQn + i8_ItLineId;
+		if(i8_ItLineId > 4)
+		{
+			if (i8_ItLineId < 10)
+			{
+				irq = EXTI9_5_IRQn;
+			}
+			else
+			{
+				irq = EXTI15_10_IRQn;
+			}
+		}
+		(bEnable)?(HAL_NVIC_EnableIRQ(irq)):(HAL_NVIC_DisableIRQ(irq));
 		e_ret = DEV_SUCCESS;
 	}
 	return e_ret;

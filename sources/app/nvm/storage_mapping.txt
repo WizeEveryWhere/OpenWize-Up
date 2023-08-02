@@ -1,0 +1,79 @@
+#-------------------------------------------------------------------------------
+# Storage memory mapping
+
+The Storage memory, is a non volatile part of memory used to store some permanent data.
+
+This area is defined as follow :
+ ________________________________________________________________
+|          |          |                   |                      |
+|  Header  |   Keys   |     Calibration   |      Parameters      |
+|__________|__________|___________________|______________________|
+
+Note : 
+1. All parts (header, Keys, Calibration, Parameters) have to start on 8 
+bytes aligned address. So, it is not recommended to write it manually... :)
+2. Except for Parameters partition, 
+
+#-------------------------------------------------------------------------------
+## Header (16 bytes)
+
+Offset |     Name       | Size |            Description                        |
+-------|----------------|------|-----------------------------------------------|
+  0    |     Status     |  2   | Status of NVM area (0xFFFF: not init.)        |
+  2    |      CRC       |  2   | Checksum (not used)                           |
+  4    | Part 1 address |  4   | Address of part 1                             |
+  8    | Part 2 address |  4   | Address of part 2                             |
+ 12    | Part 3 address |  4   | Address of part 3                             |
+-------|----------------|------|-----------------------------------------------|
+
+#-------------------------------------------------------------------------------
+## Keys (640 bytes)
+
+The content of this partition is as following : 
+
+   Id   |   Name  |             Description                |
+--------|---------|----------------------------------------|     
+   0    |   NONE  | indicate that messages are no ciphered |
+ 1 - 14 |   KENC  | these keys are use to cipher messages  |
+   15   |   KCHG  | used for "changing" admin. commands.   |
+   16   |   KMOB  | not used                               | 
+   17   |   KMAC  | used to grant access to the network    |
+   18   |   KLOG  | not used                               |
+   19   |    ...  | not used                               |
+-----------------------------------------------------------|
+
+Note, that each key has a size of 32 bytes.
+
+#-------------------------------------------------------------------------------
+## Calibration (112 bytes)
+
+Offset |     Name        | Size |            Description                       |
+-------|-----------------|------|----------------------------------------------|
+       | Device info     |      | See the Wize 1.2 specification for details.  |
+  0    | - Manuf. code   |    2 | (Least Significant Byte First)               |
+  2    | - Device number |    4 | (Least Significant Byte First)               |
+  6    | - Version       |    1 |                                              |
+  7    | - Type          |    1 |                                              |
+-------|-----------------|------|----------------------------------------------|
+  8    | PA state        |    1 | Radio power amplifier state                  |
+-------|-----------------|------|----------------------------------------------|
+  9    |      ...        |    1 | Reserved (padding)                           |
+-------|-----------------|------|----------------------------------------------|
+       | Phy             |      |                                              |
+  10   | - RSSI offset   |    2 | Calibrated RSSI offset (signed number)       |
+  12   | - Power table   |    9 | See the ADF7030-1 specification for details  |
+  21   |      ...        |    3 | Reserved (padding)                           |  
+  24   | - Calib. Res.   |   84 | See the ADF7030-1 specification for details  |
+-------|-----------------|------|----------------------------------------------|
+ 108   |      ...        |    4 | Reserved (padding)                           |
+-------|-----------------|------|----------------------------------------------|
+
+#-------------------------------------------------------------------------------
+# Parameters (the size depends on its content)
+
+This partition contains the parameters values.
+ 
+Offset |     Name        | Size |            Description                       |
+-------|-----------------|------|----------------------------------------------|
+  112  | Parameter table |      | |
+-------------------------------------------------------------------------------|

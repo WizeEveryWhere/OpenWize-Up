@@ -83,6 +83,12 @@ typedef void (*pf_cb_t)(void *p_CbParam, void *p_Arg);
 	#define EXIT_CRITICAL_REGION()
 #endif
 
+#define GP_PORT_NAME(name) name ##_GPIO_Port
+#define GP_PIN_NAME(name) name##_Pin
+
+#define GP_PORT(name) (uint32_t)(GP_PORT_NAME(name))
+#define GP_PIN(name)  GP_PIN_NAME(name)
+
 /*!
  * @}
  * @endcond

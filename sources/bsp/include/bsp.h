@@ -48,6 +48,10 @@ extern "C" {
 
 #include <bsp_uart.h>
 
+#ifdef HAS_CRC_COMPUTE
+#include <bsp_crc.h>
+#endif
+
 #ifdef USE_SPI
 #include <bsp_spi.h>
 #endif
@@ -76,6 +80,8 @@ extern uint16_t hex2ascii(uint8_t u8Hex);
 
 extern void msleep(uint32_t milisecond);
 extern void usleep(uint32_t microsecond);
+
+extern uint64_t BSP_GetUid(void);
 
 extern void Error_Handler(void);
 extern void BSP_Init(uint32_t u32BootState);

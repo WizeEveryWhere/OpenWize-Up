@@ -113,6 +113,25 @@ void usleep(uint32_t microsecond)
 	while(cnt) { cnt--; }
 }
 
+/*!
+  * @brief Get the Unique Identifier (CPU ID)
+  *
+  * @return 8 bytes UID (Big endian)
+  * - b[63:40] : Lot number (lower 24 bits, ASCII encoded)
+  * - b[39:32] : Wafer number
+  * - b[31:0]  : X and Y coordinate on the Wafer
+  *
+  */
+uint64_t BSP_GetUid(void)
+{
+	uint32_t uuid[2];
+	uuid[1] = HAL_GetUIDw1();
+	uuid[0] = HAL_GetUIDw0();
+	//uint32_t lot;
+	//lot = HAL_GetUIDw2();
+	return *(uint64_t*)(uuid);
+}
+
 /******************************************************************************/
 /* Libc print wrapper functions */
 /******************************************************************************/
@@ -136,13 +155,13 @@ int __io_putchar(int ch){
 		nb = 2;
 		((uint8_t *)&ch)[1] = '\r';
 	}
-	HAL_UART_Transmit(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t *)&ch, nb, CONSOLE_TX_TIMEOUT);
+	HAL_UART_Transmit(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t *)&ch, nb, aDevUart[STDOUT_UART_ID].u32TxTmo);
 	return ch;
 }
 
 int __io_getchar(void){
 	int c;
-	HAL_UART_Receive(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t*)&c, 1, CONSOLE_RX_TIMEOUT);
+	HAL_UART_Receive(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t*)&c, 1, aDevUart[STDOUT_UART_ID].u32RxTmo);
 	return c;
 }
 #endif

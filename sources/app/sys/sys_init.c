@@ -56,7 +56,7 @@ extern "C" {
 
 #include "phy_layer_private.h"
 
-#include "wize_api.h"
+#include "wize_app.h"
 
 #include "storage.h"
 #include "bsp_pwrlines.h"
@@ -99,6 +99,25 @@ void Sys_Init(void)
   	printf("\n###########################################################\n");
 #endif
 
+	// Setup adf device
+	assert(0 == Phy_adf7030_setup( &sPhyDev,
+                               &adf7030_1_ctx,
+                               (adf7030_1_gpio_int_info_t *)&DEFAULT_GPIO_INT,
+
+#ifdef USE_PHY_TRIG
+							   (adf7030_1_gpio_trig_info_t *)&DEFAULT_GPIO_TRIG,
+#else
+							   (adf7030_1_gpio_trig_info_t *)NULL,
+#endif
+                               (adf7030_1_gpio_reset_info_t *)&DEFAULT_GPIO_RESET,
+							   ADF7030_1_GPIO6,
+                               ADF7030_1_GPIO_NONE
+                               ) );
+
+
+	// Init storage
+	Storage_Init(0);
+
 	// Init Logger
 #ifdef LOGGER_USE_FWRITE
   	Logger_Setup((int32_t (*)(const char*, size_t, size_t, FILE*))fwrite, stdout);
@@ -117,32 +136,16 @@ void Sys_Init(void)
 	}
 	Logger_SetLevel( u8LogLevel, u8Tstmp );
 
-	// Setup adf device
-	assert(0 == Phy_adf7030_setup( &sPhyDev,
-                               &adf7030_1_ctx,
-                               (adf7030_1_gpio_int_info_t *)&DEFAULT_GPIO_INT,
-
-#ifdef USE_PHY_TRIG
-							   (adf7030_1_gpio_trig_info_t *)&DEFAULT_GPIO_TRIG,
-#else
-							   (adf7030_1_gpio_trig_info_t *)NULL,
-#endif
-                               (adf7030_1_gpio_reset_info_t *)&DEFAULT_GPIO_RESET,
-							   ADF7030_1_GPIO6,
-                               ADF7030_1_GPIO_NONE
-                               ) );
-
-	WizeApi_CtxClear();
-
-	// Init storage
-	Storage_Init(0);
-
+	WizeApi_CtxClear();// FIXME
+	// -----------------------
   	// Init Time Mgr
-	WizeApi_CtxRestore();
+	WizeApp_CtxRestore();
    	// Setup Time Event
   	TimeEvt_Setup();
-	// setup wize device
-  	WizeApi_Setup(&sPhyDev);
+
+  	// Setup Wize
+  	WizeApi_TimeMgr_Setup(&sTimeUpdCtx);
+  	WizeApi_SesMgr_Setup(&sPhyDev, &sInstCtx, &sAdmCtx,	&sDwnCtx);
   	WizeApi_Enable(1);
 }
 
@@ -151,7 +154,7 @@ void Sys_Init(void)
  */
 void Sys_Fini(void)
 {
-	WizeApi_CtxSave();
+	WizeApp_CtxSave();
 }
 
 

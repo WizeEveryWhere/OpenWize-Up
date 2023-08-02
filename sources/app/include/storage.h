@@ -38,6 +38,12 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include "version.h"
+
+#define EXT_FLAGS_DBG_MSG_EN_MSK      0x01
+#define EXT_FLAGS_PHYCAL_WRITE_EN_MSK 0x20
+#define EXT_FLAGS_IDENT_WRITE_EN_MSK  0x40
+#define EXT_FLAGS_KEYS_WRITE_EN_MSK  0x80
 
 void Storage_Init(uint8_t bForce);
 void Storage_SetDefault(void);

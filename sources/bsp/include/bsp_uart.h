@@ -72,7 +72,6 @@ typedef enum
 {
 	UART_MODE_NONE, /*!< None (wait until the buffer reach the geiven size) */
 	UART_MODE_EOB,  /*!< Event is sent when character match the end of block */
-	UART_MODE_ADDR, /*!< Event is sent when character match the start of block */
 } uart_mode_e;
 
 /*!
@@ -83,7 +82,9 @@ typedef struct
     uint8_t bus_id;       /*!< Peripheral Bus Id */
    	uint8_t u8Mode;       /*!< Current UART device mode */
     uint8_t u8CharMatch;  /*!< Character to match (if mode is enabled) */
-   	uint32_t u32Tmo;      /*!< Time-out value (0 : disable) */
+    int8_t  i8ItLine;     /*!< Interrupt line id (NVIC) */
+   	uint32_t u32RxTmo;    /*!< Rx Time-out value (0 : disable) */
+   	uint32_t u32TxTmo;    /*!< Tx Time-out value (0 : disable) */
     pfEvtCb_t pfEvent;    /*!< Function pointer on event call-back */
     void *pCbParam;       /*!< Pointer on Call-back parameter */
     void *hHandle;        /*!< Pointer on HAL UART handle*/
@@ -107,6 +108,13 @@ typedef uart_dev_t* p_uart_dev_t;
 #define CONSOLE_RX_TIMEOUT 0xFFFF
 #endif
 
+#ifndef LOGGER_TX_TIMEOUT
+#define LOGGER_TX_TIMEOUT 2000
+#endif
+#ifndef LOGGER_RX_TIMEOUT
+#define LOGGER_RX_TIMEOUT 0xFFFFFFFF
+#endif
+
 /*!
  * @}
  * @endcond
@@ -118,10 +126,13 @@ int __io_getchar(void);
 uint8_t BSP_Console_Init(void);
 uint8_t BSP_Console_Send(uint8_t *pData, uint16_t u16Length);
 uint8_t BSP_Console_Received(uint8_t *pData, uint16_t u16Length);
+uint8_t BSP_Console_SetRXTmo(uint32_t u32Tmo);
+uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo);
+void BSP_Console_FluxRx(void);
 
-uint8_t BSP_Uart_Enable(uint8_t u8DevId);
-uint8_t BSP_Uart_Disable(uint8_t u8DevId);
-uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode, uint32_t u32Tmo);
+uint8_t BSP_Uart_Open(uint8_t u8DevId);
+uint8_t BSP_Uart_Close(uint8_t u8DevId);
+uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode);
 uint8_t BSP_Uart_SetCallback (uint8_t u8DevId, pfEvtCb_t const pfEvtCb, void *pCbParam);
 uint8_t BSP_Uart_Transmit(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length);
 uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length);

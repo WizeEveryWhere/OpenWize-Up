@@ -36,20 +36,22 @@
 #ifndef INC_CONSOLE_H_
 #define INC_CONSOLE_H_
 
+#include "bsp.h"
+
 /*==============================================================================
  * DEFINES
  *============================================================================*/
 
 /*! @cond INTERNAL @{ */
 
-#define CONSOLE_TX_BUF_LEN		1024
+#define CONSOLE_BUF_LEN  512
 
 //#define CONSOLE_RX_TIMEOUT_ms		5000
 
-#define CONSOLE_RX_ERR			0xEF
-#define CONSOLE_BYTE_RX			0x01
-#define CONSOLE_RX_EMPTY		0x00
-#define CONSOLE_TIMEOUT			0xE0
+#define CONSOLE_RX_ERR	 0xEF
+#define CONSOLE_BYTE_RX	 0x01
+#define CONSOLE_RX_EMPTY 0x00
+#define CONSOLE_TIMEOUT	 0xE0
 
 /*! @} @endcond */
 
@@ -62,13 +64,20 @@
  */
 typedef struct
 {
-	uint16_t len;                     /*!< */
-	uint8_t data[CONSOLE_TX_BUF_LEN]; /*!< */
-} console_tx_buf_t;
+	uint8_t data[CONSOLE_BUF_LEN]; /*!< */
+	uint16_t len;                  /*!< */
+} console_buf_t;
 
 /*==============================================================================
  * FUNCTIONS PROTOTYPES - RX
  *============================================================================*/
+
+/*!-----------------------------------------------------------------------------
+ * @brief		Init the UART console
+ *
+ *----------------------------------------------------------------------------*/
+void Console_Init(const char cMatch, pfEvtCb_t const pfEvtCb, void *pCbParam);
+
 /*!-----------------------------------------------------------------------------
  * @brief		Enable the UART console
  *

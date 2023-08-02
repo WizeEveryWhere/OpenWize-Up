@@ -48,28 +48,98 @@ extern "C" {
  */
 
 /******************************************************************************/
+/*******************************************************************************/
+// UART related call-back handler
 
+#if USE_UART_LOG_ID == 0
+	#define USE_UART4 1
+	#define UART_LOG_ID huart4
+	#define UART_LOG_IT_LINE UART4_IRQn
+#else
+	#define USE_LPUART1 1
+	#define UART_LOG_ID lphuart1
+	#define UART_LOG_IT_LINE LPUART1_IRQn
+#endif
 
-extern RTC_HandleTypeDef hrtc;
+#if USE_UART_COM_ID == 0
+	#define USE_UART4 1
+	#define UART_COM_ID huart4
+	#define UART_COM_IT_LINE UART4_IRQn
+#else
+	#define USE_LPUART1 1
+	#define UART_COM_ID lphuart1
+	#define UART_COM_IT_LINE LPUART1_IRQn
+#endif
 
-//extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart4;
+#ifdef USE_LPUART1
+	UART_HandleTypeDef lphuart1 = { .Instance = LPUART1};
+#endif
+#ifdef USE_UART4
+	UART_HandleTypeDef huart4 = { .Instance = UART4};
+#endif
 
 uart_dev_t aDevUart[UART_ID_MAX] =
 {
-	[UART_ID_CONSOLE] = {
+	[UART_ID_LOG] = {
 			//.hHandle = &huart2,
-			.hHandle = &huart4,
-			.pfEvent = NULL
+			.hHandle = &UART_LOG_ID,
+			.pfEvent = NULL,
+			.u32RxTmo = LOGGER_RX_TIMEOUT,
+			.u32TxTmo = LOGGER_TX_TIMEOUT,
+			.i8ItLine = UART_LOG_IT_LINE,
 	},
 	[UART_ID_COM]     = {
-			.hHandle = &huart4,
-			.pfEvent = NULL
+			.hHandle = &UART_COM_ID,
+			.pfEvent = NULL,
+			.u32RxTmo = CONSOLE_RX_TIMEOUT,
+			.u32TxTmo = CONSOLE_TX_TIMEOUT,
+			.i8ItLine = UART_COM_IT_LINE,
 	},
 };
 
+static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt);
+
+__weak void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_TX_CPLT);
+}
+
+__weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_RX_CPLT);
+}
+
+__weak void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_RX_HCPLT);
+}
+
+__weak void HAL_UART_AbortReceiveCpltCallback(UART_HandleTypeDef *huart)
+{
+	_send_event_to_cb_(huart, UART_EVT_RX_ABT);
+}
+
+static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt)
+{
+	register uint8_t id;
+	for (id = 0; id < UART_ID_MAX; id++)
+	{
+		if (aDevUart[id].hHandle == huart)
+		{
+			if (aDevUart[id].pfEvent != NULL)
+			{
+				aDevUart[id].pfEvent(aDevUart[id].pCbParam, evt);
+			}
+			//break;
+		}
+	}
+}
+
 /*******************************************************************************/
 // RTC related call-back handler
+
+RTC_HandleTypeDef hrtc = { .Instance = RTC};
+
 pfHandlerCB_t pfWakeUpTimerEvent = NULL;
 void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 {
@@ -100,48 +170,6 @@ void HAL_RTCEx_AlarmBEventCallback(RTC_HandleTypeDef *hrtc)
 	}
 }
 
-/*******************************************************************************/
-// UART related call-back handler
-
-static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt);
-
-static void _send_event_to_cb_(UART_HandleTypeDef *huart, uint32_t evt)
-{
-	register uint8_t id;
-	for (id = 0; id < UART_ID_MAX; id++)
-	{
-		if (aDevUart[id].hHandle == huart)
-		{
-			if (aDevUart[id].pfEvent != NULL)
-			{
-				aDevUart[id].pfEvent(aDevUart[id].pCbParam, evt);
-			}
-			break;
-		}
-	}
-}
-
-__weak void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_TX_CPLT);
-}
-
-__weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_RX_CPLT);
-}
-
-__weak void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_RX_HCPLT);
-}
-
-__weak void HAL_UART_AbortReceiveCpltCallback(UART_HandleTypeDef *huart)
-{
-	_send_event_to_cb_(huart, UART_EVT_RX_ABT);
-}
-
-
 /******************************************************************************/
 // STDBY and SHUTDOWN LP modes related
 
@@ -158,11 +186,17 @@ const uint16_t u16LpPuPortC = 0 & AVAILABLE_PIN_PORTC_MSK;
 const uint16_t u16LpPdPortC = 0 & AVAILABLE_PIN_PORTC_MSK;
 
 // STOP 0, 1, 2 LP modes related
-#define COM_TXD_Pin GPIO_PIN_0
-#define COM_TXD_GPIO_Port GPIOA
-
-#define COM_RXD_Pin GPIO_PIN_1
-#define COM_RXD_GPIO_Port GPIOA
+#if USE_UART_COM_ID == 0 // USE_UART4
+	#define COM_TXD_Pin GPIO_PIN_0
+	#define COM_TXD_GPIO_Port GPIOA
+	#define COM_RXD_Pin GPIO_PIN_1
+	#define COM_RXD_GPIO_Port GPIOA
+#else // USE_LPUART1
+	#define COM_TXD_Pin IOx1_Pin
+	#define COM_TXD_GPIO_Port IOx1_GPIO_Port
+	#define COM_RXD_Pin IOx0_Pin
+	#define COM_RXD_GPIO_Port IOx0_GPIO_Port
+#endif
 
 #ifdef COM_SWAP_PINS
 	#define WKUP_PIN_NAME COM_TXD
@@ -199,29 +233,8 @@ void BSP_LowPower_OnStopEnter(lp_mode_e eLpMode)
 
 	BSP_Gpio_InputEnable( LINE_INIT(WKUP_PIN_NAME), 1);
     BSP_GpioIt_ConfigLine( LINE_INIT(WKUP_PIN_NAME), GPIO_IRQ_FALLING_EDGE);
-    BSP_GpioIt_SetLine( LINE_INIT(WKUP_PIN_NAME), 1);
     BSP_GpioIt_SetCallback( LINE_INIT(WKUP_PIN_NAME), NULL, NULL );
-
-
-    i8LineId = BSP_GpioIt_GetLineId( GP_PIN(WKUP_PIN_NAME));
-    if (i8LineId < 5)
-    {
-    	// IT line from 0, 1, 2, 3 and 4
-    	HAL_NVIC_EnableIRQ(EXTI0_IRQn + i8LineId);
-    }
-    else
-    {
-        if(i8LineId < 10)
-        {
-        	// IT line from 5 to 9
-        	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-        }
-        else
-        {
-        	// IT line from 10 to 15
-        	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-        }
-    }
+    BSP_GpioIt_SetLine( LINE_INIT(WKUP_PIN_NAME), 1);
 
     // Disable all clock
 	RCC->APB1ENR1 = 0;
@@ -260,7 +273,7 @@ void BSP_LowPower_OnStopExit(lp_mode_e eLpMode)
 #ifdef USE_SPI
 #if defined(HAL_SPI_MODULE_ENABLED)
 
-extern SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi1 = {.Instance = SPI1};
 
 SPI_HandleTypeDef *paSPI_BusHandle[SPI_ID_MAX] =
 {
@@ -281,8 +294,8 @@ spi_dev_t spi_ADF7030 =
 #ifdef USE_I2C
 #if defined(HAL_I2C_MODULE_ENABLED)
 
-extern I2C_HandleTypeDef hi2c1;
-extern I2C_HandleTypeDef hi2c2;
+I2C_HandleTypeDef hi2c1 = {.Instance = I2C1};
+I2C_HandleTypeDef hi2c2 = {.Instance = I2C2};
 
 I2C_HandleTypeDef *paI2C_BusHandle[I2C_ID_MAX] =
 {
@@ -307,11 +320,11 @@ i2c_dev_t i2c_EEPROM =
 #if defined(HAL_LPTIM_MODULE_ENABLED)
 
 #if defined (LPTIM1)
-extern LPTIM_HandleTypeDef hlptim1;
+LPTIM_HandleTypeDef hlptim1;
 #endif
 
 #if defined (LPTIM2)
-extern LPTIM_HandleTypeDef hlptim2;
+LPTIM_HandleTypeDef hlptim2;
 #endif
 
 #endif
@@ -345,7 +358,18 @@ void HAL_LPTIM_CompareMatchCallback(LPTIM_HandleTypeDef *hlptim)
 #endif
 
 /*******************************************************************************/
+// PowerLine related
+#define PWR_LINE_INIT(name) GP_PORT(name), GP_PIN(name)
 
+const pwr_line_t pwr_lines[MAX_NB_POWER] =
+{
+	[FE_ON]      = { PWR_LINE_INIT(FE_EN) },
+	[PA_ON]      = { PWR_LINE_INIT(FE_BYP) },
+	[RF_ON]      = { PWR_LINE_INIT(V_RF_EN) },
+	[INT_EEPROM] = { PWR_LINE_INIT(EEPROM_CTRL) },
+};
+
+/*******************************************************************************/
 /*!
  * @}
  * @endcond

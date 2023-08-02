@@ -12,12 +12,14 @@ add_compile_definitions(LOGGER_USE_FWRITE=1)
 add_compile_definitions(DUMP_CORE_HAS_TRACE=1)
 add_compile_definitions(DUMP_CORE_HAS_FAULT_STATUS_REGISTER=1)
 add_compile_definitions(L6VERS=L6VER_WIZE_REV_1_2)
-# add_compile_definitions(USE_PHY_TRIG=1)
 
 add_compile_definitions(USE_SPI=1)
 # add_compile_definitions(USE_I2C=1)
 
 add_compile_definitions(CONSOLE_RX_TIMEOUT=5000)
+
+# OpenWizeUp Options
+include(sources/OpenWizeUp_Options.cmake)
 
 add_compile_options(-Wall -ffunction-sections -fdata-sections -fstack-usage)
 
@@ -55,12 +57,17 @@ if(USE_FREERTOS)
 endif(USE_FREERTOS)
 
 ################################################################################
+set(opt 0)
+if(BUILD_NVM_BINARY)
+    set(opt 1)
+endif(BUILD_NVM_BINARY)
 # Generate parameters 
 # (only if "-DGENERATE_PARAM=ON" is added on cmake command line)
 find_package(gen_param REQUIRED)
 gen_param(
-    SOURCE sources/app/cfg
+    SOURCE ${PARAM_XML_FILE_LIST}
     DESTINATION sources/app
+    OPT ${opt}
     )
 
 ################################################################################
@@ -85,3 +92,8 @@ foreach(mod_dir ${MOD_DIR_LST})
         list(APPEND DOC_SOURCE_DIRS "${tmp_src_dir}")
     endif()
 endforeach(mod_dir)
+
+if(BUILD_STANDALAONE_APP)
+else()
+    include(sources/app_img.cmake)
+endif(BUILD_STANDALAONE_APP)

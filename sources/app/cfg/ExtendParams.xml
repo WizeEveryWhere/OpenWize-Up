@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ParamCfg xmlns:tns="http://www.grdf.fr/smart-solutions/TU/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.grdf.fr/smart-solutions/TU/1.0.0/Parameter.xsd "> 
+  
+<ParameterList>
+    <!-- ******************************************************************* -->
+    <!-- Extend Parameters -->
+    <!-- ******************************************************************* -->
+    <!--   -->
+    <Parameter id="D0" loc="RW" rem="NA" size="1"
+               ref="REF_N" 
+               name="EXTEND_FLAGS"
+               desc="
+Get or Set the extend flags.
+b[0] if 1: Enable ATCI +DBG;
+b[1] : Reserved;
+b[2] if 1: Activate the immediate update when image is ready;
+b[3] if 1: Activate the WDT (bootcount for roll-back FW);
+b[4] : Reserved;
+b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
+b[6] if 1: Activate the device id writing in NVM;
+b[7] if 1: Activate the keys writing in NVM;
+">
+         0x00</Parameter>
+    <!-- ******************************************************************* -->
+    
+    <!-- Wize Core form id="DA" to  id="EF" -->
+    
+    <!-- ******************************************************************* -->
+</ParameterList>
+
+</tns:ParamCfg>

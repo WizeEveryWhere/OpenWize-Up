@@ -53,6 +53,15 @@
  * FUNCTIONS PROTOTYPES - AT responses
  *============================================================================*/
 
+const char* Atci_Get_Dbg_Str(atci_error_t error);
+
+/*!-----------------------------------------------------------------------------
+ * @brief		Enable / Disable the debug messages
+ *
+ * @return		None
+ *----------------------------------------------------------------------------*/
+void Atci_Send_Dbg_Enable(uint8_t bFlag);
+
 /*!-----------------------------------------------------------------------------
  * @brief		Send wakeup message
  *
@@ -135,7 +144,6 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData);
  *
  *----------------------------------------------------------------------------*/
 #define Atci_Debug_Param_Data(dbgMsd, atciCmdData)	_Atci_Debug_Param_Data(dbgMsd, atciCmdData)
-//#define Atci_Debug_Param_Data(dbgMsd, atciCmdData)
 
 /*!-----------------------------------------------------------------------------
  * @brief		Send debug string
@@ -143,8 +151,7 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData);
  * @details Input the debug message
  *
  *----------------------------------------------------------------------------*/
-#define Atci_Debug_Str(dbgMsd) do{Console_Send_Str("\r\n+DBG: "); Console_Send_Str(dbgMsd); Console_Send_Str("\r\n");}while(0)
-//#define Atci_Debug_Str(dbgMsd)
+#define Atci_Debug_Str(dbgMsd) do{ _Atci_Debug_Param_Data(dbgMsd, NULL); }while(0)
 
 /*!-----------------------------------------------------------------------------
  * @brief		Send debug formated string like a printf

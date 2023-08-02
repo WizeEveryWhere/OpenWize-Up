@@ -1,7 +1,7 @@
 ################################################################################
  
 set(MODULE_NAME Board_WizeUp)
-set(LD_SCRIPT STM32L451CEUX_FLASH.ld)
+set(LD_SCRIPT STM32L451CEUX_def.ld)
 set(STARTUP   startup_stm32l451ceux.s)
 
 ################################################################################
@@ -12,6 +12,7 @@ target_sources(${MODULE_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_msp.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_timebase_tim.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_hires_time.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_it.c
         ${CMAKE_CURRENT_SOURCE_DIR}/startup/${STARTUP}
     )
@@ -39,5 +40,8 @@ set_property(
     TARGET
         ${MODULE_NAME}
     PROPERTY 
-        INTERFACE_LINK_OPTIONS "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/${LD_SCRIPT}"
+        INTERFACE_LINK_OPTIONS 
+        "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/${LD_SCRIPT}"
+        "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/definition.ld"
+        "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/sections.ld"
     )

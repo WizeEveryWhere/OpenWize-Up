@@ -1,0 +1,87 @@
+#-------------------------------------------------------------------------------
+
+# Memory Partitions
+
+#-------------------------------------------------------------------------------
+## Flash Memory (512KB - 256 pages)
+ ___________________________________________________________________________
+|       |                                                                   |
+|   B   |                          USER                                     |
+|_______|___________________________________________________________________|
+
+- B (2 pages)      : BootStrap partition (p0, p1)
+- USER (254 pages) : User (usable) partition (p2 - p255)
+
+The USER part is further divide as follow :
+ ___________________________________________________________________________
+|                     |         |                     |                     |
+|         A           |    S    |         I0          |         I1          |
+|_____________________|_________|_____________________|_____________________|
+
+- A  : Active part
+- S  : Storage part 
+- I0 : Inactive part 0 
+- I1 : Inactive part 1
+
+- The Active part is where the application is executed. Application has to be 
+linked for this area. 
+- The Inactive parts 0 and 1 are used as "update" and "backup" area. 
+- Storage part is used by the application NVM to store permanent information.
+
+Partitioning table :
+___________________________________________________________________
+Id :   Start    |   End      |      Size        |     Pages        |
+---:------------|------------|------------------|------------------|     
+B  : 0x08000000 | 0x08000FFF | 0x01000  (4096)  | 2  (p0, p1)      |
+A  : 0x08001000 | 0x0802AFFF | 0x2A000 (172032) | 84 (p2 - p85)    |
+S  : 0x0802B000 | 0x0802BFFF | 0x01000  (4096)  | 2  (p86 , p87)   |
+I0 : 0x0802C000 | 0x08055FFF | 0x2A000 (172032) | 84 (p88 - p171)  |
+I1 : 0x08056000 | 0x0807FFFF | 0x2A000 (172032) | 84 (p172 - p255) | 
+-------------------------------------------------------------------|
+
+At the beginning of each Active and Inactive area 512 bytes are reserved for the 
+part header. The 512 bytes are not all used, but it's required for vector table
+alignment (for simplicity).
+
+The header is the following :
+ _______________________________________________________________
+|           :              :                                    |
+| Unique Id : Content Size :     Padding (126 x 0xFFFFFFFF)     |
+|___________:______________:____________________________________|
+ 
+Unique Id (4 bytes)    : magic numbers (one for I0 and one for I1) 
+Content Size (4 bytes) : content size, including the header (512 bytes)
+
+If the partition in not valid, then its "Unique Id" is set to a value not equal
+to the magic numbers.
+
+The Active partition is a copy of I0 or I1, consequently its "Unique Id" can be
+any of the two magic number.     
+
+#-------------------------------------------------------------------------------
+## RAM Memory (128KB + 32KB)
+
+            SRAM1 Memory (128KB)                 |  SRAM2 Memory (32KB)
+ _______________________________________________ | _________________
+|                                  |            | |                 |
+|              USER 1              |    EXCH    | |      USER 2     |
+|__________________________________|____________| |_________________|   
+
+- USER 1 : free to use
+- USER 2 : free to use
+- EXCH   : exchange area 
+
+The EXCH area is used by the bootstrap to "pass" or "exchange" information to 
+the currently running application.
+____________________________________________________________
+  Id   :   Start    |   End      |      Size        | Pages |
+-------:------------|------------|------------------|-------|     
+USER 1 : 0x20000000 | 0x2001EFFF | 0x1F000 (126976) |  62   |
+EXCH   : 0x2001F000 | 0x2001FFFF | 0x01000  (4096)  |   2   |
+USER 2 : 0x10000000 | 0x10000000 | 0x08000 (32768)  |  16   |
+------------------------------------------------------------|
+
+#-------------------------------------------------------------------------------
+## EEPROM Mapping (128KB)
+This memory is free to be used by application.
+

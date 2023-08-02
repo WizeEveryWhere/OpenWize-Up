@@ -44,6 +44,15 @@ extern "C" {
 /*******************************************************************************/
 
 /*!
+  * @brief This struct define a power line as gpio port and pin
+  */
+typedef struct pwr_line_s
+{
+	uint32_t u32Port; /*!< gpio port  */
+	uint16_t u16Pin;  /*!< gpio pin */
+} pwr_line_t;
+
+/*!
   * @brief This enum define the mask to set/clr the "power line"
   */
 typedef enum {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tns:ParamCfg xmlns:tns="http://www.grdf.fr/smart-solutions/TU/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.grdf.fr/smart-solutions/TU/1.0.0/Restrictions.xsd ">  
  <RestrictionList>
-    <!-- Warning : the Restriction value or Ordering are is not checked -->
+    <!-- Warning : the Restriction value or Ordering are not checked -->
      
     <!-- rtype is one of -->
     <!--     MODULO      -->
@@ -29,6 +29,7 @@
         100 110 120 130 140 150 
         <!-- RF_UPLINK_CHANNEL -->
         <!-- RF_DOWNLINK_CHANNEL -->
+        <!-- TEST_MODE_CHANNEL -->
     </Restriction>
     
     <Restriction id="02" rtype="RANGE" rsize="8BITS"> 
@@ -36,15 +37,16 @@
         <!-- RF_UPLINK_MOD -->
         <!-- RF_DOWNLINK_MOD -->
         <!-- TX POWER -->
+        <!-- TEST_MODE_MODULATION -->
     </Restriction>
 
     <Restriction id="03" rtype="RANGE" rsize="8BITS"> 
-        40 200 
+        40 229 
         <!-- L7_TRANSMIT_LEN-->
     </Restriction>
     
     <Restriction id="04" rtype="RANGE" rsize="8BITS"> 
-        50 200 
+        50 229 
         <!-- L7_RECEIVE_LEN-->
     </Restriction>
     

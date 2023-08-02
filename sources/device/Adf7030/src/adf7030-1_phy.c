@@ -1538,17 +1538,17 @@ uint8_t adf7030_1_HostSPI_Init(
     pSPIDevInfo->hDevInfo = (void *)pDevice;
 
     /* Handle to SPI device */
-    p_spi_dev_t hSPIDevice;
-//#warning "B: TO REWORK"
-    if( BSP_Spi_Open( (pSPIDevInfo->hSPIDevice) ) != DEV_SUCCESS )
+    p_spi_dev_t hSPIDevice = (p_spi_dev_t)pSPIDevInfo->hSPIDevice;
+    /* Setup SS high */
+    BSP_Gpio_SetHigh(hSPIDevice->ss_port, hSPIDevice->ss_pin);
+    /* Setup SS as output */
+    BSP_Gpio_OutputEnable(hSPIDevice->ss_port, hSPIDevice->ss_pin, 1);
+
+    if( BSP_Spi_Open( hSPIDevice ) != DEV_SUCCESS )
     {
         return 1;
     }
 
-    /* Save SPI device handle into ADF7030-1 instance SPI information */
-    //pSPIDevInfo->hSPIDevice = hSPIDevice;
-
-    /* FIXME : Set the default SPI clock rate */
     if(adf7030_1__SPI_SetSpeed(pSPIDevInfo, DEFAULT_SPI_RATE))
     {
         return 1;
@@ -1581,6 +1581,12 @@ uint8_t adf7030_1_HostSPI_UnInit(
     {
         return 1;
     }
+
+    /* Setup SS low */
+    BSP_Gpio_SetLow(hSPIDevice->ss_port, hSPIDevice->ss_pin);
+    /* Setup SS as analog */
+    BSP_Gpio_OutputEnable(hSPIDevice->ss_port, hSPIDevice->ss_pin, 0);
+
     /* Setup pointer to parent device information in opened SPI device info*/
     pDevice->SPIInfo.hDevInfo = NULL;
     return 0;

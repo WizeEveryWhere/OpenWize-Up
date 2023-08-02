@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ParamCfg xmlns:tns="http://www.grdf.fr/smart-solutions/TU/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.grdf.fr/smart-solutions/TU/1.0.0/Parameter.xsd "> 
+  
+<ParameterList>
+    <!-- ******************************************************************* -->
+    <!-- Test Mode Parameters -->
+    <!-- ******************************************************************* -->
+    <Parameter id="FA" loc="RW" rem="NA" size="1"
+               restr="01"
+               ref="REF_N" 
+               name="TEST_MODE_CHANNEL" 
+               desc="Get or Set the current test mode channel">
+        120</Parameter>
+    <Parameter id="FB" loc="RW" rem="NA" size="1" 
+               restr="02"
+               ref="REF_N" 
+               name="TEST_MODE_MODULATION" 
+               desc="Get or Set the current test mode modulation">
+          0</Parameter>
+</ParameterList>
+
+</tns:ParamCfg>

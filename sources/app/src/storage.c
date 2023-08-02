@@ -40,6 +40,9 @@ extern "C" {
 #include <string.h>
 #include "storage.h"
 
+DECLARE_FWINFO();
+DECLARE_HWINFO();
+
 /*!
  * @cond INTERNAL
  * @{
@@ -137,9 +140,15 @@ const device_id_t sDefaultDevId =
  */
 const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 {
-	[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
-	[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
-	[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
+		/*
+		[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
+		[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
+		[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
+		*/
+		// Correction values from Alciom measurement (2023/07/25)
+		[PHY_PMAX_minus_0db]  = {.coarse = 1, .fine = 0x25, .micro = 1}, //   0 dBm
+		[PHY_PMAX_minus_6db]  = {.coarse = 1, .fine = 0x11, .micro = 1}, //  -6 dBm
+		[PHY_PMAX_minus_12db] = {.coarse = 1, .fine = 0x09, .micro = 1}, // -12 dBm
 };
 
 /*!
@@ -180,6 +189,13 @@ const key_s sDefaultKey[KEY_MAX_NB] =
 		0xc3, 0x8e, 0x32, 0xee, 0xba, 0xa3, 0xc9, 0x9f,
 		0x4a, 0xe7, 0x0b, 0xfb, 0x2b, 0xb2, 0x53, 0x40,
 		0x25, 0x04, 0x85, 0x76, 0xe3, 0x81, 0xfe, 0xad
+	}},
+	[KEY_CHG_ID] = {
+	.key = {
+		0x51, 0x15, 0x1a, 0xb6, 0xa7, 0x47, 0x6b, 0xb1,
+		0x53, 0x44, 0x61, 0xdf, 0x67, 0xa0, 0x8b, 0x04,
+		0x38, 0x8c, 0xb2, 0x83, 0x96, 0x9c, 0xae, 0x27,
+		0x68, 0xe1, 0x2d, 0x0d, 0x83, 0xa4, 0x89, 0xbe
 	}}
 };
 
@@ -203,7 +219,9 @@ PERM_SECTION(".param") uint8_t boot_count;
 /*!
   * @brief Define the hard-coded flash address for the storage area
   */
-#define STORAGE_FLASH_ADDRESS  (0x08078000UL) // Page and double-word aligned
+extern unsigned int __nvm_org__;
+extern unsigned int _nvm_size;
+#define STORAGE_FLASH_ADDRESS (&__nvm_org__)
 
 /*!
   * @brief Pointer on the storage area n flash
@@ -216,9 +234,12 @@ struct _store_special_s
 {
 	device_id_t sDeviceInfo;
 	uint8_t     bPaState;
+	uint8_t     ND1;
 	int16_t     i16PhyRssiOffset;
-	uint8_t     aPhyCalRes[CAL_RES_SZ];
 	phy_power_t aPhyPower[PHY_NB_PWR];
+	uint8_t     ND2[3];
+	uint8_t     aPhyCalRes[CAL_RES_SZ] __attribute__ ((aligned(8)));
+	uint8_t     ND3[4];
 };
 
 /*!
@@ -235,17 +256,21 @@ void Storage_Init(uint8_t bForce)
 	if(bForce || pStorage_FlashArea->sHeader.u16Status == 0xFFFF)
 	{
 		Storage_SetDefault();
-		if ( Storage_Store() == 1)
+	}
+	else
+	{
+		if ( Storage_Get() == 1)
 		{
 			// error
-			printf("Flash : Failed to store ");
+			printf("Flash : Failed to read ");
 		}
 	}
-	if ( Storage_Get() == 1)
-	{
-		// error
-		printf("Flash : Failed to read ");
-	}
+
+	// Get some immutable parameters from default table
+	// VERS_HW_TRX
+	// VERS_FW_TRX
+	memcpy(&a_ParamValue[0], &sHwInfo.version[1], 2);
+	memcpy(&a_ParamValue[2], &sFwInfo.version[1], 2);
 }
 
 /*!
@@ -258,7 +283,7 @@ void Storage_SetDefault(void)
 {
 	WizeApi_SetDeviceId(&sDefaultDevId);
 	memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	Phy_SetPa(bDefaultPaState);
+	EX_PHY_SetPa(bDefaultPaState);
 	i16RssiOffsetCal = i16DefaultRssiOffsetCal;
 	Phy_ClrCal();
 	Param_Init(a_ParamDefault);
@@ -276,20 +301,52 @@ uint8_t Storage_Store(void)
 {
 	struct _store_special_s store_special;
 	struct storage_area_s sStorageArea;
-	// Prepare first part with device ID, phy power and rssi cal. values
-	WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
-	memcpy(&(store_special.aPhyPower), aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	store_special.bPaState = Phy_GetPa();
-	store_special.i16PhyRssiOffset = i16RssiOffsetCal;
-	Phy_GetCal(store_special.aPhyCalRes);
 
-	sStorageArea.u32SrcAddr[0] = (uint32_t)(&store_special);
-	sStorageArea.u32SrcAddr[1] = (uint32_t)(a_ParamValue);
-	sStorageArea.u32SrcAddr[2] = (uint32_t)(_a_Key_);
-	sStorageArea.u32Size[0] = sizeof(struct _store_special_s);
-	sStorageArea.u32Size[1] = PARAM_DEFAULT_SZ;
-	sStorageArea.u32Size[2] = sizeof(_a_Key_);
-	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;;
+	uint8_t u8ExtFlags = EXT_FLAGS_PHYCAL_WRITE_EN_MSK | EXT_FLAGS_IDENT_WRITE_EN_MSK | EXT_FLAGS_KEYS_WRITE_EN_MSK;
+
+	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
+
+	// Prepare first part with device ID, phy power and rssi cal. values
+	if(pStorage_FlashArea->sHeader.u16Status != 0xFFFF)
+	{
+#ifdef HAS_EXTEND_PARAMETER
+		Param_Access(EXTEND_FLAGS, &u8ExtFlags, 0);
+#endif
+
+		struct _store_special_s* p = ((struct _store_special_s*)sStorageArea.pFlashArea->sHeader.u32PartAddr[1]);
+		memcpy(&store_special,	p, sizeof(struct _store_special_s));
+
+		// Write key in Flash is forbidden
+		if( !(u8ExtFlags & EXT_FLAGS_KEYS_WRITE_EN_MSK))
+		{
+			// Get keys from storage area
+			memcpy(_a_Key_, (void*)sStorageArea.pFlashArea->sHeader.u32PartAddr[0], sizeof(_a_Key_));
+		}
+	}
+
+	// Write phy calibration in Flash is enable
+	if( (u8ExtFlags & EXT_FLAGS_PHYCAL_WRITE_EN_MSK))
+	{
+		memcpy(&(store_special.aPhyPower), aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
+		store_special.i16PhyRssiOffset = i16RssiOffsetCal;
+		Phy_GetCal(store_special.aPhyCalRes);
+	}
+	// Write ident in Flash is enable
+	if( (u8ExtFlags & EXT_FLAGS_IDENT_WRITE_EN_MSK))
+	{
+		WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
+	}
+
+	store_special.bPaState = EX_PHY_GetPa();
+
+	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
+	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
+	sStorageArea.u32SrcAddr[2] = (uint32_t)(a_ParamValue);
+
+	sStorageArea.u32Size[0] = sizeof(_a_Key_);
+	sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
+	sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
+
 	if ( FlashStorage_StoreInit(&sStorageArea) != DEV_SUCCESS)
 	{
 		return 1;
@@ -317,12 +374,14 @@ uint8_t Storage_Get(void)
 	struct _store_special_s store_special;
 	struct storage_area_s sStorageArea;
 
-	sStorageArea.u32SrcAddr[0] = (uint32_t)(&store_special);
-	sStorageArea.u32SrcAddr[1] = (uint32_t)(a_ParamValue);
-	sStorageArea.u32SrcAddr[2] = (uint32_t)(_a_Key_);
-	sStorageArea.u32Size[0] = sizeof(struct _store_special_s);
-	sStorageArea.u32Size[1] = PARAM_DEFAULT_SZ;
-	sStorageArea.u32Size[2] = sizeof(_a_Key_);
+	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
+	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
+	sStorageArea.u32SrcAddr[2] = (uint32_t)(a_ParamValue);
+
+	sStorageArea.u32Size[0] = sizeof(_a_Key_);
+	sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
+	sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
+
 	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;;
 	if ( FlashStorage_StoreRead(&sStorageArea) != DEV_SUCCESS)
 	{
@@ -332,7 +391,7 @@ uint8_t Storage_Get(void)
 	// Init special
 	WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
 	memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	Phy_SetPa(store_special.bPaState);
+	EX_PHY_SetPa(store_special.bPaState);
 	i16RssiOffsetCal = store_special.i16PhyRssiOffset;
 	Phy_SetCal(store_special.aPhyCalRes);
 	return 0;

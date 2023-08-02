@@ -13,6 +13,7 @@ target_sources(${MODULE_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/atci_get_cmd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/atci_resp.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/console.c
+        #${CMAKE_CURRENT_SOURCE_DIR}/src/atci_parser.c
     )
 
 # Add include dir    

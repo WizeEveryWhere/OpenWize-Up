@@ -45,7 +45,7 @@ extern "C" {
  * @{
  */
 
-#define STDOUT_UART_ID UART_ID_CONSOLE
+#define STDOUT_UART_ID UART_ID_LOG
 
 #define RTC_PREDIV_S 1023
 #define RTC_PREDIV_A 31
@@ -73,8 +73,8 @@ extern "C" {
  */
 typedef enum
 {
-	UART_ID_CONSOLE, /*!< Concole id */
-	UART_ID_COM,     /*!< Communication Id */
+	UART_ID_LOG, /*!< Logger id */
+	UART_ID_COM, /*!< Communication Id */
 	//
 	UART_ID_MAX
 } uart_id_e;
@@ -107,6 +107,19 @@ typedef enum
 	I2C_ID_MAX
 } i2c_id_e;
 #endif
+
+/*!
+  * @brief This enum define the power line id
+  */
+typedef enum {
+	//            9876543210
+	FE_ON     , /*!< FE */
+	PA_ON     , /*!< PA */
+	RF_ON     , /*!< RF */
+	INT_EEPROM, /*!< Internal EEPROM */
+	//
+	MAX_NB_POWER
+} pwr_id_e;
 
 #ifdef __cplusplus
 }
