@@ -33,7 +33,7 @@ option( USE_HAL_UART_REGISTER_CALLBACKS "Enable Register callback for UART" OFF 
 option( USE_HAL_USART_REGISTER_CALLBACKS "Enable Register callback for USART" OFF )
 option( USE_HAL_WWDG_REGISTER_CALLBACKS "Enable Register callback for WWDG" OFF )
 ### LL config
-option( USE_FULL_LL_DRIVER "Enable LL full driver" OFF )
+option( USE_FULL_LL_DRIVER "Enable LL full driver" ON )
 ### System Configuration
 set( HSE_VALUE "8000000U" )
 set( HSE_STARTUP_TIMEOUT "100U" )

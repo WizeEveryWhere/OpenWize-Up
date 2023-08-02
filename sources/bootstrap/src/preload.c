@@ -209,7 +209,7 @@ boot_request_e preload(register struct __exch_info_s * pp )
 
 	if (request > BOOT_REQ_LOCAL)
 	{
-		request = BOOT_REQ_LOCAL;
+		request = BOOT_REQ_NONE;
 	}
 	do_it = request;
 
