@@ -5,6 +5,7 @@
 #include <stm32l4xx_hal_rcc.h>
 
 /******************************************************************************/
+#include "trace.h"
 #include "preload.h"
 #include "swap.h"
 
@@ -24,18 +25,26 @@
             "r" (addr) \
            );
 
-
 static __attribute__ ((always_inline)) __attribute__ ((no_return))
 void NVIC_VectorReset(void)
 {
   __DSB();
   SCB->AIRCR  = (uint32_t)( (0x5FAUL << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_VECTRESET_Msk );
+  //SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) | SCB_AIRCR_SYSRESETREQ_Msk);
   __DSB();
   while(1) { __NOP(); }
 }
 
 static __attribute__ ((always_inline)) __attribute__ ((no_return))
 void reboot(void) { NVIC_VectorReset(); }
+
+void infinite_loop(void)
+{
+	register uint32_t cnt = 4000000;
+	TRACE(TRACE_MSG_FAILURE);
+	while (cnt) {__NOP(); cnt--; }
+	reboot();
+}
 
 static void init_protect(
 		register unsigned char dest_id,
@@ -97,7 +106,10 @@ void boot_strap(void)
 	register struct __exch_info_s* pp = (struct __exch_info_s *)&(__exchange_area_org__);
 	register boot_request_e do_it;
 
+	TRACE_INIT();
+
 	do_it = preload(pp);
+	TRACE(TRACE_MSG_ENTER);
 
 #ifdef HAS_CRC_COMPUTE
 	crc_init();
@@ -109,6 +121,8 @@ void boot_strap(void)
 
 	if (do_it == BOOT_REQ_UPDATE)
 	{
+		TRACE(TRACE_MSG_REQ_UPDATE);
+		TRACE(TRACE_MSG_SWAP);
 		swap(pp);
 	}
 	else
@@ -120,12 +134,25 @@ void boot_strap(void)
 			start = pp->src + HEADER_SZ;
 			// jump to app
 			SCB->VTOR = start;
+			TRACE(TRACE_MSG_REQ_NONE);
+			TRACE(TRACE_MSG_APP);
 		}
 		else // do_it == BOOT_REQ_LOCAL
 		{
+			if (do_it == BOOT_REQ_LOCAL)
+			{
+				TRACE(TRACE_MSG_REQ_LOCAL);
+			}
+			else
+			{
+				TRACE(TRACE_MSG_REQ_UNK);
+			}
+
+#ifdef HAS_2ND_STAGE_OR_SYS_BL
 			// 2nd Stage BL is required
 			if(pfBL_2ndStage)
 			{
+				TRACE(TRACE_MSG_BL2);
 				pfBL_2ndStage(pp);
 			}
 			else
@@ -135,11 +162,17 @@ void boot_strap(void)
 				start = SYSMEM_ADDRESS;
 			    __HAL_RCC_SYSCFG_CLK_ENABLE();
 			    MODIFY_REG(SYSCFG->MEMRMP, SYSCFG_MEMRMP_MEM_MODE, SYSCFG_MEMRMP_MEM_MODE_0);
+			    TRACE(TRACE_MSG_SYS);
 			}
+#else
+			// panic...try to generate hardfault
+			* (uint32_t *)(0xFFFFFFFF) = 0;
+#endif
 		}
 	    __set_MSP(*(volatile uint32_t*)start);
 	    JMP( (*(volatile uint32_t*)(start + 4)) );
 	}
+	TRACE(TRACE_MSG_REBOOT);
 	reboot();
 }
 

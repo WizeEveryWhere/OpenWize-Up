@@ -1,4 +1,6 @@
-#define INFINITE_LOOP() while (1) { }
+extern void infinite_loop(void);
+
+#define INFINITE_LOOP() infinite_loop()// while (1) { }
 
 void NMI_Handler(void) { INFINITE_LOOP(); }
 void HardFault_Handler(void)
