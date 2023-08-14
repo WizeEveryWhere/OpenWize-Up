@@ -1,0 +1,184 @@
+/**
+  * @file local_frm.h
+  * @brief // TODO This file ...
+  * 
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without 
+  * modification, are permitted (subject to the limitations in the disclaimer
+  * below) provided that the following conditions are met:
+  *    - Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *    - Redistributions in binary form must reproduce the above copyright 
+  *      notice, this list of conditions and the following disclaimer in the 
+  *      documentation and/or other materials provided with the distribution.
+  *    - Neither the name of GRDF, Inc. nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  *
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2023/04/26 [TODO: your name]
+  * Initial version
+  *
+  */
+#ifndef LOCAL_FRM_H_
+#define LOCAL_FRM_H_
+
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * data[245 max.]
+ * AES 128 CTR (KMob key)
+ * IV = CPUID (64 first bits) + BlkId
+ */
+
+#define DWN_ID_SZ    4
+#define BLK_ID_SZ    2
+#define BLK_SZ       210
+#define HASH_KMOB_SZ 4
+#define CPU_UID_SZ   8
+
+/******************************************************************************/
+/**** Local anndownload ****/
+
+/*!
+ * @brief This enumeration define error code when command is a ANN_DOWNLOAD
+ */
+typedef enum {
+	LO_DWN_ERR_NONE          = 0x00, /**< No error */
+	LO_DWN_ERR_VALUE         = 0x03, /**< One field value is illegal */
+
+
+	// ---
+	LO_DWN_ERR_ILLEGAL_VALUE = 0x81, /**< One field value is illegal */
+	LO_DWN_ERR_FRM_LEN       = 0x82, /**< The frame length is incorrect */
+	// ---
+	LO_DWN_ERR_INI_SW_VER    = 0x83, /**< The initial version is incorrect */
+	LO_DWN_ERR_HW_VER        = 0x84, /**< The HW version is incorrect */
+	// ---
+	LO_DWN_ERR_TGT_SW_VER    = 0x88, /**< The target SW version is incorrect */
+	LO_DWN_ERR_TGT_VER_DWL   = 0x89, /**< The target is already download */
+	LO_DWN_ERR_OUT_OF_WINDOW = 0x8A, /**< The command is out of window */
+	// ---
+	LO_DWN_ERR_SES_ID        = 0x91, /**< Mismatch with the ANN session id */
+	// ---
+	LO_DWN_ERR_BLK_ID        = 0x94, /**< The block ID is out of range */
+	LO_DWN_ERR_AUTH          = 0x95, /**< Authentication dosen't match */
+	LO_DWN_ERR_WRITE         = 0x96, /**< Write block Error */
+	LO_DWN_ERR_CORRUPTED     = 0x97, /**< The image is corrupted or uncompleted */
+	// ---
+	LO_DWN_ERR_MFIELD        = 0x98, /**< The MField is incorrect */
+	LO_DWN_ERR_BLK_CNT       = 0x99, /**< The number of block is incorrect */
+	// ---
+	LO_DWN_ERR_UNK           = 0xFF, /**< Other error */
+} local_dwn_err_code_e;
+
+
+/*!
+ * @brief This enumeration define the filed id in ANN_DOWNLOAD command
+ */
+typedef enum {
+	LO_ANN_FIELD_ID_DwnId,           /**< Download number */
+	LO_ANN_FIELD_ID_SwVersionIni,    /**< SW initial version */
+	LO_ANN_FIELD_ID_SwVersionTarget, /**< SW target version */
+	LO_ANN_FIELD_ID_MField,          /**< MField */
+	LO_ANN_FIELD_ID_HwVersion,       /**< HW version */
+	LO_ANN_FIELD_ID_BlockCount,      /**< Block number to download */
+	LO_ANN_FIELD_ID_HashSW,          /**< Hash on the entire SW to download */
+} local_ann_param_id_e;
+
+/*!
+ * @brief This struct defines the local command frame in case of ANN_DOWNLOAD command
+ */
+__attribute__((packed))
+typedef struct
+{
+	uint8_t DwnId[DWN_ID_SZ];   /**< The download session identification  */
+
+	uint8_t SwVersionIni[2];    /**< The expected initial SW version  */
+	uint8_t SwVersionTarget[2]; /**< The target SW version */
+
+	uint8_t MField[2];          /**< The expected MField */
+	uint8_t HwVersion[2];       /**< The expected HW version */
+
+	uint8_t BlockCount[BLK_ID_SZ];      /**< The number of block to download */
+	union {
+		uint8_t reserved[6];
+		struct
+		{
+			uint8_t DayRepeat;   /**< The number of repeat days */
+			uint8_t DeltaSec;    /**< The delta in second between SW block */
+			uint8_t DaysProg[4]; /**< Eppch of the programmed first day to download */
+		};
+	};
+
+	uint8_t HashSW[4];          /**< The Hash computed on the entire downloaded SW */
+} local_cmd_anndownload_t;
+
+/******************************************************************************/
+/**** Local writeblock ****/
+
+
+
+
+/*!
+ * @brief This struct defines the local command frame in case of WRITE_BLOCK command
+ */
+typedef struct
+{
+	uint8_t DwnId[DWN_ID_SZ];       /**< The download session identification */
+	uint8_t BlockId[BLK_ID_SZ];     /**< The block id */
+	uint8_t SwBlock[BLK_SZ];        /**< The block SW */
+	uint8_t HashKmob[HASH_KMOB_SZ]; /**<   */
+} local_cmd_writeblock_t;
+
+/******************************************************************************/
+/**** Local activateupdate ****/
+
+
+
+/*!
+ * @brief This struct defines the local command frame in case of ACTIVATE_UPDATE command
+ */
+typedef struct
+{
+	uint8_t DwnId[3];    /**< The download session identification  */
+} local_cmd_update_t;
+
+/******************************************************************************/
+/**** Local readbitmap ****/
+
+
+/*!
+ * @brief This struct defines the local command frame in case of READ_BITMAP command
+ */
+typedef struct {
+	uint8_t BlockCount[2];    /**<   */
+	uint8_t BlockBitmap[];    /**<   */
+} local_rsp_update_t;
+
+/******************************************************************************/
+/**** Local execping ****/
+
+
+/******************************************************************************/
+/******************************************************************************/
+
+uint8_t LocalFrm_Extract(uint8_t *pData, local_cmd_writeblock_t *pFrame, uint8_t u8KeyId);
+uint8_t LocalFrm_Build(local_cmd_writeblock_t *pFrame, uint8_t *pData, uint8_t u8KeyId);
+
+/******************************************************************************/
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LOCAL_FRM_H_ */
