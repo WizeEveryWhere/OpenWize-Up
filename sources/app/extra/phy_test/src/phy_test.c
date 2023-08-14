@@ -236,7 +236,8 @@ phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 			_test_set_io(eTestModeInfo.eTxMode, 1);
 			eTestSport.bGpioClk = 1;
 			eTestSport.bGpioData = 1;
-			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
+			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_READY, 0);
+			eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
 		}
 		eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
 	}
@@ -265,7 +266,7 @@ phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 inline void EX_PHY_SetCpy(void)
 {
 #ifdef HAS_CPY_PIN
-	BSP_GpioIt_SetGpioCpy(BSP_GpioIt_GetLineId(ADF7030_1_INT0_GPIO_PIN), IO1_GPIO_Port, IO1_Pin);
+	BSP_GpioIt_SetGpioCpy(BSP_GpioIt_GetLineId(ADF7030_1_INT0_GPIO_PIN), IOx0_GPIO_Port, IOx0_Pin);
 #else
 #warning HAS_CPY_PIN not defined
 #endif
