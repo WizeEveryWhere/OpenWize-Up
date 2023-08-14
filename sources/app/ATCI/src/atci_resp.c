@@ -100,6 +100,19 @@ const char* Atci_Get_Dbg_Str(atci_error_t error)
  * FUNCTIONS - AT responses
  *============================================================================*/
 
+const char *str[] =
+{
+	"+WAKEUP",
+	"+SLEEP",
+	"ERROR",
+	"OK",
+	"+DBG",
+	"NOTIFY",
+	"",
+	"",
+};
+
+
 /*!-----------------------------------------------------------------------------
  * @internal
  *

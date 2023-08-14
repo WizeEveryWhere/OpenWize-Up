@@ -336,37 +336,37 @@ atci_error_t Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
 
 	atciCmdData->cmdType = AT_CMD_WITHOUT_PARAM;
 
-	for (atciCmdData->idx = 0; atciCmdData->idx < atciCmdData->len;  atciCmdData->idx++)
+	for (atciCmdData->idx = 0; atciCmdData->idx < atciCmdData->pComRxBuf->len;  atciCmdData->idx++)
 	{
 		if (cmdLen >= AT_CMD_CODE_MAX_LEN)
 		{
 			cmdLen = 0;
 			break;
 		}
-		if (atciCmdData->buf[atciCmdData->idx] == CMD_READ_CHAR)
+		if (atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_READ_CHAR)
 		{
 			atciCmdData->cmdType = AT_CMD_READ_WITHOUT_PARAM;
 			atciCmdData->idx++;
 			break;
 		}
-		else if (atciCmdData->buf[atciCmdData->idx] == CMD_PARAM_CHAR)
+		else if (atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_PARAM_CHAR)
 		{
 			atciCmdData->cmdType = AT_CMD_WITH_PARAM_TO_GET;
 			atciCmdData->idx++;
 			break;
 		}
-		else if (atciCmdData->buf[atciCmdData->idx] == CMD_LF_CHAR)
+		else if (atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_LF_CHAR)
 		{
 			// bypass
 			//atciCmdData->idx++;
 		}
-		else if ((atciCmdData->buf[atciCmdData->idx] >= 'a') && (atciCmdData->buf[atciCmdData->idx] <= 'z'))
+		else if ((atciCmdData->pComRxBuf->data[atciCmdData->idx] >= 'a') && (atciCmdData->pComRxBuf->data[atciCmdData->idx] <= 'z'))
 		{
-			atciCmdData->cmdCodeStr[cmdLen++] = UPPERCASE(atciCmdData->buf[atciCmdData->idx]);
+			atciCmdData->cmdCodeStr[cmdLen++] = UPPERCASE(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 		}
 		else
 		{
-			atciCmdData->cmdCodeStr[cmdLen++] = atciCmdData->buf[atciCmdData->idx];
+			atciCmdData->cmdCodeStr[cmdLen++] = atciCmdData->pComRxBuf->data[atciCmdData->idx];
 		}
 	}
 
@@ -446,15 +446,15 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
 
 	val = 0;
 	atciCmdData->cmdType = AT_CMD_WITH_PARAM;
-	for(; atciCmdData->idx < atciCmdData->len; atciCmdData->idx++)
+	for(; atciCmdData->idx < atciCmdData->pComRxBuf->len; atciCmdData->idx++)
 	{
-		if(atciCmdData->buf[atciCmdData->idx] == CMD_SEP_CHAR)
+		if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_SEP_CHAR)
 		{
 			atciCmdData->cmdType = AT_CMD_WITH_PARAM_TO_GET;
 			atciCmdData->idx++;
 			break;
 		}
-		else if(atciCmdData->buf[atciCmdData->idx] == CMD_READ_CHAR)
+		else if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_READ_CHAR)
 		{
 			atciCmdData->cmdType = AT_CMD_READ_WITH_PARAM;
 			atciCmdData->idx++;
@@ -464,13 +464,13 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
 		switch(state)
 		{
 			case PARAM_WAIT_BEGIN:
-				if(atciCmdData->buf[atciCmdData->idx] == CMD_HEX_CHAR)
+				if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_HEX_CHAR)
 					state = PARAM_HEX;
-				else if(atciCmdData->buf[atciCmdData->idx] == CMD_NEG_CHAR)
+				else if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_NEG_CHAR)
 					state = PARAM_DEC_NEG;
 				else
 				{
-					data = decascii2nb(atciCmdData->buf[atciCmdData->idx]);
+					data = decascii2nb(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 					if(data != 0xFF)
 					{
 						state = PARAM_DEC;
@@ -481,7 +481,7 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
 
 			case PARAM_HEX:
 
-				data = hexascii2nibble(atciCmdData->buf[atciCmdData->idx]);
+				data = hexascii2nibble(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 				if(data != 0xFF)
 				{
 					if(nbNibbles == 0)
@@ -497,7 +497,7 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
 
 			case PARAM_DEC:
 
-				data = decascii2nb(atciCmdData->buf[atciCmdData->idx]);
+				data = decascii2nb(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 				if(data != 0xFF)
 				{
 					if(val > lastValUMax)
@@ -512,7 +512,7 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
 
 			case PARAM_DEC_NEG:
 
-				data = decascii2nb(atciCmdData->buf[atciCmdData->idx]);
+				data = decascii2nb(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 				if(data != 0xFF)
 				{
 					if(val > lastValSMax)
@@ -601,15 +601,15 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valL
 		return ATCI_ERR_PARAM_NB;
 
 	atciCmdData->cmdType = AT_CMD_WITH_PARAM;
-	for(; atciCmdData->idx < atciCmdData->len; atciCmdData->idx++)
+	for(; atciCmdData->idx < atciCmdData->pComRxBuf->len; atciCmdData->idx++)
 	{
-		if(atciCmdData->buf[atciCmdData->idx] == CMD_SEP_CHAR)
+		if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_SEP_CHAR)
 		{
 			atciCmdData->cmdType = AT_CMD_WITH_PARAM_TO_GET;
 			atciCmdData->idx++;
 			break;
 		}
-		else if(atciCmdData->buf[atciCmdData->idx] == CMD_READ_CHAR)
+		else if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_READ_CHAR)
 		{
 			atciCmdData->cmdType = AT_CMD_READ_WITH_PARAM;
 			atciCmdData->idx++;
@@ -619,13 +619,13 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valL
 		switch(state)
 		{
 			case PARAM_WAIT_BEGIN:
-				if(atciCmdData->buf[atciCmdData->idx] == CMD_HEX_CHAR)
+				if(atciCmdData->pComRxBuf->data[atciCmdData->idx] == CMD_HEX_CHAR)
 					state = PARAM_HEX;
 				break;
 
 			case PARAM_HEX:
 
-				data = hexascii2nibble(atciCmdData->buf[atciCmdData->idx]);
+				data = hexascii2nibble(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 				if(data != 0xFF)
 				{
 					if(nbBytes >= (AT_CMD_DATA_MAX_LEN-atciCmdData->paramsMemIdx))
@@ -640,7 +640,7 @@ atci_error_t Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valL
 
 			case PARAM_HEX_LSB:
 
-				data = hexascii2nibble(atciCmdData->buf[atciCmdData->idx]);
+				data = hexascii2nibble(atciCmdData->pComRxBuf->data[atciCmdData->idx]);
 				if(data != 0xFF)
 				{
 					atciCmdData->params[atciCmdData->nbParams].data[nbBytes] |= data;

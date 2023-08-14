@@ -118,7 +118,7 @@ void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo);
  * @retval ATCI_RX_ERR if buffer overflow or RX error
  * @retval ATCI_RX_CMD_TIMEOUT if no characters received for a specified time
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData);
+atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Clean reception in order to receive next command

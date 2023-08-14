@@ -38,6 +38,7 @@
 #define INC_ATCI_H_
 
 #include "version.h"
+#include "console.h"
 
 /*==============================================================================
  * DEFINES
@@ -296,8 +297,13 @@ typedef struct
 typedef struct
 {
 	// --- used as uart input buffer
-	uint8_t buf[AT_CMD_BUF_LEN];                  /*!< cmd data buffer used to receive cmd from UART */
-	uint16_t len;                                 /*!< cmd length in buffer */
+	//uint8_t buf[AT_CMD_BUF_LEN];                  /*!< cmd data buffer used to receive cmd from UART */
+	//uint16_t len;                                 /*!< cmd length in buffer */
+
+	console_buf_t *pComTxBuf;
+	console_buf_t *pComRxBuf;
+
+
 	// --- used to extract input command
 	uint16_t idx;                                 /*!< read index in buffer */
 	char cmdCodeStr[AT_CMD_CODE_MAX_LEN];         /*!< reformatted command code string */
@@ -309,6 +315,8 @@ typedef struct
 	// ---
 	uint8_t nbParams;                             /*!< number of command/response parameters */
 	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; /*!< command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters) */
+
+	void *hMutex;
 } atci_cmd_t;
 
 /*==============================================================================

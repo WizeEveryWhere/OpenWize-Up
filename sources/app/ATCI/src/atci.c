@@ -153,6 +153,9 @@ static uint8_t _init_lp_var_(void);
 
 extern uint8_t bTestMode;
 
+static uint32_t _u32_rx_cmd_tmo_;
+
+SYS_MUTEX_CREATE_DEF(atci);
 /*!
  * @}
  * @endcond
@@ -162,18 +165,6 @@ extern uint8_t bTestMode;
  * FUNCTIONS
  *============================================================================*/
 
-extern void* hLoItfTask;
-
-static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
-{
-	if (p_CbParam)
-	{
-		((atci_cmd_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
-	}
-	sys_flag_set_isr(hLoItfTask, evt);
-}
-
-static uint32_t _u32_rx_cmd_tmo_;
 /*!-----------------------------------------------------------------------------
  * @internal
  *
@@ -192,16 +183,16 @@ static uint32_t _u32_rx_cmd_tmo_;
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
+atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf)
 {
 	atci_status_t status = ATCI_RX_CMD_NONE;
 	uint32_t ulEvent;
 
-	atciCmdData->len = 0;
+	pComRxBuf->len = 0;
 
 	uint8_t ret = 0;
 	// ---
-	ret |= BSP_Uart_Receive(UART_ID_COM, atciCmdData->buf, (uint16_t)AT_CMD_BUF_LEN);
+	ret |= BSP_Uart_Receive(UART_ID_COM, pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN);
 	if ( ret == DEV_SUCCESS )
 	{
 		if ( sys_flag_wait(&ulEvent, _u32_rx_cmd_tmo_) )
@@ -209,19 +200,19 @@ atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
 			switch(ulEvent)
 			{
 				case UART_EVT_RX_ABT: // buffer overflow
-					if (atciCmdData->buf[atciCmdData->len] != END_OF_CMD_CHAR)
+					if (pComRxBuf->data[pComRxBuf->len] != END_OF_CMD_CHAR)
 					{
 						// If the last char is not the character match one
 						status = ATCI_RX_CMD_ERR;
 						break;
 					}
 				case UART_EVT_RX_CPLT:
-					if ( atciCmdData->len > AT_CMD_CODE_MIN_LEN )
+					if ( pComRxBuf->len > AT_CMD_CODE_MIN_LEN )
 					{
 						status = ATCI_RX_CMD_OK;
 					}
 					// Don't take the END_OF_CMD_CHAR
-					atciCmdData->len--;
+					pComRxBuf->len--;
 					break;
 				default:
 					break;
@@ -240,10 +231,18 @@ atci_status_t Atci_Rx_Cmd(atci_cmd_t *atciCmdData)
 static uint8_t _bPaState_;
 
 /******************************************************************************/
+extern console_buf_t consoleRxBuf;
+extern console_buf_t consoleTxBuf;
+
 void Atci_Init(atci_cmd_t *atciCmdData)
 {
-	Console_Init(END_OF_CMD_CHAR, _loitf_evt_, atciCmdData);
+	atciCmdData->pComTxBuf = &consoleTxBuf;
+	atciCmdData->pComRxBuf = &consoleRxBuf;
 
+	atciCmdData.hMutex = SYS_MUTEX_CREATE_CALL(atci);
+	assert(atciCmdData.hMutex);
+
+	Console_Init(END_OF_CMD_CHAR, &consoleRxBuf);
 	EX_PHY_SetCpy();
 	_bPaState_ = EX_PHY_GetPa();
 }
@@ -300,7 +299,7 @@ void Atci_Task(void const *argument)
 				break;
 			case ATCI_WAIT:
 			{
-				switch(Atci_Rx_Cmd(&atciCmdData))
+				switch(Atci_Rx_Cmd(atciCmdData.pComRxBuf))
 				{
 					case ATCI_RX_CMD_OK:
 						atciState = ATCI_EXEC_CMD;

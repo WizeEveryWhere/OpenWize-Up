@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "app_entry.h"
 #include "platform.h"
 
 #include "console.h"
@@ -65,6 +66,19 @@ console_buf_t consoleRxBuf;
  * FUNCTIONS - RX
  *=======================================================================================================*/
 
+extern void* hLoItfTask;
+static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
+{
+	if (p_CbParam)
+	{
+		((console_buf_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
+	}
+	if (hLoItfTask)
+	{
+		sys_flag_set_isr(hLoItfTask, evt);
+	}
+}
+
 /*!-----------------------------------------------------------------------------
  * @internal
  *
@@ -72,12 +86,12 @@ console_buf_t consoleRxBuf;
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-void Console_Init(const char cMatch, pfEvtCb_t const pfEvtCb, void *pCbParam)
+void Console_Init(const char cMatch, void *pCbParam)
 {
 	uint8_t ret;
 	// ---
 	ret = BSP_Uart_Init(UART_ID_COM, cMatch, UART_MODE_EOB);
-	ret |= BSP_Uart_SetCallback(UART_ID_COM, pfEvtCb, pCbParam);
+	ret |= BSP_Uart_SetCallback(UART_ID_COM, _loitf_evt_, pCbParam);
 	assert(ret == DEV_SUCCESS);
 }
 
@@ -105,10 +119,15 @@ void Console_Disable(void)
 	BSP_Uart_Close(UART_ID_COM);
 }
 
+/*
+void Console_Send(void)
+{
+	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
+}
+*/
 /*==============================================================================
  * FUNCTIONS - TX
  *============================================================================*/
-
 
 /*!-----------------------------------------------------------------------------
  * @internal

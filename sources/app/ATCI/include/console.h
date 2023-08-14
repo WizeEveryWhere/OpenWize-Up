@@ -76,7 +76,7 @@ typedef struct
  * @brief		Init the UART console
  *
  *----------------------------------------------------------------------------*/
-void Console_Init(const char cMatch, pfEvtCb_t const pfEvtCb, void *pCbParam);
+void Console_Init(const char cMatch, void *pCbParam);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Enable the UART console
@@ -131,7 +131,6 @@ void Console_Rx_Flush(void);
 /*==============================================================================
  * FUNCTIONS PROTOTYPES - TX
  *============================================================================*/
-
 
 /*!-----------------------------------------------------------------------------
  * @brief		Send byte to console
