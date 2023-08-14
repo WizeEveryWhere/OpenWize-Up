@@ -23,6 +23,7 @@ target_sources(${MODULE_NAME}
         gen/parameters_cfg.c
         gen/parameters_default.c
         update/update.c
+        update/update_area.c
     )
     
 # Add include dir    
