@@ -320,7 +320,8 @@ atci_error_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 		{
 			Atci_Debug_Param_Data("Set Fact Cfg. (RX TEST MODE)", atciCmdData);/////////
 
-			eTestModeInfo.eTestMode = PHY_TST_MODE_RX;
+			//eTestModeInfo.eTestMode = PHY_TST_MODE_RX;
+			eTestModeInfo.eTestMode = PHY_TST_MODE_PER_RX;
 			eTestModeInfo.eTxMode = 0;
 		}
 		else if(*(atciCmdData->params[0].val8) == TEST_MODE_RX_1)

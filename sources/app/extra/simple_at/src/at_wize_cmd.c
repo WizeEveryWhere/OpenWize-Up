@@ -192,6 +192,89 @@ atci_error_t Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_ERR_NONE;
 }
 
+atci_error_t Exec_ATSEND_Rsp(atci_cmd_t *atciCmdData, int32_t ret)
+{
+	uint8_t i;
+	// if session is complete without error and CMD is WRITE_PARAM
+	if ( ret > 0 )
+	{
+		if ( ret == 1)
+		{
+			// APP-ADMIN write command reception
+			// msg format: <cmd ID 1 (1 byte)><cmd val 1 (s1 bytes)>...<cmd ID n (1 byte)><cmd val n (sn bytes)>
+			atciCmdData->nbParams = 3;
+			atciCmdData->params[0].size = PARAM_INT8;
+			atciCmdData->params[2].size = PARAM_INT8;
+			atciCmdData->params[2].data = &(atciCmdData->paramsMem[AT_CMD_DATA_MAX_LEN-1]);
+
+			uint8_t size = WizeApp_GetAdmCmd(
+					//write RX message in params memory
+					atciCmdData->paramsMem,
+					//write RSSI in ???
+					atciCmdData->params[2].val8
+					);
+			if (size > 1)
+			{
+				i = 0;
+				while (i < size)
+				{
+					//get param ID (1st byte of received message)
+					atciCmdData->params[0].data = &(atciCmdData->paramsMem[i++]);
+					//get param Value (next bytes of received message)
+					atciCmdData->params[1].size = (uint16_t) Param_GetSize(*(atciCmdData->params[0].val8));
+					atciCmdData->params[1].data = &(atciCmdData->paramsMem[i]);
+					i += atciCmdData->params[1].size;
+
+					// send received APP-ADMIN WRITE command
+					Atci_Resp_Data("ATADMWRITE", atciCmdData);
+				}
+			}
+		}
+		else if ( ret == 2)
+		{
+			//send received APP-ADMIN ANN_DOWNLOAD command
+
+			//LocalItf_AdmAnnToAnn(pLocalAnn, pAnn);
+
+
+			Atci_Resp_Data("ATADMANN", atciCmdData);
+		}
+		else // if ( ret == 2)
+		{
+
+		}
+#if 0
+		// FIXME : The following is not Wize 1.0 compliant
+		//Response of the Wize message reception
+		Atci_Cmd_Param_Init(atciCmdData);
+		rxMsg.pData = atciCmdData->paramsMem; //write directly RX message in params memory
+		sta = WizeApi_GetAdmRsp(&rxMsg);
+		if (sta == WIZE_API_SUCCESS)
+		{
+			//TODO: Rx msg format to be verified
+			// msg format: <L6 App code (1 byte)>...<cL7 data (n bytes)>
+			//get L6 app code (1st byte of received message)
+			atciCmdData->params[0].size = PARAM_INT8;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+			//get L7 response message (next bytes of received message)
+			atciCmdData->params[1].size = rxMsg.u8Size - 1;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+			//get RSSI
+			atciCmdData->params[2].size = PARAM_INT8;
+			*(atciCmdData->params[2].val8) = rxMsg.u8Rssi;
+			Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+			//send received APP-ADMIN command
+			Atci_Resp_Data("ATRCV", atciCmdData);
+		}
+#warning "ATRCV is not available"
+#warning "ATRCV is not is not Wize rev. 1.2 compliant"
+#endif
+	}
+
+
+}
+
 /******************************************************************************/
 
 /*!-----------------------------------------------------------------------------
@@ -265,6 +348,37 @@ atci_error_t Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 	}
 	return ATCI_ERR_NONE;
 }
+
+atci_error_t Exec_ATPING_Rsp(atci_cmd_t *atciCmdData)
+{
+	uint8_t nbPong, i;
+
+	Param_Access(PING_NBFOUND, &nbPong, 0);
+	if(nbPong > 8)
+		nbPong = 8;
+
+	Atci_Cmd_Param_Init(atciCmdData);
+	atciCmdData->params[0].size = PARAM_INT8;
+	*(atciCmdData->params[0].val8) = nbPong;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+	Atci_Debug_Param_Data("Nb Pong", atciCmdData);
+
+	Atci_Cmd_Param_Init(atciCmdData);
+	atciCmdData->params[0].size = PARAM_INT8;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+	atciCmdData->params[1].size = 9;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+	for(i = 0; i < nbPong; i++)
+	{
+		*(atciCmdData->params[0].val8) = i;
+		Param_Access(PING_REPLY1+i, atciCmdData->params[1].data, 0);
+		Atci_Debug_Param_Data("INSTPONG", atciCmdData);
+
+	}
+	return ATCI_ERR_NONE;
+}
+
 
 /******************************************************************************/
 
