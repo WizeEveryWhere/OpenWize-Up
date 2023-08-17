@@ -57,41 +57,53 @@ extern "C" {
 #define UPDATE_REQ(update_req) ( (update_req <<  UPDATE_REQ_OFFSET) & UPDATE_REQ_MSK )
 
 /******************************************************************************/
+/*!
+ * @brief This
+ */
 typedef enum
 {
-	UPD_TYPE_INTERNAL  = 0,
-	UPD_TYPE_EXTERNAL  = 1,
-	UPD_TYPE_LOCAL     = 2,
+	UPD_TYPE_INTERNAL  = 0, /**<   */
+	UPD_TYPE_EXTERNAL  = 1, /**<   */
+	UPD_TYPE_LOCAL     = 2, /**<   */
 	// ---
 	UPD_TYPE_NB,
 } update_type_e;
 
+/*!
+ * @brief This
+ */
 typedef enum
 {
-	UPD_PEND_NONE      = 0x00,
-	UPD_PEND_INTERNAL  = 0x01,
-	UPD_PEND_EXTERNAL  = 0x02,
-	UPD_PEND_LOCAL     = 0x03,
+	UPD_PEND_NONE      = 0x00, /**<   */
+	UPD_PEND_INTERNAL  = 0x01, /**<   */
+	UPD_PEND_EXTERNAL  = 0x02, /**<   */
+	UPD_PEND_LOCAL     = 0x03, /**<   */
 	// ---
-	UPD_PEND_FORBIDDEN = 0x04,
+	UPD_PEND_FORBIDDEN = 0x04, /**<   */
 } pend_update_e;
 
+/*!
+ * @brief This
+ */
 typedef enum
 {
-	UPD_STATUS_UNK          = 0x00,
-	UPD_STATUS_SES_FAILED   = 0x01,
-	UPD_STATUS_STORE_FAILED = 0x02,
+	UPD_STATUS_UNK          = 0x00, /**<   */
+	UPD_STATUS_SES_FAILED   = 0x01, /**<   */
+	UPD_STATUS_STORE_FAILED = 0x02, /**<   */
 	// ---
-	UPD_STATUS_INPROGRESS   = 0x04,
+	UPD_STATUS_INPROGRESS   = 0x04, /**<   */
 	// ---
-	UPD_STATUS_INCOMPLETE   = 0x05,
-	UPD_STATUS_CORRUPTED    = 0x06,
-	UPD_STATUS_VALID        = 0x07,
+	UPD_STATUS_INCOMPLETE   = 0x05, /**<   */
+	UPD_STATUS_CORRUPTED    = 0x06, /**<   */
+	UPD_STATUS_VALID        = 0x07, /**<   */
 	// ---
-	UPD_STATUS_READY        = 0x08,
+	UPD_STATUS_READY        = 0x08, /**<   */
 	// ---
 } update_status_e;
 
+/*!
+ * @brief This
+ */
 struct update_itf_s
 {
 	uint8_t (*pfCheckAnnFW)(admin_ann_fw_info_t *pFwInfo, uint8_t *u8ErrorParam);
@@ -104,26 +116,33 @@ struct update_itf_s
 	uint8_t (*pfFini)(admin_ann_fw_info_t *pFwInfo, uint8_t *u8ErrorParam);
 };
 
+/*!
+ * @brief This
+ */
 struct update_ctx_s
 {
 	void            *hTask;
-	void            *hLock;         /*!< Pointer on lock */
-	pend_update_e   ePendUpdate;
-	update_status_e eUpdateStatus;
-	uint8_t         eErrCode;
-	uint8_t         eErrParam;
+	void            *hLock;        /**< Pointer on lock */
+	pend_update_e   ePendUpdate;   /**<   */
+	update_status_e eUpdateStatus; /**<   */
+	uint8_t         eErrCode;      /**<   */
+	uint8_t         eErrParam;     /**<   */
 
-	time_evt_t      sTimeEvt; /*!< Window timer */
-	uint32_t        u32Tmo;
+	time_evt_t      sTimeEvt;      /**< Window timer */
+	uint32_t        u32Tmo;        /**<   */
 
-	uint8_t         eType;
-	struct update_itf_s *pUpdateItf;
+	uint8_t         eType;         /**<   */
+	struct update_itf_s *pUpdateItf; /**<   */
 
-	admin_ann_fw_info_t sFwAnnInfo;
+	admin_ann_fw_info_t sFwAnnInfo; /**<   */
 } ;
 
 /******************************************************************************/
 void Update_Setup(void);
+int32_t Update_Open(admin_ann_fw_info_t sFwAnnInfo);
+int32_t Update_Close(void);
+int32_t Update_Store(uint16_t u16Id, const uint8_t *pData);
+
 //void Update_Task(void const * argument);
 
 /******************************************************************************/

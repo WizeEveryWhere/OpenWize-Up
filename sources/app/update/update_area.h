@@ -36,6 +36,8 @@ extern "C" {
 #include "update.h"
 
 update_status_e UpdateArea_Setup(void);
+update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt);
+update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t *pData);
 update_status_e UpdateArea_Finalize(uint32_t u32HashSW, uint32_t img_sz);
 update_status_e UpdateArea_CheckImg(uint32_t u32HashSW);
 update_status_e UpdateArea_WriteHeader(uint32_t img_sz);

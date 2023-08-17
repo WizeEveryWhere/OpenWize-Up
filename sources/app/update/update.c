@@ -40,7 +40,7 @@ extern "C" {
 admin_ann_fw_info_t sFwAnnInfo;
 struct update_ctx_s sUpdateCtx;
 
-extern void Update_Task(void const * argument);
+void Update_Task(void const * argument);
 #define UPDATE_TASK_NAME update
 #define UPDATE_TASK_FCT Update_Task
 #define UPDATE_STACK_SIZE 800
@@ -52,6 +52,13 @@ SYS_TASK_CREATE_DEF(update, UPDATE_STACK_SIZE, UPDATE_PRIORITY);
 	#define UPDATE_ACQUIRE_TIMEOUT() 5
 #endif
 SYS_BINSEM_CREATE_DEF(update);
+
+
+void Update_LogStatus(update_status_e eUpdateStatus);
+void Update_FsmInternal(uint32_t ulEvent);
+void Update_FsmExternal(uint32_t ulEvent);
+void Update_FsmLocal(uint32_t ulEvent);
+
 
 /******************************************************************************/
 void Update_Setup(void)
@@ -697,6 +704,7 @@ static update_status_e _update_dwn_start_(uint8_t bIntStorage, uint8_t bExtStora
 /******************************************************************************/
 // WizeCore App hooks functions
 /******************************************************************************/
+#if 0
 static void _adm_ann_to_fw_info_(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_anndownload_t *pAnn);
 
 
@@ -716,7 +724,7 @@ static void _adm_ann_to_fw_info_(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_annd
 	pFwAnnInfo->u32DaysProg = __ntohl( *(uint32_t*)(pAnn->L7DaysProg) );
 }
 
-#if 0
+
 
 uint8_t WizeApp_AnnCheckFwInfo(admin_cmd_anndownload_t *pAnn)
 {

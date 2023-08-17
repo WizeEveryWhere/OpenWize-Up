@@ -42,15 +42,17 @@ extern "C" {
 #endif
 
 /******************************************************************************/
-
+/*!
+ * @brief This
+ */
 struct update_area_s
 {
-	uint32_t u32MagicHeader;
-	uint32_t u32MagicTrailer;
-	uint32_t u32ImgAdd;
-	uint32_t u32ImgMaxSz;
-	uint32_t u32HeaderSz;
-	uint32_t bIsInit;
+	uint32_t u32MagicHeader;  /**<   */
+	uint32_t u32MagicTrailer; /**<   */
+	uint32_t u32ImgAdd;       /**<   */
+	uint32_t u32ImgMaxSz;     /**<   */
+	uint32_t u32HeaderSz;     /**<   */
+	uint32_t bIsInit;         /**<   */
 };
 
 /******************************************************************************/
