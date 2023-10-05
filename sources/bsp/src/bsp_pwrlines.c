@@ -38,6 +38,7 @@ extern "C" {
 #endif
 
 #include "bsp_pwrlines.h"
+#include "bsp_gpio.h"
 #include "platform.h"
 #include <stm32l4xx_hal.h>
 

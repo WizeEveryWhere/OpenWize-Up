@@ -365,11 +365,10 @@ uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
 		/* Enable the UART Parity Error interrupt and Data Register Not Empty interrupt */
 		itflags |= USART_CR1_PEIE | USART_CR1_RXNEIE;
 
-		//__HAL_UNLOCK(huart);
 		WRITE_REG(huart->Instance->CR1, itflags);
-		__HAL_UNLOCK(huart);
 
-		//__HAL_UART_SEND_REQ(huart, UART_MUTE_MODE_REQUEST);
+		__HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
+		__HAL_UNLOCK(huart);
 
 		HAL_NVIC_EnableIRQ(aDevUart[u8DevId].i8ItLine);
 		return DEV_SUCCESS;

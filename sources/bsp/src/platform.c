@@ -220,7 +220,6 @@ static struct rcc_clk_state_s _rcc_clk_state_;
 void BSP_LowPower_OnStopEnter(lp_mode_e eLpMode)
 {
 	(void)eLpMode;
-	int8_t i8LineId;
 	// Disable all peripheral except SRAM1/2,
 
 	// Save the current rcc clock state

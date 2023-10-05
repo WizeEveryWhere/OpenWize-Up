@@ -153,7 +153,8 @@ int __io_putchar(int ch){
 	uint16_t nb = 1;
 	if ((uint8_t)ch == '\n'){
 		nb = 2;
-		((uint8_t *)&ch)[1] = '\r';
+		((uint8_t *)&ch)[0] = '\r';
+		((uint8_t *)&ch)[1] = '\n';
 	}
 	HAL_UART_Transmit(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t *)&ch, nb, aDevUart[STDOUT_UART_ID].u32TxTmo);
 	return ch;
