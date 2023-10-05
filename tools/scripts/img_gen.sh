@@ -5,7 +5,7 @@ function help_me
 {
 cat << EOF
 #######################################################
-***             Build tha bootstrap                 ***
+***             Build the bootstrap                 ***
 mkdir -p _bootstrap_build
 cd _bootstrap_build
 cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_CFG=Bootstrap ../. 
