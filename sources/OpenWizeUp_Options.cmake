@@ -16,13 +16,7 @@ function(display_option)
     
     message ("      -> BUILD_STANDALAONE_APP           : ${BUILD_STANDALAONE_APP}")
     message ("      -> BUILD_NVM_BINARY                : ${BUILD_NVM_BINARY}")
-    
-    message ("      -> HAS_ATKEY_CMD                   : ${HAS_ATKEY_CMD}")
-    message ("      -> HAS_ATUID_CMD                   : ${HAS_ATUID_CMD}")
-    message ("      -> HAS_ATCCLK_CMD                  : ${HAS_ATCCLK_CMD}")
-    message ("      -> HAS_ATSTAT_CMD                  : ${HAS_ATSTAT_CMD}")
-    message ("      -> HAS_ATZn_CMD                    : ${HAS_ATZn_CMD}")
-    
+   
     message ("      -> HW_NAME         : ${HW_NAME}")
     message ("      -> HW_VENDOR       : ${HW_VENDOR}")
     message ("      -> HW_MODEL        : ${HW_MODEL}")
@@ -58,11 +52,6 @@ option(BUILD_STANDALAONE_APP             "Use this option when the bootstrap is 
 option(BUILD_NVM_BINARY                  "Build the non-volatile memory area content and produce a binary and elf files." OFF)
 
 # AT cmd option
-option(HAS_ATKEY_CMD                     "ATKENC and ATKMAC are replaced by the ATKEY unique command." ON)
-option(HAS_ATUID_CMD                     "AT%UID command is defined." ON)
-option(HAS_ATCCLK_CMD                    "AT%CCLK command is defined." ON)
-option(HAS_ATSTAT_CMD                    "AT%STAT command is defined." ON)
-option(HAS_ATZn_CMD                      "ATZ0 and ATZ1 command are defined." ON)
 
 # HW info
 set(HW_NAME    "WIZEUP" CACHE STRING "Define the board name print when ATI command is called.")
@@ -136,6 +125,10 @@ else(BUILD_STANDALAONE_APP)
     add_compile_definitions(HAS_CRC_COMPUTE=1)
 endif(BUILD_STANDALAONE_APP)
 
+if(LOWPOWER_DEBUG)
+    add_compile_definitions(LOWPOWER_DEBUG=1)
+endif(LOWPOWER_DEBUG)
+
 #-------------------------------------------------------------------------------
 if(BUILD_NVM_BINARY)
     add_compile_definitions(BUILD_NVM_BINARY=1)
@@ -143,25 +136,6 @@ endif(BUILD_NVM_BINARY)
 
 #-------------------------------------------------------------------------------
 # AT cmd option
-if(HAS_ATKEY_CMD)
-    add_compile_definitions(HAS_ATKEY_CMD=1)
-endif(HAS_ATKEY_CMD)
-
-if(HAS_ATUID_CMD)
-    add_compile_definitions(HAS_ATUID_CMD=1)
-endif(HAS_ATUID_CMD)
-
-if(HAS_ATSTAT_CMD)
-    add_compile_definitions(HAS_ATSTAT_CMD=1)
-endif(HAS_ATSTAT_CMD)
-
-if(HAS_ATCCLK_CMD)
-    add_compile_definitions(HAS_ATCCLK_CMD=1)
-endif(HAS_ATCCLK_CMD)
-
-if(HAS_ATZn_CMD)
-    add_compile_definitions(HAS_ATZn_CMD=1)
-endif(HAS_ATZn_CMD)
 
 #-------------------------------------------------------------------------------
 display_option()
