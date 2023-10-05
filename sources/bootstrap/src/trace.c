@@ -2,17 +2,17 @@
 #include "trace.h"
 #include "uart.h"
 
-#define msg_enter "\n\rBootstrap\n\r"
-#define msg_swap_enter "Swapping img\n\r"
-#define msg_br_app "Go to App\n\r"
-#define msg_reboot "Reboot\n\r"
-#define msg_failure "Failure\n\r"
-#define msg_br_bl2 "Go to BL2\n\r"
-#define msg_br_sys "Go to SYS\n\r"
-#define msg_req_0 "REQ_NONE\n\r"
-#define msg_req_1 "REQ_UPDATE\n\r"
-#define msg_req_2 "REQ_LOCAL\n\r"
-#define msg_req_x "REQ_?????\n\r"
+#define msg_enter "\r\nBootstrap\r\n"
+#define msg_swap_enter "Swapping img\r\n"
+#define msg_br_app "Go to App\r\n"
+#define msg_reboot "Reboot\r\n"
+#define msg_failure "Failure\r\n"
+#define msg_br_bl2 "Go to BL2\r\n"
+#define msg_br_sys "Go to SYS\r\n"
+#define msg_req_0 "REQ_NONE\r\n"
+#define msg_req_1 "REQ_UPDATE\r\n"
+#define msg_req_2 "REQ_LOCAL\r\n"
+#define msg_req_x "REQ_?????\r\n"
 
 static const char *trace_str[] =
 {

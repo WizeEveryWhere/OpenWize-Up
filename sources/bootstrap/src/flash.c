@@ -42,7 +42,7 @@ static void RAMFUNCTION hal_flash_restore_idcen(uint32_t acr)
 	SET_BIT(FLASH->ACR, (FLASH_ACR_ICRST | FLASH_ACR_DCRST ) );
 	CLEAR_BIT(FLASH->ACR, (FLASH_ACR_ICRST | FLASH_ACR_DCRST) );
 	// Enable the caches
-	SET_BIT(FLASH->ACR, (acr & ~(FLASH_ACR_ICEN | FLASH_ACR_DCEN) ) );
+	SET_BIT(FLASH->ACR, (acr & (FLASH_ACR_ICEN | FLASH_ACR_DCEN) ) );
 }
 
 static uint32_t RAMFUNCTION hal_flash_wait_last_op(uint32_t Timeout)

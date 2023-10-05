@@ -41,6 +41,8 @@ void crc_deinit(void)
 	CRC->CR |= CRC_CR_RESET;
 	// Reset IDR register content
 	CLEAR_BIT(CRC->IDR, CRC_IDR_IDR);
+	// Disable CRC clock
+	__HAL_RCC_CRC_CLK_DISABLE();
 }
 
 #if CRC_POLYLENGTH == CRC_POLYLENGTH_32B
