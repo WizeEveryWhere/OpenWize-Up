@@ -151,7 +151,7 @@ uint8_t adf7030_1_PulseWakup(
 )
 {
 	p_spi_dev_t pSpiDev;
-    uint8_t u8Level;
+    //uint8_t u8Level;
     if (pDevice == NULL) { return ADF7030_1_INVALID_OPERATION;}
 #ifdef TRIG_AS_WAKE_UP
     if( (pDevice->TrigGPIOInfo[ADF7030_1_TRIGPIN0].eTrigStatus != ENABLED) &&

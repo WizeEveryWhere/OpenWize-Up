@@ -59,6 +59,15 @@ extern "C" {
 #include "adf7030-1_phy_conv.h"
 #include "adf7030-1_phy_log.h"
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+#ifdef HAS_HIRES_TIME_MEAS
+extern void HiResTime_Capture(register uint8_t id);
+extern uint32_t HiResTime_Get(register uint8_t id);
+#endif
+
 #if defined (USE_PHY_LAYER_TRACE)
 #ifndef TRACE_PHY_LAYER
 #define TRACE_PHY_LAYER(...) fprintf (stdout, __VA_ARGS__ )
@@ -66,6 +75,11 @@ extern "C" {
 #else
 #define TRACE_PHY_LAYER(...)
 #endif
+
+/*!
+ * @}
+ * @endcond
+ */
 
 // The WM6400 modulation is not natively supported by the ADF7030 and must works in Raw Mode
 
@@ -1787,7 +1801,7 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 			pSPIDevInfo->eXferResult = 0;
 		}
 		else {
-			uint8_t i;
+			//uint8_t i;
 			switch(eCtl)
 			{
 				case PHY_CTL_SET_PA:

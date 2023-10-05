@@ -45,7 +45,7 @@ extern "C" {
 typedef struct adf7030_1_instance_error_debug_s
 {
     uint8_t instance_error_id;
-    const char ** instance_error_str;
+    const char * const * instance_error_str;
 } adf7030_1_instance_error_debug_t;
 
 /*!
@@ -54,7 +54,7 @@ typedef struct adf7030_1_instance_error_debug_s
 typedef struct adf7030_1_phy_error_debug_s
 {
     uint8_t phy_error_id;
-    const char ** phy_error_str;
+    const char * const * phy_error_str;
 } adf7030_1_phy_error_debug_t;
 
 
@@ -129,7 +129,7 @@ const char * const phy_error_msgs[] =
 /*!
    Instance error debug array.\n
 */
-adf7030_1_instance_error_debug_t instance_error_id[NUM_INSTANCE_ERROR] =
+static const adf7030_1_instance_error_debug_t instance_error_id_dbg[NUM_INSTANCE_ERROR] =
 {
     {ADF7030_1_SUCCESS, &(instance_error_msgs[0]) },
     {ADF7030_1_FAILURE, &(instance_error_msgs[1]) },
@@ -156,7 +156,7 @@ adf7030_1_instance_error_debug_t instance_error_id[NUM_INSTANCE_ERROR] =
 /*!
    PHY Radio error debug array.\n
 */
-adf7030_1_phy_error_debug_t phy_error_id[NUM_PHY_ERROR] =
+static const adf7030_1_phy_error_debug_t phy_error_id_dbg[NUM_PHY_ERROR] =
 {
         {0x00, &phy_error_msgs[0]},
         {0x01, &phy_error_msgs[1]},
@@ -225,15 +225,15 @@ const char* getErrMsg(adf7030_1_device_t* const pDevice)
     adf7030_1_res_e eResult = pSPIDevInfo->eXferResult;
 
     //const char **ppError = instance_error_id[0].instance_error_str;
-    const char **ppError = phy_error_id[29].phy_error_str;
+    const char * const *ppError = phy_error_id_dbg[29].phy_error_str;
 
     if(eResult == ADF7030_1_HW_ERROR)
     {
         for(int j=0; j < NUM_PHY_ERROR; j++)
         {
-            if(phy_error_id[j].phy_error_id == pSPIDevInfo->ePhyError)
+            if(phy_error_id_dbg[j].phy_error_id == pSPIDevInfo->ePhyError)
             {
-                ppError = phy_error_id[j].phy_error_str;
+                ppError = phy_error_id_dbg[j].phy_error_str;
                 break;
             }
         }
@@ -243,9 +243,9 @@ const char* getErrMsg(adf7030_1_device_t* const pDevice)
         for(int i=0; i < NUM_INSTANCE_ERROR; i++)
         {
             /* Display Instance ERROR message */
-            if(instance_error_id[i].instance_error_id == (uint8_t)eResult)
+            if(instance_error_id_dbg[i].instance_error_id == (uint8_t)eResult)
             {
-                ppError = instance_error_id[i].instance_error_str;
+                ppError = instance_error_id_dbg[i].instance_error_str;
                 break;
             }
         }
