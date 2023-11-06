@@ -28,7 +28,7 @@
   */
 
 /*!
- *  @addtogroup extra
+ *  @addtogroup itf
  *  @ingroup app
  *  @{
  */
@@ -42,6 +42,10 @@ extern "C" {
 #include "platform.h"
 #include "bsp_pwrlines.h"
 #include "default_device_config.h"
+
+#include "parameters_cfg.h"
+#include "parameters.h"
+
 
 /*! @cond INTERNAL @{ */
 
@@ -192,6 +196,28 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 }
 
 /*!
+ * @static
+ * @brief		Get a default test mode structure
+ *
+ * @return initialized tes_mode_info_t structure
+ */
+test_mode_info_t EX_PHY_TestInit(void)
+{
+	test_mode_info_t eTestModeInfo;
+	uint8_t t;
+	// Init test variable
+	eTestModeInfo.eTestMode = PHY_TST_MODE_NONE;
+	eTestModeInfo.eTxMode = TMODE_TX_NONE;
+
+	Param_Access(TEST_MODE_CHANNEL, &t, 0);
+	if (!t)	{ t = 120; }
+	eTestModeInfo.eChannel = (phy_chan_e)((t -100)/10);
+	Param_Access(TEST_MODE_MODULATION, &t, 0);
+	eTestModeInfo.eModulation = (phy_mod_e)t;
+	return eTestModeInfo;
+}
+
+/*!
   * @brief Initialize the PHY test
   *
   * @param [in] eMode PHY test mode (see  phy_test_mode_e)
@@ -229,31 +255,38 @@ phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 
 	if (eTestModeInfo.eTestMode && eStatus == PHY_STATUS_OK)
 	{
-		// RX mode
-		if (eTestModeInfo.eTestMode < PHY_TST_MODE_TX )
+		// CLKOUT mode
+		if (eTestModeInfo.eTestMode == PHY_TST_MODE_CLKOUT )
 		{
-			// Enable IT
-			_test_set_io(eTestModeInfo.eTxMode, 1);
 			eTestSport.bGpioClk = 1;
-			eTestSport.bGpioData = 1;
 			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_READY, 0);
-			eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
+			eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_CLKOUT, eTestSport.testSport);
 		}
-		eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
+		else
+		{
+			// RX mode
+			if (eTestModeInfo.eTestMode < PHY_TST_MODE_TX )
+			{
+				// Enable IT
+				_test_set_io(eTestModeInfo.eTxMode, 1);
+				eTestSport.bGpioClk = 1;
+				eTestSport.bGpioData = 1;
+				eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_READY, 0);
+				eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
+			}
+			eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
+		}
 	}
 
 	if ( (!eTestModeInfo.eTestMode) || (eStatus != PHY_STATUS_OK) )
 	{
-		// RX mode
-		if (eTestModeInfo.eTestMode < PHY_TST_MODE_TX )
+		if ( eTestSport.bGpioClk || eTestSport.bGpioData)
 		{
 			// Disable IT
 			_test_set_io(eTestModeInfo.eTxMode, 0);
 			eTestSport.bGpioClk = 0;
 			eTestSport.bGpioData = 0;
-			eStatus = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_SPORT, eTestSport.testSport);
 		}
-		eStatus |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEST, eTestModeInfo.testMode);
 		sPhyDev.pIf->pfUnInit(&sPhyDev);
 	}
 	return eTestModeInfo.eTestMode;
@@ -327,11 +360,13 @@ inline int32_t EX_PHY_GetPa(void)
  * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
  *
  */
-inline int32_t EX_PHY_RssiCalibrate(int8_t i8RssiRefLevel)
+inline int32_t EX_PHY_RssiCalibrate(void)
 {
 	int32_t i32Ret;
+	int8_t level;
+	Param_Access(TEST_MODE_RSSI_CAL_REF, (uint8_t*)(&level), 0);
 	EX_PHY_OnOff(1);
-	i32Ret = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_RSSI_CAL, (uint32_t)i8RssiRefLevel);
+	i32Ret = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_RSSI_CAL, (uint32_t)level);
 	EX_PHY_OnOff(0);
 	return i32Ret;
 }

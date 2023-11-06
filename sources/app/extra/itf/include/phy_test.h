@@ -28,13 +28,13 @@
   */
 
 /*!
- *  @addtogroup extra
+ *  @addtogroup itf
  *  @ingroup app
  *  @{
  */
  
-#ifndef _EXTRA_PHY_PHY_TEST_H_
-#define _EXTRA_PHY_PHY_TEST_H_
+#ifndef _ITF_PHY_TEST_H_
+#define _ITF_PHY_TEST_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,13 +44,16 @@ extern "C" {
 
 #include "phy_layer_private.h"
 
+test_mode_info_t EX_PHY_TestInit(void);
 phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo);
+
+
 void EX_PHY_SetCpy(void);
 
 void EX_PHY_OnOff(uint8_t bOn);
 void EX_PHY_SetPa(uint8_t bEnable);
 int32_t EX_PHY_GetPa(void);
-int32_t EX_PHY_RssiCalibrate(int8_t i8RssiRefLevel);
+int32_t EX_PHY_RssiCalibrate(void);
 int32_t EX_PHY_AutoCalibrate(void);
 int32_t EX_PHY_SetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
 int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
@@ -58,6 +61,6 @@ int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
 #ifdef __cplusplus
 }
 #endif
-#endif /* _EXTRA_PHY_PHY_TEST_H_ */
+#endif /* _ITF_PHY_TEST_H_ */
 
 /*! @} */

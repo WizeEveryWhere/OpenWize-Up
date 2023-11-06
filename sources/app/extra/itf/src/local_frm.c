@@ -21,20 +21,26 @@
   *
   * @par Revision history
   *
-  * @par 1.0.0 : 2023/04/28 [TODO: your name]
+  * @par 1.0.0 : 2023/04/28 [GBI]
   * Initial version
   *
   */
 
-#include "local_frm.h"
-#include <string.h>
-
-//#include "crypto.h"
-#include "wize_app.h"
+/*!
+ *  @addtogroup itf
+ *  @ingroup app
+ *  @{
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "local_frm.h"
+#include <string.h>
+
+#include "crypto.h"
+#include "wize_app.h"
 
 /******************************************************************************/
 
@@ -52,6 +58,16 @@ static inline void _ctr_next_(uint8_t *pCtr, uint8_t BlockId[BLK_ID_SZ]);
  */
 
 /******************************************************************************/
+/*!
+  * @brief  This
+  *
+  * @param [out] pData
+  * @param [in]  pFrame
+  * @param [in]  u8KeyId
+  *
+  * @retval  (see local_dwn_err_code_e)
+  *
+  */
 uint8_t LocalFrm_Extract(uint8_t *pData, local_cmd_writeblock_t *pFrame, uint8_t u8KeyId)
 {
 	uint8_t pCtr[CTR_SIZE];
@@ -90,6 +106,16 @@ uint8_t LocalFrm_Extract(uint8_t *pData, local_cmd_writeblock_t *pFrame, uint8_t
     return LO_DWN_ERR_NONE;
 }
 
+/*!
+  * @brief  This
+  *
+  * @param [out] pFrame
+  * @param [in]  pData
+  * @param [in]  u8KeyId
+  *
+  * @retval  (see local_dwn_err_code_e)
+  *
+  */
 uint8_t LocalFrm_Build(local_cmd_writeblock_t *pFrame, uint8_t *pData, uint8_t u8KeyId)
 {
 	uint8_t pCtr[CTR_SIZE];
@@ -133,6 +159,13 @@ uint8_t LocalFrm_Build(local_cmd_writeblock_t *pFrame, uint8_t *pData, uint8_t u
  * @{
  */
 
+/*!
+ * @static
+ * @brief  This
+ *
+ * @param [in,out] pCtr
+ *
+ */
 static
 void _ctr_preset_(uint8_t *pCtr)
 {
@@ -142,6 +175,14 @@ void _ctr_preset_(uint8_t *pCtr)
 	memset(p, 0x00, CTR_SIZE - MFIELD_SZ - AFIELD_SZ);
 }
 
+/*!
+ * @static
+ * @brief  This
+ *
+ * @param [in,out] pCtr
+ * @param [in,out] BlockId
+ *
+ */
 static inline
 void _ctr_next_(uint8_t *pCtr, uint8_t BlockId[BLK_ID_SZ])
 {
@@ -158,3 +199,5 @@ void _ctr_next_(uint8_t *pCtr, uint8_t BlockId[BLK_ID_SZ])
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

@@ -21,18 +21,24 @@
   *
   * @par Revision history
   *
-  * @par 1.0.0 : 2023/04/26 [TODO: your name]
+  * @par 1.0.0 : 2023/04/26 [GBI]
   * Initial version
   *
   */
-#ifndef LOCAL_FRM_H_
-#define LOCAL_FRM_H_
 
-#include <stdint.h>
+/*!
+ *  @addtogroup itf
+ *  @ingroup app
+ *  @{
+ */
 
+#ifndef _ITF_LOCAL_FRM_H_
+#define _ITF_LOCAL_FRM_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
 
 /*
  * data[245 max.]
@@ -98,9 +104,9 @@ typedef enum {
 /*!
  * @brief This struct defines the local command frame in case of ANN_DOWNLOAD command
  */
-__attribute__((packed))
-typedef struct
+typedef struct __attribute__((packed))
 {
+	//uint8_t Type;               /**< The FW type  */
 	uint8_t DwnId[DWN_ID_SZ];   /**< The download session identification  */
 
 	uint8_t SwVersionIni[2];    /**< The expected initial SW version  */
@@ -150,7 +156,7 @@ typedef struct
  */
 typedef struct
 {
-	uint8_t DwnId[3];    /**< The download session identification  */
+	uint8_t DwnId[DWN_ID_SZ];    /**< The download session identification  */
 } local_cmd_update_t;
 
 /******************************************************************************/
@@ -181,4 +187,6 @@ uint8_t LocalFrm_Build(local_cmd_writeblock_t *pFrame, uint8_t *pData, uint8_t u
 }
 #endif
 
-#endif /* LOCAL_FRM_H_ */
+#endif /* _ITF_LOCAL_FRM_H_ */
+
+/*! @} */
