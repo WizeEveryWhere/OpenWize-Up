@@ -63,6 +63,9 @@ void HAL_MspInit(void)
 	#if defined (TIM3)
 		__HAL_DBGMCU_FREEZE_TIM3();
 	#endif
+	#if defined (TIM15)
+		__HAL_DBGMCU_FREEZE_TIM15();
+	#endif
 	#if defined(HAL_IWDG_MODULE_ENABLED)
 		__HAL_DBGMCU_FREEZE_IWDG();
 	#endif

@@ -12,7 +12,6 @@ target_sources(${MODULE_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_msp.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_timebase_tim.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_hires_time.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_it.c
         ${CMAKE_CURRENT_SOURCE_DIR}/startup/${STARTUP}
     )
