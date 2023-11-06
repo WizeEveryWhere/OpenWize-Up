@@ -5,7 +5,6 @@ set(BOARD_NAME "Alciom Wize'Up Board")
 set(APP_NAME "Bootstrap")
 
 add_compile_options(-Wall -ffunction-sections -fdata-sections -fstack-usage)
-add_compile_definitions(USE_FULL_LL_DRIVER)
 
 ################################################################################
 # Set Coss compile
