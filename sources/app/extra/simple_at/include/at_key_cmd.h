@@ -21,10 +21,17 @@
   *
   * @par Revision history
   *
-  * @par 1.0.0 : 2023/05/03 [TODO: your name]
+  * @par 1.0.0 : 2023/05/03 [GBI]
   * Initial version
   *
   */
+
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
+
 #ifndef AT_KEY_CMD_H_
 #define AT_KEY_CMD_H_
 
@@ -35,15 +42,30 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
-#ifdef HAS_ATKEY_CMD
-	atci_error_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
-#else //ifndef HAS_ATKEY_CMD
-	atci_error_t Exec_ATKMAC_Cmd(atci_cmd_t *atciCmdData);
-	atci_error_t Exec_ATKENC_Cmd(atci_cmd_t *atciCmdData);
-#endif
+/*!
+ * @brief		Execute ATKEY command (Modify the value of one key)
+ *
+ * @details		ATKEY command is a write only command:
+ *
+ * "ATKEY=<id>,<key>"
+ * @parblock
+ * @li id is the key number (decimal or hexadecimal 1 byte number)
+ * @li key is a 16 or 32 bytes key (32 bytes KEY but only the 16 1st bytes uses) and must be written in hexadecimal format (with "$" char)
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* AT_KEY_CMD_H_ */
+
+/*! @} */
