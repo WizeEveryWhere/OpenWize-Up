@@ -154,7 +154,7 @@ const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 /*!
  * @brief This hold (hard-coded) the default phy rssi offset
  */
-const int16_t i16DefaultRssiOffsetCal = 0;
+const int16_t i16DefaultRssiOffsetCal = 0x3C7;
 
 /*!
  * @brief This hold (hard-coded) the default PA state
