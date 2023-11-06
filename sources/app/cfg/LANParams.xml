@@ -28,7 +28,8 @@
     <!-- max                     -  255  -->
 
     <!-- ******************************************************************* -->
-    <!-- LAN Parameters -->
+    <!-- LAN Parameters id="01" to  id="3E" -->
+    <!-- Note : The Wize 1.2 specification reserve id="00" to id="5F" -->
     <!-- ******************************************************************* -->
     <Parameter id="01" loc="RO" rem="RO" size="2" 
                name="VERS_HW_TRX" 

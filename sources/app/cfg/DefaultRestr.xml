@@ -42,17 +42,22 @@
 
     <Restriction id="03" rtype="RANGE" rsize="8BITS"> 
         40 229 
-        <!-- L7_TRANSMIT_LEN-->
+        <!-- L7_TRANSMIT_LEN -->
     </Restriction>
     
     <Restriction id="04" rtype="RANGE" rsize="8BITS"> 
         50 229 
-        <!-- L7_RECEIVE_LEN-->
+        <!-- L7_RECEIVE_LEN -->
     </Restriction>
     
     <Restriction id="05" rtype="RANGE" rsize="8BITS"> 
         0 14 
-        <!-- CIPH_CURRENT_KEY-->
+        <!-- CIPH_CURRENT_KEY -->
+    </Restriction>
+
+    <Restriction id="06" rtype="RANGE" rsize="8BITS"> 
+        0 19 
+        <!-- LOCAL_KEY_ID -->
     </Restriction>
     
  </RestrictionList>

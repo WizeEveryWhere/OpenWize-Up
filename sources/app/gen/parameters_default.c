@@ -1,6 +1,6 @@
 /*!
   * @file parameters_default.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-07-27 14:50:34.283474634 +0200).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-06 18:12:38.179445304 +0100).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 27/07/2023 14:50 [neo]
+  * @par x.x.x : 06/11/2023 18:12 [neo]
   *
   */
 
@@ -72,25 +72,27 @@ const uint8_t a_ParamDefault[] = {
    0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown)*/
    0x6, /*!< Periodic time of execping sending by the device, in months*/
    0x0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] if 1: Activate the WDT (bootcount for roll-back FW); b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM;*/
-   0x0,0x7d, /*!< Clock and Frequency Offset Auto-Adjustment. MSB : control, LSB : RSSI min. level (see struct adm_config_s).*/
-   0x0, /*!< ADM ANN Reception Filter disable (see struct adm_config_s)*/
-   0x0, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s)*/
-   0x0, /*!< ADM Key Change Reception Filter disable (see struct adm_config_s)*/
-   0x0,0xd,0x2f,0x0, /*!< Minimum delay between the AnnDownload and the day of the first block (see struct adm_config_s)*/
-   0x0,0x4f,0x1a,0x0, /*!< Maximum delay between the AnnDownload and the day of the first block (see struct adm_config_s)*/
-   0x0,0x0,0x38,0x40, /*!< Maintenance Window duration in second from 00:00:00 UTC (see struct adm_config_s)*/
+   0x0, /*!< Get or Set the local key id.*/
+   0x0,0x7d, /*!< Clock and Frequency Offset Auto-Adjustment (see struct adm_config_s). MSB : control, b[0] : Coarse clock auto-adjust on PONG. 1: enable, 0: disable b[1] : Reserved b[2] : Frequency Offset auto-adjust on PONG. 1: enable, 0: disable b[3] : Reserved b[4] : Coarse clock auto-adjust on PONG appliance 1: One Shot, 0: Every time b[5] : Adjust error due to the Gateway on clock auto-adjust 1: Enable, 0: Disable b[6] : Frequency Offset auto-adjust on PONG appliance. 1: One Shot, 0: Every time b[7] : Reserved LSB : RSSI min. level.*/
+   0x0, /*!< ADM ANN Reception Filter disable (see struct adm_config_s) b[0] : Day Prog. filter. 0: enable, 1: disable b[1] : Delta Second filter. 0: enable, 1: disable b[2] : HW ver.filter. 0: enable, 1: disable b[3] : SW Ver. Initial filter. 0: enable, 1: disable b[4] : SW Ver. Target filter. 0: enable, 1: disable b[5] : Max. Block Number filter. 0: enable, 1: disable b[6:7] : Reserved*/
+   0x0, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s) b[0] : Read parameter WO filter. 0: enable, 1: disable b[1] : Write parameter RO filter. 0: enable, 1: disable b[2:7] : Reserved*/
+   0x0, /*!< ADM Key Change Reception Filter disable (see struct adm_config_s) b[0] : Write Key id filter. 0: enable, 1: disable b[1] : Key chg filter. 0: enable, 1: disable b[2:7] : Reserved*/
+   0x0,0xd,0x2f,0x0, /*!< Minimum delay in second between the AnnDownload and the day of the first block (see struct adm_config_s)*/
+   0x0,0x4f,0x1a,0x0, /*!< Maximum delay in second between the AnnDownload and the day of the first block (see struct adm_config_s)*/
+   0x0,0x0,0x38,0x40, /*!< Maintenance Window duration in second from 00:00:00 UTC (see struct adm_config_s). Set to 0, means no maintenance Window.*/
    0x0,0x0,0x0,0xa, /*!< Minimum deltaSec accepted in second (see struct adm_config_s)*/
    0x0,0x0,0x3,0xe8, /*!< Duration of one block in ms (see struct adm_config_s)*/
    0x0,0x0,0x3,0x2e, /*!< Maximum number of block accepted (see struct adm_config_s)*/
    0x0,0x0, /*!< Offset to start RX before (in ms) (MSB first, Signed number limited to +/-63ms).*/
    0x0,0x0, /*!< Offset to start RX before (in ms) (MSB first, Signed number limited to +/-1000ms).*/
-   0x0, /*!< L2 Reception Filter disable (see struct proto_config_s)*/
-   0x0, /*!< L6 Reception Filter disable (see struct proto_config_s)*/
+   0x0, /*!< L2 Reception Filter disable (see struct proto_config_s) b[0] : Crc filter. 0: enable, 1: disable b[1] : Afield filter. 0: enable, 1: disable b[2] : MField filter. 0: enable, 1: disable b[3] : CiFiled filter. 0: enable, 1: disable b[4] : DownId filter. 0: enable, 1: disable b[5:7] : Reserved*/
+   0x0, /*!< L6 Reception Filter disable (see struct proto_config_s) b[0] : Reserved b[1] : HashKmac filter. 0: enable, 1: disable b[2] : HashKenc filter. 0: enable, 1: disable b[3] : L6NetId filter. 0: enable, 1: disable b[4:7] : Reserved*/
+   '-',  /*!< Get or Set the input RF power (dB) applied to calibrate the RSSI.*/
    0x78, /*!< Get or Set the current test mode channel*/
    0x0, /*!< Get or Set the current test mode modulation*/
-   0x51, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay without activity to go in low power mode (0 : manual only).*/
+   0x51, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay (in second) without activity to go in low power mode (0 : manual only).*/
    0x0, /*!< Get or Set the Logger level (see logger_level_e for details)*/
-   0x0, /*!< Get or Set the Logger time (Unix EPOCH) option (see logger_tstamp_e for details). [b0] : Enable (1) / Disable (0); [b1] : If set : Extended with millisecond; [b2] : If set : Truncated on 5 digits; [b3-b6] Reserved; [b7] Enable/Disable Color.*/
+   0x0, /*!< Get or Set the Logger time (Unix EPOCH) option (see logger_tstamp_e for details). [b0] : Enable (1) / Disable (0); [b1] : If set : Extended with millisecond; [b2] : If set : Truncated on 5 digits; [b3-b6] Reserved; [b7] : Enable/Disable Color.*/
    };
 
 /******************************************************************************/
@@ -99,4 +101,5 @@ const uint8_t a_RANGE_02[2] = { 0, 2, };
 const uint8_t a_RANGE_03[2] = { 40, 229, };
 const uint8_t a_RANGE_04[2] = { 50, 229, };
 const uint8_t a_RANGE_05[2] = { 0, 14, };
+const uint8_t a_RANGE_06[2] = { 0, 19, };
 

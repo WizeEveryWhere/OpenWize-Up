@@ -9,47 +9,74 @@
                ref="REF_N" 
                name="AUTO_ADJ_CLK_FREQ"
                desc="
-Clock and Frequency Offset Auto-Adjustment. 
+Clock and Frequency Offset Auto-Adjustment (see struct adm_config_s). 
 MSB : control, 
-LSB : RSSI min. level (see struct adm_config_s).">
+  b[0] : Coarse clock auto-adjust on PONG. 1: enable, 0: disable
+  b[1] : Reserved
+  b[2] : Frequency Offset auto-adjust on PONG. 1: enable, 0: disable
+  b[3] : Reserved
+  b[4] : Coarse clock auto-adjust on PONG appliance  1: One Shot, 0: Every time
+  b[5] : Adjust error due to the Gateway on clock auto-adjust 1: Enable, 0: Disable 
+  b[6] : Frequency Offset auto-adjust on PONG appliance. 1: One Shot, 0: Every time
+  b[7] : Reserved
+LSB : RSSI min. level.
+">
        0x007D</Parameter>
     <!-- ***  -->
     <Parameter id="DD" loc="RW" rem="RW" size="1"
                ref="REF_N" 
                name="ADM_ANN_DIS_FLT"
                desc="
-ADM ANN Reception Filter disable  (see struct adm_config_s)">
+ADM ANN Reception Filter disable  (see struct adm_config_s)
+b[0] : Day Prog. filter. 0: enable, 1: disable 
+b[1] : Delta Second filter. 0: enable, 1: disable
+b[2] : HW ver.filter. 0: enable, 1: disable
+b[3] : SW Ver. Initial filter. 0: enable, 1: disable
+b[4] : SW Ver. Target filter. 0: enable, 1: disable 
+b[5] : Max. Block Number filter. 0: enable, 1: disable
+b[6:7] : Reserved
+">
          0x00</Parameter>
     <Parameter id="DE" loc="RW" rem="RW" size="1"
                ref="REF_N" 
                name="ADM_PARAM_DIS_FLT"
                desc="
-ADM R/W parameters Reception Filter disable (see struct adm_config_s)">
+ADM R/W parameters Reception Filter disable (see struct adm_config_s)
+b[0] : Read parameter WO filter. 0: enable, 1: disable
+b[1] : Write parameter RO filter. 0: enable, 1: disable
+b[2:7] : Reserved
+">
          0x00</Parameter>
     <Parameter id="DF" loc="RW" rem="RW" size="1"
                ref="REF_N" 
                name="ADM_KEY_DIS_FLT"
                desc="
-ADM Key Change Reception Filter disable (see struct adm_config_s)">
+ADM Key Change Reception Filter disable (see struct adm_config_s)
+b[0] : Write Key id filter. 0: enable, 1: disable
+b[1] : Key chg filter. 0: enable, 1: disable
+b[2:7] : Reserved
+">
          0x00</Parameter>
     <!-- ***  -->
     <Parameter id="E0" loc="RW" rem="RW" size="4"
                ref="REF_N" 
                name="DWN_DAY_PRG_WIN_MIN"
                desc="
-Minimum delay between the AnnDownload and the day of the first block (see struct adm_config_s)">
+Minimum delay in second between the AnnDownload and the day of the first block (see struct adm_config_s)">
    0x000D2F00</Parameter>     
     <Parameter id="E1" loc="RW" rem="RW" size="4"
                ref="REF_N" 
                name="DWN_DAY_PRG_WIN_MAX"
                desc="
-Maximum delay between the AnnDownload and the day of the first block (see struct adm_config_s)">
+Maximum delay in second between the AnnDownload and the day of the first block (see struct adm_config_s)">
    0x004F1A00</Parameter>
     <Parameter id="E2" loc="RW" rem="RW" size="4"
                ref="REF_N" 
                name="MNT_WINDOW_DURATION"
                desc="
-Maintenance Window duration in second from 00:00:00 UTC (see struct adm_config_s)">
+Maintenance Window duration in second from 00:00:00 UTC (see struct adm_config_s).
+Set to 0, means no maintenance Window.
+">
    0x00003840</Parameter>
     <!-- ***  -->
     <Parameter id="E3" loc="RW" rem="RW" size="4"
@@ -90,13 +117,26 @@ Offset to start RX before (in ms)
                ref="REF_N" 
                name="L2_EXCH_DIS_FLT"
                desc="
-L2 Reception Filter disable (see struct proto_config_s)">
+L2 Reception Filter disable (see struct proto_config_s)
+b[0] : Crc filter. 0: enable, 1: disable
+b[1] : Afield filter. 0: enable, 1: disable
+b[2] : MField filter. 0: enable, 1: disable 
+b[3] : CiFiled filter. 0: enable, 1: disable
+b[4] : DownId filter. 0: enable, 1: disable
+b[5:7] : Reserved
+">
          0x00</Parameter>
     <Parameter id="EF" loc="RW" rem="RW" size="1"
                ref="REF_N" 
                name="L6_EXCH_DIS_FLT"
                desc="
-L6 Reception Filter disable (see struct proto_config_s)">
+L6 Reception Filter disable (see struct proto_config_s)
+b[0] : Reserved
+b[1] : HashKmac filter. 0: enable, 1: disable
+b[2] : HashKenc filter. 0: enable, 1: disable
+b[3] : L6NetId filter. 0: enable, 1: disable
+b[4:7] : Reserved
+">
          0x00</Parameter>
 </ParameterList>
 

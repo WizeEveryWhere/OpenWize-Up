@@ -3,7 +3,7 @@
   
 <ParameterList>
     <!-- ******************************************************************* -->
-    <!-- Extend Parameters -->
+    <!-- Extend Parameters id="D0" to  id="D1"  -->
     <!-- ******************************************************************* -->
     <!--   -->
     <Parameter id="D0" loc="RW" rem="NA" size="1"
@@ -20,6 +20,12 @@ b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
 b[6] if 1: Activate the device id writing in NVM;
 b[7] if 1: Activate the keys writing in NVM;
 ">
+         0x00</Parameter>
+    <Parameter id="D1" loc="RW" rem="NA" size="1"
+               restr="06"
+               ref="REF_N"
+               name="LOCAL_KEY_ID"
+               desc="Get or Set the local key id.">
          0x00</Parameter>
     <!-- ******************************************************************* -->
     

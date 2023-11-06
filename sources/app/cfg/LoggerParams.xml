@@ -3,7 +3,7 @@
   
 <ParameterList>
     <!-- ******************************************************************* -->
-    <!-- Logger Parameters -->
+    <!-- Logger Parameters id="FD" to  id="FE" -->
     <!-- ******************************************************************* -->
     <Parameter id="FD" loc="RW" rem="NA" size="1"
                ref="REF_N" 
@@ -19,8 +19,8 @@ Get or Set the Logger time (Unix EPOCH) option (see logger_tstamp_e for details)
 [b0] : Enable (1) / Disable (0); 
 [b1] : If set : Extended with millisecond; 
 [b2] : If set : Truncated on 5 digits; 
-[b3-b6] Reserved; [b7] 
-Enable/Disable Color.">
+[b3-b6] Reserved; 
+[b7] : Enable/Disable Color.">
         0x00</Parameter>
 </ParameterList>
 
