@@ -357,7 +357,8 @@ void BSP_GpioIt_Handler(int8_t i8_ItLineId)
 	{
 		if (aGpioCb[u8_ItLineId].port)
 		{
-			BSP_Gpio_Set(aGpioCb[u8_ItLineId].port, aGpioCb[u8_ItLineId].pin, 1);
+			//BSP_Gpio_Set(aGpioCb[u8_ItLineId].port, aGpioCb[u8_ItLineId].pin, 1);
+			((GPIO_TypeDef*)(aGpioCb[u8_ItLineId].port))->BSRR = (uint32_t)aGpioCb[u8_ItLineId].pin;
 		}
 		aGpioCb[u8_ItLineId].pf_cb(
 				aGpioCb[u8_ItLineId].p_CbParam,
@@ -365,7 +366,8 @@ void BSP_GpioIt_Handler(int8_t i8_ItLineId)
 				);
 		if (aGpioCb[u8_ItLineId].port)
 		{
-			BSP_Gpio_Set(aGpioCb[u8_ItLineId].port, aGpioCb[u8_ItLineId].pin, 0);
+			//BSP_Gpio_Set(aGpioCb[u8_ItLineId].port, aGpioCb[u8_ItLineId].pin, 0);
+			((GPIO_TypeDef*)(aGpioCb[u8_ItLineId].port))->BRR = (uint32_t)aGpioCb[u8_ItLineId].pin;
 		}
 	}
 }

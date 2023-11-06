@@ -44,9 +44,15 @@ extern "C" {
 #include <bsp_rtc.h>
 #include <bsp_gpio.h>
 #include <bsp_gpio_it.h>
-#include "bsp_lp.h"
+#include <bsp_lp.h>
 
 #include <bsp_uart.h>
+
+#include <bsp_cal.h>
+
+#ifdef HAS_HIRES_TIME_MEAS
+#include <bsp_hires_tmr.h>
+#endif
 
 #ifdef HAS_CRC_COMPUTE
 #include <bsp_crc.h>

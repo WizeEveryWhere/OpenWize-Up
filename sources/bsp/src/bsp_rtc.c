@@ -65,6 +65,35 @@ static void _rtc_wakeUptimer_handler_(void);
 /*******************************************************************************/
 
 /*!
+  * @brief This function launch an RTC calibration
+  *
+  * @details Reference clock of 6.5Mhz must be applied on pin PB1
+  *
+  * @return None
+  *
+  */
+void BSP_Rtc_SetCal(uint32_t pulse_cnt)
+{
+	uint32_t exp_pulse_cnt = 0x100000; // 32 * 32768
+	uint32_t period = RTC_SMOOTHCALIB_PERIOD_32SEC;
+	uint32_t dir = RTC_SMOOTHCALIB_PLUSPULSES_RESET;
+
+	// Should we insert pulse
+	if ( pulse_cnt < exp_pulse_cnt )
+	{
+		pulse_cnt = exp_pulse_cnt - pulse_cnt;
+		dir = RTC_SMOOTHCALIB_PLUSPULSES_SET;
+	}
+	// Should we remove pulse or disable calib
+	else // if ( pulse_cnt > exp_pulse_cnt ) or pulse_cnt == exp_pulse_cnt
+	{
+		pulse_cnt -= exp_pulse_cnt;
+	}
+	HAL_RTCEx_SetSmoothCalib( &hrtc, period, dir, pulse_cnt );
+}
+
+/*******************************************************************************/
+/*!
   * @brief This function setup the RTC clock
   *
   * @param [in] clock_sel RTC clock selection
