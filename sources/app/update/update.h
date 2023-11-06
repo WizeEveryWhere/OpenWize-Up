@@ -36,27 +36,6 @@ extern "C" {
 #include "wize_app.h"
 
 /******************************************************************************/
-
-#ifndef UPDATE_TMO_EVT
-	#define UPDATE_TMO_EVT 0xFFFFFFFF // in cycle
-#endif
-
-#ifndef UPDATE_TMO_LO
-	#define UPDATE_TMO_LO 300000 // in ms
-#endif
-
-#define UPDATE_REQ_MSK ( ~(SES_FLG_SES_MSK | SES_FLG_SENDRECV_MSK) )
-#define UPDATE_REQ_OFFSET 8
-#define UPDATE_REQ_BITS 12
-
-#define UPDATE_REQ_START 1
-#define UPDATE_REQ_STOP  2
-#define UPDATE_REQ_FINALIZE 3
-#define UPDATE_REQ_BLK 4
-
-#define UPDATE_REQ(update_req) ( (update_req <<  UPDATE_REQ_OFFSET) & UPDATE_REQ_MSK )
-
-/******************************************************************************/
 /*!
  * @brief This
  */
@@ -128,13 +107,8 @@ struct update_ctx_s
 	uint8_t         eErrCode;      /**<   */
 	uint8_t         eErrParam;     /**<   */
 
-	time_evt_t      sTimeEvt;      /**< Window timer */
 	uint32_t        u32Tmo;        /**<   */
 
-	uint8_t         eType;         /**<   */
-	struct update_itf_s *pUpdateItf; /**<   */
-
-	admin_ann_fw_info_t sFwAnnInfo; /**<   */
 } ;
 
 /******************************************************************************/
@@ -142,6 +116,8 @@ void Update_Setup(void);
 int32_t Update_Open(admin_ann_fw_info_t sFwAnnInfo);
 int32_t Update_Close(void);
 int32_t Update_Store(uint16_t u16Id, const uint8_t *pData);
+int32_t Update_Finalize(void);
+int32_t Update_IsReady(void);
 
 //void Update_Task(void const * argument);
 
