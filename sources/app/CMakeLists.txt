@@ -40,8 +40,12 @@ target_include_directories(
 # Add some link flags
 target_link_options(${MODULE_NAME}
     PUBLIC
-        --specs=nano.specs 
-        -u_printf_float 
+        --specs=nano.specs
+        # Warning : print float is very costly for memories (7.72KB) :
+        # .text   : 6.87KB
+        # .rodata : 0.49KB
+        # .data   : 0.36KB
+        #-u_printf_float 
         -Wl,-Map=${MODULE_NAME}.map
         -Wl,--gc-sections 
     )
