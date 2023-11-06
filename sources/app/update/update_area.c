@@ -59,10 +59,12 @@ struct update_area_s
 extern unsigned int __header_size__;
 
 #ifndef BUILD_STANDALAONE_APP
-	const struct __exch_info_s *p = (const struct __exch_info_s *)&(__exchange_area_org__);
+	struct __exch_info_s * const p = (struct __exch_info_s * const)&(__exchange_area_org__);
 #endif
 
 struct update_area_s sUpdateArea;
+/******************************************************************************/
+static int32_t _update_area_erase_header_(void);
 /******************************************************************************/
 
 update_status_e UpdateArea_Setup(void)
@@ -89,7 +91,8 @@ update_status_e UpdateArea_Setup(void)
 	{
 		sUpdateArea.u32HeaderSz     = (uint32_t)&(__header_size__);
 		sUpdateArea.u32MagicHeader  = MAGIC_WORD_8;
-		sUpdateArea.u32ImgAdd       = 0x0802C200 + (uint32_t)&(__header_size__);
+		//sUpdateArea.u32ImgAdd       = 0x0802C200 + (uint32_t)&(__header_size__);
+		sUpdateArea.u32ImgAdd       = 0x0802C000 + (uint32_t)&(__header_size__);
 		sUpdateArea.u32ImgMaxSz     = 0x2A000 - (uint32_t)&(__header_size__);
 	}
 	sUpdateArea.u32MagicTrailer = MAGIC_WORD_0;
@@ -113,6 +116,11 @@ update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt)
 	{
 		if (eType != UPD_TYPE_EXTERNAL)
 		{
+			if (_update_area_erase_header_())
+			{
+				// Failed
+				return UPD_STATUS_STORE_FAILED;
+			}
 			// Init dwn storage
 			if ( ImgStore_Init(u16BlkCnt) )
 			{
@@ -138,14 +146,20 @@ update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t 
 	return UPD_STATUS_STORE_FAILED;
 }
 
-update_status_e UpdateArea_Finalize(uint32_t u32HashSW, uint32_t img_sz)
+update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz)
 {
-	update_status_e status;
-	status = UpdateArea_CheckImg(u32HashSW);
-	if (status == UPD_STATUS_VALID)
+	update_status_e status = UPD_STATUS_UNK;
+	if (eType < UPD_TYPE_NB)
 	{
-		// image is valid : Finalize with Header
-		status = UpdateArea_WriteHeader(img_sz);
+		if (eType != UPD_TYPE_EXTERNAL)
+		{
+			status = UpdateArea_CheckImg(u32HashSW);
+			if (status == UPD_STATUS_VALID)
+			{
+				// image is valid : Finalize with Header
+				status = UpdateArea_WriteHeader(img_sz);
+			}
+		}
 	}
 	return status;
 }
@@ -208,7 +222,30 @@ update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 	{
 		return UPD_STATUS_STORE_FAILED;
 	}
+
+#ifndef BUILD_STANDALAONE_APP
+	p->request = BOOT_REQ_UPDATE;
+#endif
+
 	return UPD_STATUS_READY;
+}
+/******************************************************************************/
+static int32_t _update_area_erase_header_(void)
+{
+	int32_t ret = -1;
+	uint16_t page_id = BSP_Flash_GetPage(sUpdateArea.u32ImgAdd - sUpdateArea.u32HeaderSz);
+	uint8_t retry = 3;
+	do {
+		if ( BSP_Flash_Erase(page_id) == DEV_SUCCESS )
+		{
+			retry = 0;
+			ret = 0;
+			break;
+		}
+		retry--;
+	} while (retry);
+
+	return ret;
 }
 
 /******************************************************************************/
