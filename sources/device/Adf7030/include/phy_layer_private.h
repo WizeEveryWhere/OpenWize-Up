@@ -40,6 +40,44 @@
 extern "C" {
 #endif
 
+#ifdef HAS_HIRES_TIME_MEAS
+	//extern void BSP_HiResTmr_Capture(register uint8_t id);
+	//extern uint32_t BSP_HiResTmr_Get(register uint8_t id);
+
+	/*
+	 * HIRES_TIME_MEAS
+	 * Capture        Capture                Capture
+	 * channel          when                  where
+	 *   2     Preamble is detected    phy_layer::_frame_it
+	 *   3     Transmitting is done    phy_layer::_frame_it
+	 *   4     Receiving is done       phy_layer::_frame_it
+	 *
+	 */
+#ifndef CAPTURE_ID_PREAMBLE_DETECTED
+	#define CAPTURE_ID_PREAMBLE_DETECTED 2
+#endif
+
+#ifndef CAPTURE_ID_TX_COMPLETE
+	#define CAPTURE_ID_TX_COMPLETE 3
+#endif
+
+#ifndef CAPTURE_ID_RX_COMPLETE
+	#define CAPTURE_ID_RX_COMPLETE 4
+#endif
+
+#ifndef PHY_TMR_CAPTURE_PREAMBLE_DETECTED
+	#define PHY_TMR_CAPTURE_PREAMBLE_DETECTED() BSP_HiResTmr_Capture((uint8_t)CAPTURE_ID_PREAMBLE_DETECTED)
+#endif
+
+#ifndef PHY_TMR_CAPTURE_TX_COMPLETE
+	#define PHY_TMR_CAPTURE_TX_COMPLETE() BSP_HiResTmr_Capture((uint8_t)CAPTURE_ID_TX_COMPLETE)
+#endif
+
+#ifndef PHY_TMR_CAPTURE_RX_COMPLETE
+	#define PHY_TMR_CAPTURE_RX_COMPLETE() BSP_HiResTmr_Capture((uint8_t)CAPTURE_ID_RX_COMPLETE)
+#endif
+#endif
+
 #include "adf7030-1_phy.h"
 #include "phy_itf.h"
 
@@ -80,6 +118,8 @@ typedef enum {
 	PHY_CMD_AUTO_CAL , /*!< Auto calibration */
 	PHY_CMD_RSSI_CAL , /*!< RSSI calibration ( plus auto-calibration) */
 
+	PHY_CMD_CLKOUT   , /*!< Set the CLK to output on GPIO*/
+	PHY_CMD_TEMP     , /*!< Get the internal device temperature */
 } phy_cmd_e;
 
 /*!

@@ -97,17 +97,14 @@ typedef union {
                                            transmission (not used for IEEE802.15
                                            .4g). e.g. Set to 4 to cause an IRQ
                                            every 4 bytes.*/
-        uint32_t                 : 1;
-        // uint32_t RX_BUFF_RAWDATA :;
+        uint32_t RX_BUFF_RAWDATA : 1;
         uint32_t TX_BUFF_RAWDATA : 1; /*!< Transmit only the payload */
-        uint32_t                 : 1;
-        //uint32_t CONTINUOUS_RX :;
+        uint32_t CONTINUOUS_RX   : 1;
         uint32_t TURNAROUND_RX   : 1; /*!< Enable automatic PHY_RX to PHY_TX
                                            transition on completion of packet
                                            reception if packet with correct CRC
                                            (if CRC enabled) */
-        uint32_t                 : 1;
-        //uint32_t CONTINUOUS_TX  :;
+        uint32_t CONTINUOUS_TX   : 1;
         uint32_t TURNAROUND_TX   : 1; /*!< Enable automatic PHY_TX to PHY_RX
                                             transition on completion of packet
                                             transmission */
@@ -120,8 +117,8 @@ typedef union {
         uint32_t PREAMBLE_LEN    : 8; /*!< Number of units of preamble at start
                                            of Tx packet (TX only); see also
                                            PREAMBLE_UNIT */
-        uint32_t                 : 8;
-        //uint32_t PREAMBLE_LEVEL :;
+        uint32_t PREAMBLE_LEVEL  : 5;
+        uint32_t                 : 3;
         //uint32_t SYNC0_WAIT:;
         uint32_t SYNC0_LEN       : 6; /*!< Length of the Syncword 0 in bits (Rx
                                            and Tx) */
@@ -131,7 +128,7 @@ typedef union {
                                            and Tx. IEEE802.15.4g: FCS length used
                                            in Tx only; Rx FCS length inferred
                                            from received PHR. */
-        //uint32_t CRC_TYPE:;
+        uint32_t CRC_TYPE        : 2;
     } FRAME_CFG0_b;                   /*!< BitSize */
 }frame_cfg0_t;
 

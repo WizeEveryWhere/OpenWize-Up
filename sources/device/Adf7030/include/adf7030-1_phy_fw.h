@@ -138,15 +138,31 @@ typedef enum {
 	WAKE_UP_CS   = 0b1000, /*!< Select CS as wake-up source */
 }wake_src_e;
 
+/* The following come from teh "ADF7030-1 Software Reference Manual : UG-1002.
+ * Unfortunately, the tests had shown that is wrong.
+	typedef enum {
+		GPIO_CLK_FREQ_D1   = 0b000, // base frequency     : 6.5 MHz.
+		GPIO_CLK_FREQ_D2   = 0b001, // base frequency/2   : 3.25 MHz.
+		GPIO_CLK_FREQ_D4   = 0b010, // base frequency/4   : 1.625 MHz.
+		GPIO_CLK_FREQ_D8   = 0b011, // base frequency/8   : 0.8125 MHz.
+		GPIO_CLK_FREQ_D16  = 0b100, // base frequency/16  : 0.40625 MHz.
+		GPIO_CLK_FREQ_D32  = 0b101, // base frequency/32  : 0.203125 MHz.
+		GPIO_CLK_FREQ_D64  = 0b110, // base frequency/64  : 0.1015625 MHz.
+		GPIO_CLK_FREQ_D128 = 0b111, // base frequency/128 : 0.05078125 MHz.
+	}gpio_clk_freq_e;
+ *
+ * Correct values follows...
+ * Note : it seems we could consider the base frequency = 26Mhz / 16
+ */
 typedef enum {
-	GPIO_CLK_FREQ_D1   = 0b000, // base frequency     : 6.5 MHz.
-	GPIO_CLK_FREQ_D2   = 0b001, // base frequency/2   : 3.25 MHz.
-	GPIO_CLK_FREQ_D4   = 0b010, // base frequency/4   : 1.625 MHz.
-	GPIO_CLK_FREQ_D8   = 0b011, // base frequency/8   : 0.8125 MHz.
-	GPIO_CLK_FREQ_D16  = 0b100, // base frequency/16  : 0.40625 MHz.
-	GPIO_CLK_FREQ_D32  = 0b101, // base frequency/32  : 0.203125 MHz.
-	GPIO_CLK_FREQ_D64  = 0b110, // base frequency/64  : 0.1015625 MHz.
-	GPIO_CLK_FREQ_D128 = 0b111, // base frequency/128 : 0.05078125 MHz.
+	GPIO_CLK_FREQ_D1   = 0b000, // base frequency     : 1.625 MHz.
+	GPIO_CLK_FREQ_D2   = 0b001, // base frequency/2   : 0.8125 MHz.
+	GPIO_CLK_FREQ_D4   = 0b010, // base frequency/4   : 0.40625 MHz.
+	GPIO_CLK_FREQ_D8   = 0b011, // base frequency/8   : 0.203125 MHz.
+	GPIO_CLK_FREQ_D16  = 0b100, // base frequency/16  : 0.1015625 MHz.
+	GPIO_CLK_FREQ_D32  = 0b101, // base frequency/32  : 0.05078125 MHz.
+	GPIO_CLK_FREQ_D64  = 0b110, // base frequency/64  : 0.025390625 MHz.
+	GPIO_CLK_FREQ_D128 = 0b111, // base frequency/128 : 0.0126953125 MHz.
 }gpio_clk_freq_e;
 
 typedef enum {

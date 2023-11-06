@@ -231,6 +231,7 @@ typedef enum {
     DO_CAL   = 0x09,
     /*! Monitoring state */
     MON      = 0x0A,
+	//RF_MEAS  = 0x0B,
     /*! Low frequency calibration state */
     LFRC_CAL = 0x0C,
     /*! GPIO Clock output state */

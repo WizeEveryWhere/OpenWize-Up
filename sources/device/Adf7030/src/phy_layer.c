@@ -63,18 +63,6 @@ extern "C" {
  * @cond INTERNAL
  * @{
  */
-#ifdef HAS_HIRES_TIME_MEAS
-extern void HiResTime_Capture(register uint8_t id);
-extern uint32_t HiResTime_Get(register uint8_t id);
-#endif
-
-#if defined (USE_PHY_LAYER_TRACE)
-#ifndef TRACE_PHY_LAYER
-#define TRACE_PHY_LAYER(...) fprintf (stdout, __VA_ARGS__ )
-#endif
-#else
-#define TRACE_PHY_LAYER(...)
-#endif
 
 /*!
  * @}
@@ -709,6 +697,16 @@ static int32_t _ready_seq(phydev_t *pPhydev)
 					}
 				}
 				//else { /* Default radio calibration are send with base_cfg*/ }
+/*
+				// Write offset value to NB_OFFSET in rssi_cfg_t
+				rssi_cfg_t rssi_cfg;
+				rssi_cfg = (rssi_cfg_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_RSSI_CFG_Addr));
+				// Calculate error (dbm) = Average (dbm) - Power input (dbm)
+				//u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
+				//rssi_cfg.RSSI_CFG_b.NB_OFFSET = pPhydev->i16RssiOffset;
+				rssi_cfg.RSSI_CFG_b.NB_OFFSET = i16RssiOffsetCal;
+				adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RSSI_CFG_Addr, rssi_cfg.RSSI_CFG);
+*/
 			}
 			// Does it need a CFG_DEV state, case of : full configuration or from wake-up
 			if ( !(pDevice->eState & ADF7030_1_STATE_CONFIGURED) )
@@ -854,6 +852,15 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 #endif
 				pDevice->bTxPwrDone = 1;
 			}
+
+			// Write offset value to NB_OFFSET in rssi_cfg_t
+			rssi_cfg_t rssi_cfg;
+			rssi_cfg = (rssi_cfg_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_RSSI_CFG_Addr));
+			// Calculate error (dbm) = Average (dbm) - Power input (dbm)
+			//u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
+			//rssi_cfg.RSSI_CFG_b.NB_OFFSET = pPhydev->i16RssiOffset;
+			rssi_cfg.RSSI_CFG_b.NB_OFFSET = i16RssiOffsetCal;
+			adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RSSI_CFG_Addr, rssi_cfg.RSSI_CFG);
 
 			// Change frequency
 			uint32_t u32_Freq = PHY_FREQUENCY_CH(pPhydev->eChannel);
@@ -1171,7 +1178,7 @@ static int32_t _rssi_calibrate_seq(phydev_t *pPhydev, int8_t i8RssiRefLevel)
 		{
 			return eStatus;
 		}
-		// Apply Carrier at mid band frequency with -77dbm level
+		// Apply Carrier at mid band frequency with i8RssiRefLevel level (e.g.: -77dbm)
 		// TODO :
 
 		// clear DETECTION_TIME in cca_cfg_t
@@ -1263,6 +1270,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 				BSP_PwrLine_Clr(RF_EN_MSK);
 				break;
 			case PHY_CTL_CMD_PWR_ON:
+				PHY_TMR_CAPTURE_POWER_ON();
 				// sleep for x µS or mS
 				BSP_PwrLine_Set(RF_EN_MSK);
 				// TODO : add micro-sleep to ensure power "propagating"
@@ -1301,6 +1309,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 			{
 				case PHY_CTL_CMD_READY:
 					eStatus = _ready_seq(pPhydev);
+					PHY_TMR_CAPTURE_READY();
 					break;
 				case PHY_CTL_CMD_SLEEP:
 					eStatus = _sleep_seq(pPhydev);
@@ -1349,7 +1358,6 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
     }
     return eStatus;
 }
-
 /*!
  * @brief  Interruption handler to treat the frame event
  *
@@ -1360,9 +1368,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
  */
 static void _frame_it(void *p_CbParam, void *p_Arg)
 {
-#ifdef HAS_HIRES_TIME_MEAS
-	HiResTime_Capture(1);
-#endif
+	PHY_TMR_CAPTURE_ENTERING_IT();
 	phydev_t *pPhydev = (phydev_t *) p_CbParam;
     adf7030_1_device_t* pDevice = (adf7030_1_device_t*)pPhydev->pCxt;
     adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
@@ -1377,17 +1383,19 @@ static void _frame_it(void *p_CbParam, void *p_Arg)
 
 	if( pDevice->IntGPIOInfo[ADF7030_1_INTPIN0].nIntMap & (PREAMBLE_IRQn_Msk | SYNCWORD_IRQn_Msk ) )
 	{
+		if(u32IrqStatus & PREAMBLE_IRQn_Msk )
+		{
+			PHY_TMR_CAPTURE_PREAMBLE_DETECTED();
+		}
 		if (pDevice->eState & ADF7030_1_STATE_RECEIVING)
 		{
 			if(u32IrqStatus & PREAMBLE_IRQn_Msk )
 			{
-				#ifdef HAS_HIRES_TIME_MEAS
-					HiResTime_Capture(3);
-				#endif
 				pDevice->bDetected = 1;
 			}
 			if(u32IrqStatus & SYNCWORD_IRQn_Msk )
 			{
+				PHY_TMR_CAPTURE_SYNCH_DETECTED();
 				if ( pDevice->bDetected )
 				{
 					pDevice->bDetected = 0;
@@ -1401,17 +1409,13 @@ static void _frame_it(void *p_CbParam, void *p_Arg)
 	{
 		if (pDevice->eState & ADF7030_1_STATE_TRANSMITTING)
 		{
-			#ifdef HAS_HIRES_TIME_MEAS
-				HiResTime_Capture(2);
-			#endif
+			PHY_TMR_CAPTURE_TX_COMPLETE();
 			eEvt = PHYDEV_EVT_TX_COMPLETE;
 			pDevice->eState &= ~ADF7030_1_STATE_TRANSMITTING;
 		}
 		else if (pDevice->eState & ADF7030_1_STATE_RECEIVING)
 		{
-			#ifdef HAS_HIRES_TIME_MEAS
-				HiResTime_Capture(4);
-			#endif
+			PHY_TMR_CAPTURE_RX_COMPLETE();
 			eEvt = PHYDEV_EVT_RX_COMPLETE;
 			pDevice->eState &= ~ADF7030_1_STATE_RECEIVING;
 		}
@@ -1436,6 +1440,7 @@ static void _frame_it(void *p_CbParam, void *p_Arg)
     if( (eEvt != PHYDEV_EVT_NONE) && pPhydev->pfEvtCb ) {
 		pPhydev->pfEvtCb(pPhydev->pCbParam, eEvt);
 	}
+    PHY_TMR_CAPTURE_LEAVING_IT();
 }
 
 /*!
@@ -1754,7 +1759,75 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 
 	if(eCtl > PHY_CTL_CMD)
 	{
-		if (eCtl == PHY_CMD_SPORT)
+		if (eCtl == PHY_CMD_TEMP)
+		{
+			if (adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, MON, PHY_ON ))
+			{
+				i32Ret = PHY_STATUS_ERROR;
+			}
+			else
+			{
+				int32_t temp = (int32_t)(adf7030_1__READ_FIELD(PROFILE_MONITOR1_TEMP_OUTPUT));
+				*(float*)args = PHY_CONV_TempToFloat((int16_t)temp);
+			}
+		}
+		else if (eCtl == PHY_CMD_CLKOUT)
+		{
+			adf7030_1_gpio_cfg_e eCfg;
+
+
+			// The clock frequency of the generated clock signal is selected by GPIO_CLK_FREQ_SEL in the PROFILE_RADIO_MODES register.
+			// These profile fields must be written by the host in the PHY_OFF state before issuing a CMD_CFG_DEV command.
+			// The CMD_GPCLK command, shown in Table 5, must be issued only from the PHY_ON state.
+//#define HAS_PHY_CLKOUT_FREQ
+#ifdef HAS_PHY_CLKOUT_FREQ
+			// device must be in PHY_OFF state
+			if (adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_OFF, PHY_OFF ) == 0)
+			{
+				radio_modes_t radio_modes;
+				radio_modes = (radio_modes_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_RADIO_MODES_Addr));
+				radio_modes.RADIO_MODES_b.GPIO_CLK_FREQ_SEL = GPIO_CLK_FREQ_D1;
+				//radio_modes.RADIO_MODES_b.GPIO_CLK_FREQ_SEL = GPIO_CLK_FREQ_D8;
+				adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RADIO_MODES_Addr, radio_modes.RADIO_MODES);
+				if (adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, CFG_DEV, PHY_OFF ) == 0)
+				{
+					if (adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, PHY_ON, PHY_ON ))
+					{
+						i32Ret = PHY_STATUS_ERROR;
+					}
+				}
+				else
+				{
+					i32Ret = PHY_STATUS_ERROR;
+				}
+			}
+			else
+			{
+				i32Ret = PHY_STATUS_ERROR;
+			}
+#endif
+
+			if (i32Ret == PHY_STATUS_OK)
+			{
+				// Set ADF7030_GPIOx to output 6.5 Mhz clock frequency (default from .cfg files)
+				eCfg = (((test_sport_t)args).bGpioClk)?(GPCLK_OUT):(0);
+				if (adf7030_1__GPIO_SetCfg(pSPIDevInfo, ((test_sport_t)args).eGpioClk, eCfg, 1) )
+				{
+					i32Ret = PHY_STATUS_ERROR;
+				}
+				else
+				{
+					if (eCfg)
+					{
+						if (adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, GPCLK, GPCLK ))
+						{
+							i32Ret = PHY_STATUS_ERROR;
+						}
+					}
+				}
+			}
+		}
+		else if (eCtl == PHY_CMD_SPORT)
 		{
 			adf7030_1_gpio_cfg_e eCfg;
 			eCfg = (((test_sport_t)args).bGpioClk)?(SPORT_TRX_CLOCK):(0);
@@ -1861,6 +1934,21 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 					break;
 				case PHY_CTL_GET_RSSI:
 					*(uint8_t*)args = PHY_CONV_Signed11ToRssi( pPhydev->u16_Rssi );
+#if 0
+#if defined (USE_PHY_LAYER_TRACE)
+					live_link_qual_t link_qual;
+					link_qual = (live_link_qual_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, GENERIC_PKT_LIVE_LINK_QUAL_Addr));
+
+				    uint32_t signed_rssi = (adf7030_1__READ_FIELD(GENERIC_PKT_LIVE_LINK_QUAL_RSSI)) << (32 -11);
+				    signed_rssi >>= (32 -11);
+
+				    int32_t sign = signed_rssi >> 31;
+				    uint32_t abs_rssi = (sign + signed_rssi) ^ sign;
+
+				     /* Output received packet RSSI */
+				    TRACE_PHY_LAYER("%+03d\.%02d dBm", (signed_rssi >> 2), (abs_rssi & 3) * 25);
+#endif
+#endif
 					break;
 				case PHY_CTL_GET_NOISE:
 					*(uint8_t*)args = PHY_CONV_Signed11ToRssi( pPhydev->u16_Noise );

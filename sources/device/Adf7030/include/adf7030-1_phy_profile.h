@@ -80,17 +80,21 @@ typedef union {
     uint32_t PACKET_CFG; /*!< Packet handler configuration */
     struct {
         uint32_t            : 14;
-        //uint32_t PTR_FRAME0 :;
-        uint32_t TYPE_FRAME0:  2; /*!< Select the packet format
+        //uint32_t PTR_FRAME0   :11; /*!< Frame 0 pointer */
+        uint32_t TYPE_FRAME0  : 2; /*!< Frame 0, Select the packet format
                                      0 : Generic Packet Format
                                      1 : IEEE 502.15.4g-2012 packet format
                                     */
-        /*
-        uint32_t PTR_FRAME1 :;
-        uint32_t TYPE_FRAME1 :;
-        uint32_t RX_FRAME_SEL :;
-        uint32_t TX_FRAME_SEL :;
-        */
+
+        //uint32_t              :  3;
+        uint32_t PTR_FRAME1   : 11; /*!< Frame 1 pointer */
+        uint32_t TYPE_FRAME1  :  2; /*!< Frame 1, Select the packet format
+                                     0 : Generic Packet Format
+                                     1 : IEEE 502.15.4g-2012 packet format
+                                    */
+        uint32_t              :  1;
+        uint32_t RX_FRAME_SEL :  1; /*!< RX frame selection */
+        uint32_t TX_FRAME_SEL :  1; /*!< TX frame selection */
 
     } PACKET_CFG_b; /*!< BitSize */
 } packet_cfg_t;
@@ -108,12 +112,14 @@ typedef union {
         uint32_t                    : 1;
         uint32_t TX_MOD_TYPE        : 3; // see mod_type_e
         uint32_t RX_MOD_TYPE        : 3; // see mod_type_e
-        uint32_t                    : 2;
+        //uint32_t                    : 2;
+        uint32_t                    : 5;
         uint32_t GPIO_CLK_FREQ_SEL  : 3; /*!< Selection of Clock Frequency on
                                                selected GPIO with command
                                                GEN_GPIO_CLK
                                                (see gpio_clk_freq_e)*/
-        uint32_t                    : 5;
+        //uint32_t                    : 5;
+        uint32_t                    : 2;
         //uint32_t AUTO_PLL_CFG
         //uint32_t AUTO_CFG_DIG_RX
         //uint32_t AUTO_CFG_DIG_TX

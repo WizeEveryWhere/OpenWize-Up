@@ -175,6 +175,17 @@ inline float PHY_CONV_AfcFreqErrToFloat(int16_t i16AfcFreqErr)
 	return FreqErr;
 }
 
+/*!
+ * @brief  This function convert a ADF7030 internal temperature to float.
+ *
+ * @param [in]  i16Temp The ADF7030 (signed 12 bits) temperature.
+ *
+ * @return The float representation of temperature in °C
+ */
+inline float PHY_CONV_TempToFloat(int16_t i16Temp)
+{
+	return ( (float)((i16Temp > 2048)?(i16Temp - 4096):(i16Temp)) ) * 0.0625 ;
+}
 #ifdef __cplusplus
 }
 #endif
