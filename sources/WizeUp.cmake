@@ -23,6 +23,13 @@ include(sources/OpenWizeUp_Options.cmake)
 
 add_compile_options(-Wall -ffunction-sections -fdata-sections -fstack-usage)
 
+# Just for test purpose
+option(NOT_BOOTABLE "Use this option to build a not bootable image (test purpose only)" OFF)
+if(NOT_BOOTABLE)
+    add_compile_definitions(NOT_BOOTABLE=1)
+endif(NOT_BOOTABLE)
+
+
 ################################################################################
 # Set Coss compile
 set(CMAKE_SYSTEM_NAME Generic)
@@ -57,19 +64,11 @@ if(USE_FREERTOS)
 endif(USE_FREERTOS)
 
 ################################################################################
-set(opt 0)
-if(BUILD_NVM_BINARY)
-    set(opt 1)
-endif(BUILD_NVM_BINARY)
 # Generate parameters 
+#
 # (only if "-DGENERATE_PARAM=ON" is added on cmake command line)
-find_package(gen_param REQUIRED)
-gen_param(
-    SOURCE ${PARAM_XML_FILE_LIST}
-    DESTINATION sources/app
-    OPT ${opt}
-    )
-
+# See tools/help/custom-config.cmake for details.
+#
 ################################################################################
 ## subdirectories
 set(MOD_DIR_LST 
@@ -93,7 +92,7 @@ foreach(mod_dir ${MOD_DIR_LST})
     endif()
 endforeach(mod_dir)
 
-if(BUILD_STANDALAONE_APP)
+if(BUILD_STANDALONE_APP)
 else()
     include(sources/app_img.cmake)
-endif(BUILD_STANDALAONE_APP)
+endif(BUILD_STANDALONE_APP)
