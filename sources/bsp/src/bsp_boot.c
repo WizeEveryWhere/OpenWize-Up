@@ -42,10 +42,6 @@
  * @{
  */
 
-#ifndef BOOT_STATE_BKPR
-#define BOOT_STATE_BKPR BKP31R
-#endif
-
 /*!
  * @}
  * @endcond
@@ -70,75 +66,49 @@ void BSP_Boot_Reboot(uint8_t bReset)
 }
 
 /*!
-  * @brief Get the boot state
+  * @brief Get the boot info
   *
-  * @return the boot state as u32 (see @link boot_state_t @endlink)
+  * @return the boot into structure (see @link boot_info_t @endlink)
+  *
+  */
+uint32_t BSP_Boot_GetInfo(void)
+{
+	return RTC->BOOT_INFO_BKPR;
+}
+
+/*!
+  * @brief Set the boot info
+  *
+  * @param [in] sBootInfo The boot info to set (see @link boot_info_t @endlink)
+  *
+  */
+void BSP_Boot_SetInfo(uint32_t info)
+{
+	// Store info
+	RTC->BOOT_INFO_BKPR = info;
+}
+
+/*!
+  * @brief Get the boot info
+  *
+  * @return the boot into structure (see @link boot_info_t @endlink)
   *
   */
 uint32_t BSP_Boot_GetState(void)
 {
-	register uint32_t u32BootState = 0;
-	// Get Boot reason
-	u32BootState |= RCC->CSR >> RCC_CSR_FWRSTF_Pos;
+	return RTC->BOOT_STATE_BKPR;
+}
 
-	// Clear reset flags
-	__HAL_RCC_CLEAR_RESET_FLAGS();
-
-	// Get if it was in Standby mode
-	u32BootState |= (PWR->SR1 & PWR_SR1_SBF)?(STANDBY_WKUP_MSK):(0);
-	// Get if it was internal wake-up
-	u32BootState |= (PWR->SR1 & PWR_SR1_WUFI)?(INTERNAL_WKUP_MSK):(0);
-	// Get wake-up pins
-	u32BootState |= (PWR->SR1 & PWR_SR1_WUF) << WKUP_PIN_POS;
-
-	// clear Standby flag and all wake-up flag
-	SET_BIT(PWR->SCR, (PWR_SCR_CSBF | PWR_SCR_CWUF) );
-	//__HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);
-
-	// check wake-up internal : RTC ALARM or RTC WAKEUP TIMER
-	if (u32BootState & INTERNAL_WKUP_MSK)
-	{
-		// Disable RTC protect
-		RTC->WPR = 0xCAU;
-		RTC->WPR = 0x53U;
-		// case RTC WAKEUP TIMER
-		if ( RTC->ISR & RTC_FLAG_WUTF )
-		{
-			u32BootState |= TIMER_WKUP_MSK;
-		}
-		// case RTC ALARM A // SHOULD never happen, in SHUTDOWN
-		if ( RTC->ISR & RTC_FLAG_ALRAF )
-		{
-			u32BootState |= ALARMA_WKUP_MSK;
-		}
-		// case RTC ALARM B // SHOULD never happen, in SHUTDOWN
-		if ( RTC->ISR & RTC_FLAG_ALRBF )
-		{
-			u32BootState |= ALARMB_WKUP_MSK;
-		}
-
-		// Disable Timer and Alarms
-		RTC->CR &= ~(RTC_CR_WUTE | RTC_CR_ALRAE | RTC_CR_ALRBE);
-		// Disable Timer and Alarms interrupt
-		RTC->CR &= ~(RTC_CR_WUTIE | RTC_CR_ALRAIE | RTC_CR_ALRBIE);
-		// Clear flags
-		RTC->ISR &= ~(RTC_ISR_WUTF | RTC_ISR_ALRAF | RTC_ISR_ALRBF);
-		// Enable RTC protect
-		RTC->WPR = 0xFFU;
-	}
-
-	// check if BOOT_STATE_BKPR == 0, i.e. Backup Domain Clear/Reset
-	if (!( RTC->BOOT_STATE_BKPR ))
-	{
-		// RTC Calendar Configure is required
-		u32BootState |= CALENDAR_UNINIT_MSK | BACKUP_RESET_MSK;
-		// Reset the SRAM2
-		__HAL_SYSCFG_SRAM2_WRP_UNLOCK();
-		__HAL_SYSCFG_SRAM2_ERASE();
-	}
-	// Save the BootState
-	RTC->BOOT_STATE_BKPR = u32BootState;
-	return u32BootState;
+/*!
+  * @brief Set the boot info
+  *
+  * @param [in] sBootInfo The boot info to set (see @link boot_info_t @endlink)
+  *
+  */
+void BSP_Boot_SetSate(uint32_t state)
+{
+	// Store info
+	RTC->BOOT_STATE_BKPR = state;
 }
 
 /*! @} */

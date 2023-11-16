@@ -42,7 +42,16 @@ extern "C" {
 	#include <stm32l4xx_ll_lpuart.h>
 	#define USARTx                   LPUART1
 	#define USARTx_CLK_ENABLE()      LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_LPUART1)
-	#define USARTx_GPIO_CLK_ENABLE() LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB)
+	#define USARTx_CLK_DISABLE()     LL_APB1_GRP2_DisableClock(LL_APB1_GRP2_PERIPH_LPUART1)
+
+	#define USARTx_GPIO_CLK_ENABLE()  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB)
+	#define USARTx_GPIO_CLK_DISABLE() LL_AHB2_GRP1_DisableClock(LL_AHB2_GRP1_PERIPH_GPIOB)
+
+	#define USARTx_GPIO_DeInit() \
+	{ \
+		LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOB); \
+		LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOB); \
+	}
 
 	#define USARTx_GPIO_PORT GPIOB
 	// USARTx_TX_PIN    LL_GPIO_PIN_11
@@ -62,11 +71,26 @@ extern "C" {
 
 	#define USARTx_BRR __LL_LPUART_DIV(PERIPHERAL_FREQ, USARTx_BAUDRATE);
 
+	#define USARTx_DeInit() \
+	{ \
+		LL_APB1_GRP2_ForceReset(LL_APB1_GRP2_PERIPH_LPUART1); \
+		LL_APB1_GRP2_ReleaseReset(LL_APB1_GRP2_PERIPH_LPUART1); \
+	}
+
 #else
 	#include <stm32l4xx_ll_usart.h>
 	#define USARTx                   UART4
 	#define USARTx_CLK_ENABLE()      LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_UART4)
-	#define USARTx_GPIO_CLK_ENABLE() LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA)
+    #define USARTx_CLK_DISABLE()     LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_UART4)
+
+	#define USARTx_GPIO_CLK_ENABLE()  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA)
+	#define USARTx_GPIO_CLK_DISABLE() LL_AHB2_GRP1_DisableClock(LL_AHB2_GRP1_PERIPH_GPIOA)
+
+	#define USARTx_GPIO_DeInit() \
+	{ \
+		LL_AHB2_GRP1_ForceReset(LL_AHB2_GRP1_PERIPH_GPIOA); \
+		LL_AHB2_GRP1_ReleaseReset(LL_AHB2_GRP1_PERIPH_GPIOA); \
+	}
 
 	#define USARTx_GPIO_PORT GPIOA
 	// USARTx_TX_PIN    LL_GPIO_PIN_0
@@ -86,13 +110,12 @@ extern "C" {
 
 	#define USARTx_BRR (uint16_t)(__LL_USART_DIV_SAMPLING16(PERIPHERAL_FREQ, USARTx_BAUDRATE))
 
+	#define USARTx_DeInit() \
+	{ \
+		LL_APB1_GRP1_ForceReset(LL_APB1_GRP1_PERIPH_UART4); \
+		LL_APB1_GRP1_ReleaseReset(LL_APB1_GRP1_PERIPH_UART4); \
+	}
 #endif
-
-
-
-
-#define USARTx_DeInit()                   LL_USART_DeInit(USARTx)
-
 
 void hal_uart_init(void);
 void hal_uart_send(uint8_t c);

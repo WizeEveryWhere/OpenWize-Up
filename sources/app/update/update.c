@@ -189,11 +189,12 @@ int32_t Update_Store(uint16_t u16Id, const uint8_t *pData)
 
 int32_t Update_Finalize(void)
 {
-	if (sUpdateCtx.ePendUpdate != UPD_PEND_LOCAL)
+	/*
+	if (sUpdateCtx.ePendUpdate == UPD_PEND_EXTERNAL)
 	{
 		return -1;
 	}
-
+	*/
 	sys_flag_set(sUpdateCtx.hTask, UPDATE_REQ(UPDATE_REQ_FINALIZE) );
 	uint32_t evt = sys_evtg_wait(sUpdateCtx.hLock, UPDATE_RSP_MSK, UPDATE_ACQUIRE_TIMEOUT());
 	sys_evtg_clear(sUpdateCtx.hLock, UPDATE_RSP_MSK);
@@ -283,10 +284,6 @@ void Update_FsmInternal(uint32_t ulEvent)
 		else if (ulUpdateReq == UPDATE_REQ_FINALIZE)
 		{
 			// Nothing to do here
-			sUpdateCtx.eUpdateStatus = UpdateArea_Finalize(
-					(uint8_t)sFwAnnInfo.u32Type,
-					sFwAnnInfo.u32HashSW,
-					sFwAnnInfo.u16BlkCnt * 210);
 			sys_evtg_set(sUpdateCtx.hLock, UPDATE_REQ_FINALIZE);
 		}
 		else
@@ -299,6 +296,10 @@ void Update_FsmInternal(uint32_t ulEvent)
 				if ( ulEvent & SES_FLG_DWN_COMPLETE)
 				{
 					sUpdateCtx.ePendUpdate = UPD_PEND_NONE;
+					sUpdateCtx.eUpdateStatus = UpdateArea_Finalize(
+							(uint8_t)sFwAnnInfo.u32Type,
+							sFwAnnInfo.u32HashSW,
+							sFwAnnInfo.u16BlkCnt * 210);
 					// no error
 					if ( !(ulEvent & SES_FLG_DWN_ERROR) )
 					{
@@ -364,7 +365,9 @@ void Update_FsmExternal(uint32_t ulEvent)
 				ulEvent &= SES_FLG_DWN_MSK;
 				if ( ulEvent & SES_FLG_DWN_COMPLETE)
 				{
+					sUpdateCtx.eUpdateStatus = UPD_STATUS_UNK;
 					sUpdateCtx.ePendUpdate = UPD_PEND_NONE;
+
 					// no error
 					if ( !(ulEvent & SES_FLG_DWN_ERROR) )
 					{
@@ -474,6 +477,7 @@ void Update_Task(void const * argument)
 				sUpdateCtx.ePendUpdate = UPD_PEND_NONE;
 			}
 			sUpdateCtx.u32Tmo = UPDATE_TMO_EVT;
+			LOG_WRN("UPD : Session timeout\n");
 		}
 	}
 }

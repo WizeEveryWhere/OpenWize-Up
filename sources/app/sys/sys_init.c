@@ -61,8 +61,6 @@ extern "C" {
 #include "storage.h"
 #include "bsp_pwrlines.h"
 
-extern boot_state_t gBootState;
-
 extern const adf7030_1_gpio_reset_info_t DEFAULT_GPIO_RESET;
 extern const adf7030_1_gpio_int_info_t DEFAULT_GPIO_INT[ADF7030_1_NUM_INT_PIN];
 #ifdef USE_PHY_TRIG

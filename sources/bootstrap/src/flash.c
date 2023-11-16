@@ -3,15 +3,11 @@ extern "C"
 {
 #endif
 
-#include <stdint.h>
+#include "def.h"
 #include "flash.h"
 
 #include <stm32l4xx_hal.h>
 #include <stm32l4xx_hal_cortex.h>
-
-#ifndef __IO
-#define __IO volatile
-#endif
 
 /******************************************************************************/
 extern uint8_t wait_tmo;
@@ -193,16 +189,6 @@ uint32_t RAMFUNCTION hal_flash_write(uint32_t dest, uint32_t src, uint32_t nbLin
 			// Set PG or FSTPG bit
 			SET_BIT(FLASH->CR, prog_bit);
 			// ------
-			/*
-			if ( prog_bit & FLASH_CR_FSTPG)
-			{
-				row_index = (2*FLASH_NB_DOUBLE_WORDS_IN_ROW);
-				// Disable interrupts to avoid any interruption during the loop
-				primask_bit = __get_PRIMASK();
-				__disable_irq();
-			}
-			else
-			*/
 			{
 				row_index = 2;
 			}
@@ -212,10 +198,6 @@ uint32_t RAMFUNCTION hal_flash_write(uint32_t dest, uint32_t src, uint32_t nbLin
 			{
 				// Write one word
 				*dest_addr = *src_addr;
-				// Double Word only
-				/*
-				if ( ! (prog_bit & FLASH_CR_FSTPG) )
-				*/
 				{
 					__ISB();
 				}
@@ -223,15 +205,6 @@ uint32_t RAMFUNCTION hal_flash_write(uint32_t dest, uint32_t src, uint32_t nbLin
 				src_addr++;
 				row_index--;
 			} while (row_index != 0U);
-
-			// ------
-			/*
-			if ( prog_bit & FLASH_CR_FSTPG)
-			{
-				// Re-enable the interrupts
-				__set_PRIMASK(primask_bit);
-			}
-			*/
 			// ------
 			// Wait for last operation to be completed
 			status = hal_flash_wait_last_op((uint32_t)FLASH_WAIT_OP_TMO);
@@ -250,25 +223,98 @@ uint32_t RAMFUNCTION hal_flash_write(uint32_t dest, uint32_t src, uint32_t nbLin
 
 /******************************************************************************/
 /*
-void RAMFUNCTION hal_flash_unlock(void)
+ * Note on "Option Byte" :
+ * - Flash memory address : 0x1FFF7800
+ * - ST programmed value  : 0xFFEFF8AA
+ * 		Bit 27 nBOOT0: nBOOT0 option bit
+ * 			= 1: nBOOT0 = 1
+ * 		Bit 26 nSWBOOT0: Software BOOT0
+ * 			= 1: BOOT0 taken from PH3/BOOT0 pin
+ * 		Bit 25 SRAM2_RST: SRAM2 Erase when system reset
+ * 			= 1: SRAM2 is not erased when a system reset occurs
+ * 		Bit 24 SRAM2_PE: SRAM2 parity check enable
+ * 			= 1: SRAM2 parity check disable
+ * 		Bit 23 nBOOT1: Boot configuration
+ * 			= 1
+ *      Bit 19 WWDG_SW: Window watchdog selection
+ * 			= 1: Software window watchdog
+ * 		Bit 18 IWDG_STDBY: Independent watchdog counter freeze in Standby mode
+ * 			= 1: Independent watchdog counter is running in Standby mode
+ * 		Bit 17 IWDG_STOP: Independent watchdog counter freeze in Stop mode
+ * 			= 1: Independent watchdog counter is running in Stop mode
+ * 		Bit 16 IDWG_SW: Independent watchdog selection
+ * 			= 1: Software independent watchdog
+ * 		Bit 14 nRST_SHDW
+ * 			= 1: No reset generated when entering the Shutdown mode
+ * 		Bit 13 nRST_STDBY
+ * 			= 1: No reset generate when entering the Standby mode
+ * 		Bit 12 nRST_STOP
+ * 			= 1: No reset generated when entering the Stop mode
+ * 		Bits 10:8 BOR_LEV: BOR reset Level
+ * 			= 000: BOR Level 0. Reset level threshold is around 1.7 V
+ * 		Bits 7:0 RDP: Read protection level
+ * 			= 0xAA: Level 0, read protection not active
+ */
+
+void RAMFUNCTION hal_flash_ob_lock(register uint8_t bLock)
 {
-	register FLASH_TypeDef *pflash_reg = FLASH;
-	if (pflash_reg->CR & FLASH_CR_LOCK)
+	register uint32_t temp = FLASH->CR;
+	if(bLock)
 	{
-		pflash_reg->KEYR = FLASH_KEY1;
-		pflash_reg->KEYR = FLASH_KEY2;
+		FLASH->CR = temp | FLASH_CR_OPTLOCK;
 	}
-    //HAL_FLASH_Unlock();
+	else
+	{
+		if (temp & FLASH_CR_OPTLOCK)
+		{
+			FLASH->OPTKEYR = FLASH_OPTKEY1;
+			FLASH->OPTKEYR = FLASH_OPTKEY2;
+		}
+	}
 }
 
-void RAMFUNCTION hal_flash_lock(void)
+uint32_t RAMFUNCTION hal_flash_ob_read(void)
 {
-	register uint32_t *pReg = &(FLASH->CR);
-	*pReg |= FLASH_CR_LOCK;
-    //HAL_FLASH_Lock();
+	return FLASH->OPTR;
 }
-*/
 
+uint32_t RAMFUNCTION hal_flash_ob_write(uint32_t ob_value)
+{
+	uint32_t status;
+
+	// WARNING : RDP_Level_2 is irreversible
+	// So is forbidden,
+	// ...but can be changed it if you are sure it's what you want to do.
+	if ( (ob_value & 0xFF) == OB_RDP_LEVEL_2)
+	{
+		return -1;
+	}
+	// ----
+	status = hal_flash_wait_last_op((uint32_t)FLASH_WAIT_OP_TMO);
+	if (!status)
+	{
+		// Setup the OB register
+		FLASH->OPTR = ob_value;
+
+		// Start Option modification
+		SET_BIT(FLASH->CR, FLASH_CR_OPTSTRT);
+
+		// Wait for operation complete
+		status = hal_flash_wait_last_op((uint32_t)FLASH_WAIT_OP_TMO);
+
+		// ...not required (even if ST HAL do it ?)
+		// CLEAR_BIT(FLASH->CR, FLASH_CR_OPTSTRT);
+	}
+	return status;
+}
+
+uint32_t RAMFUNCTION hal_flash_ob_launch(void)
+{
+	// Set the bit to force the option byte reloading
+	SET_BIT(FLASH->CR, FLASH_CR_OBL_LAUNCH);
+	// Wait for operation complete
+	return hal_flash_wait_last_op((uint32_t)FLASH_WAIT_OP_TMO);
+}
 
 
 /******************************************************************************/

@@ -1,5 +1,5 @@
 /**
-  * @file: update_area.h
+  * @file: bsp_wdg.h
   * @brief: // TODO This file ...
   * 
   *****************************************************************************
@@ -21,33 +21,41 @@
   *
   * Revision history
   * ----------------
-  * 1.0.0 : 2023/07/11[GBI]
+  * 1.0.0 : 2023/08/27[GBI]
   * Initial version
   *
   *
   */
-#ifndef UPDATE_AREA_H_
-#define UPDATE_AREA_H_
+#ifndef _BSP_WDG_H_
+#define _BSP_WDG_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-#include "update.h"
+/*
+ * It is assumed that the boot_strap :
+ * - Initialize the IWDG with : (32.768 second)
+ *   - IWDG_PR =  0x0000 0007 // divide by 256
+ *   - IWDG_RLR = 0x0000 0FFF
+ * - Set Option Byte :
+ *   - IWDG_STDBY = 0 : Independent watchdog counter is frozen in Standby mode
+ *   - IWDG_STOP  = 0 : Independent watchdog counter is frozen in Stop mode
+ *   - IDWG_SW    = 1 : Software independent watchdog
+ * - Increment the "unstable counter" if reset is due to :
+ *   - IWDG timeout
+ *   - WWDG timeout
+ * - Increment the "unauthorized counter" if reset is due to :
+ *   - Option Byte Loading
+ *   - Firewall access
+ *   - Illegal Low Power mode entry
+ *
+ *
+ *
+ */
 
-#ifndef BUILD_STANDALONE_APP
-	#include "img.h"
-#endif
-
-update_status_e UpdateArea_Setup(void);
-update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt);
-update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t *pData);
-update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz);
-update_status_e UpdateArea_CheckImg(uint32_t u32HashSW);
-update_status_e UpdateArea_WriteHeader(uint32_t img_sz);
-void UpdateArea_SetBootReq(uint32_t boot_req);
+void BSP_Iwdg_Refresh(void);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* UPDATE_AREA_H_ */
+#endif /* _BSP_WDG_H_ */

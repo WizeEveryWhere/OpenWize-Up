@@ -33,11 +33,11 @@ defined in linker script */
 	.weak	Reset_Handler
 	.type	Reset_Handler, %function
 Reset_Handler:
-  ldr   sp, =_estack    /* Atollic update: set stack pointer */
+    ldr   sp, =_estack    /* Atollic update: set stack pointer */
 
-/* Copy the data segment initializers from flash to SRAM */
-  movs	r1, #0
-  b	LoopCopyDataInit
+    /* Copy the data segment initializers from flash to SRAM */
+    movs	r1, #0
+    b	LoopCopyDataInit
 
 CopyDataInit:
 	ldr	r3, =_sidata
@@ -65,7 +65,7 @@ LoopFillZerobss:
 	cmp	r2, r3
 	bcc	FillZerobss
 
-	bl	boot_strap
+	bl boot_strap
 
 LoopForever:
     b LoopForever
@@ -124,17 +124,93 @@ g_pfnVectors:
 	.word	0
 	.word	PendSV_Handler
 	.word	SysTick_Handler
-	.word	0
-	.word	0
-	.word	0
-@_rtc_wkup_irq_handler_ :
-	.word	0
-@_flash_irq_handler_ :
-	.word	0
 _no_vector_area_1_ :
-    .word 0
-    .word 0
-    .word 0
+	.word	0 @ WWDG_IRQHandler
+	.word	0 @ PVD_PVM_IRQHandler
+	.word	0 @ TAMP_STAMP_IRQHandler
+	.word	0 @ RTC_WKUP_IRQHandler @_rtc_wkup_irq_handler_ :
+	.word	0 @ FLASH_IRQHandler @_flash_irq_handler_ :
+    .word   0 @ RCC_IRQHandler
+
+    .word   0 @ EXTI0_IRQHandler
+    .word   0 @ EXTI1_IRQHandler
+    .word   0 @ EXTI2_IRQHandler
+    .word   0 @ EXTI3_IRQHandler
+    .word   0 @ EXTI4_IRQHandler
+    .word   0 @ DMA1_Channel1_IRQHandler
+    .word   0 @ DMA1_Channel2_IRQHandler
+    .word   0 @ DMA1_Channel3_IRQHandler
+    .word   0 @ DMA1_Channel4_IRQHandler
+    .word   0 @ DMA1_Channel5_IRQHandler
+    .word   0 @ DMA1_Channel6_IRQHandler
+    .word   0 @ DMA1_Channel7_IRQHandler
+    .word   0 @ ADC1_IRQHandler
+    .word   0 @ CAN1_TX_IRQHandler
+    .word   0 @ CAN1_RX0_IRQHandler
+    .word   0 @ CAN1_RX1_IRQHandler
+    .word   0 @ CAN1_SCE_IRQHandler
+    .word   0 @ EXTI9_5_IRQHandler
+    .word   0 @ TIM1_BRK_TIM15_IRQHandler
+    .word   0 @ TIM1_UP_TIM16_IRQHandler
+    .word   0 @ TIM1_TRG_COM_IRQHandler
+    .word   0 @ TIM1_CC_IRQHandler
+    .word   0 @ TIM2_IRQHandler
+    .word   0 @ TIM3_IRQHandler
+    .word   0
+    .word   0 @ I2C1_EV_IRQHandler
+    .word   0 @ I2C1_ER_IRQHandler
+    .word   0 @ I2C2_EV_IRQHandler
+    .word   0 @ I2C2_ER_IRQHandler
+    .word   0 @ SPI1_IRQHandler
+    .word   0 @ SPI2_IRQHandler
+    .word   0 @ USART1_IRQHandler
+    .word   0 @ USART2_IRQHandler
+    .word   0 @ USART3_IRQHandler
+    .word   0 @ EXTI15_10_IRQHandler
+    .word   0 @ RTC_Alarm_IRQHandler
+    .word   0
+    .word   0
+    .word   0
+    .word   0
+    .word   0
+    .word   0
+    .word   0
+    .word   0 @ SDMMC1_IRQHandler
+    .word   0
+    .word   0 @ SPI3_IRQHandler
+    .word   0 @ UART4_IRQHandler
+    .word   0
+    .word   0 @ TIM6_DAC_IRQHandler
+    .word   0
+    .word   0 @ DMA2_Channel1_IRQHandler
+    .word   0 @ DMA2_Channel2_IRQHandler
+    .word   0 @ DMA2_Channel3_IRQHandler
+    .word   0 @ DMA2_Channel4_IRQHandler
+    .word   0 @ DMA2_Channel5_IRQHandler
+    .word   0 @ DFSDM1_FLT0_IRQHandler
+    .word   0 @ DFSDM1_FLT1_IRQHandler
+    .word   0
+    .word   0 @ COMP_IRQHandler
+    .word   0 @ LPTIM1_IRQHandler
+    .word   0 @ LPTIM2_IRQHandler
+    .word   0
+    .word   0 @ DMA2_Channel6_IRQHandler
+    .word   0 @ DMA2_Channel7_IRQHandler
+    .word   0 @ LPUART1_IRQHandler
+    .word   0 @ QUADSPI_IRQHandler
+    .word   0 @ I2C3_EV_IRQHandler
+    .word   0 @ I2C3_ER_IRQHandler
+    .word   0 @ SAI1_IRQHandler
+    .word   0
+    .word   0
+    .word   0 @ TSC_IRQHandler
+    .word   0
+    .word   0
+    .word   0 @ RNG_IRQHandler
+    .word   0 @ FPU_IRQHandler
+    .word   0 @ CRS_IRQHandler
+    .word   0 @ I2C4_EV_IRQHandler
+    .word   0 @ I2C4_ER_IRQHandler
 __get_part_add__ :
     cmp r0, #2
     bhi __get_fail__

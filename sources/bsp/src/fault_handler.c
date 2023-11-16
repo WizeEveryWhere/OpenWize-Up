@@ -93,6 +93,8 @@ static void CoreDump( uint32_t *hardfault_args )
     volatile uint32_t stacked_r2;
     volatile uint32_t stacked_r3;
     volatile uint32_t stacked_r12;
+    // TODO : add SP
+    //volatile uint32_t stacked_sp;
     volatile uint32_t stacked_lr;
     volatile uint32_t stacked_pc;
     volatile uint32_t stacked_psr;
@@ -110,6 +112,8 @@ static void CoreDump( uint32_t *hardfault_args )
     stacked_r2 = ((uint32_t)hardfault_args[2]);
     stacked_r3 = ((uint32_t)hardfault_args[3]);
     stacked_r12 = ((uint32_t)hardfault_args[4]);
+    // TODO : add SP
+    //stacked_sp  = ((uint32_t)hardfault_args[5]);
     stacked_lr = ((uint32_t)hardfault_args[5]);
     stacked_pc = ((uint32_t)hardfault_args[6]);
     stacked_psr = ((uint32_t)hardfault_args[7]);
@@ -138,14 +142,16 @@ static void CoreDump( uint32_t *hardfault_args )
 
 #ifdef DUMP_CORE_HAS_TRACE
     TRACE_DUMP_CORE ("\nHard fault handler :\n");
-    TRACE_DUMP_CORE ("R0       = 0x%lx\n", stacked_r0);
-    TRACE_DUMP_CORE ("R1       = 0x%lx\n", stacked_r1);
-    TRACE_DUMP_CORE ("R2       = 0x%lx\n", stacked_r2);
-    TRACE_DUMP_CORE ("R3       = 0x%lx\n", stacked_r3);
-    TRACE_DUMP_CORE ("R12      = 0x%lx\n", stacked_r12);
-    TRACE_DUMP_CORE ("LR [R14] = 0x%lx  subroutine call return address\n", stacked_lr);
-    TRACE_DUMP_CORE ("PC [R15] = 0x%lx  program counter\n", stacked_pc);
-    TRACE_DUMP_CORE ("PSR      = 0x%lx\n", stacked_psr);
+    TRACE_DUMP_CORE ("R0  = 0x%lx\n", stacked_r0);
+    TRACE_DUMP_CORE ("R1  = 0x%lx\n", stacked_r1);
+    TRACE_DUMP_CORE ("R2  = 0x%lx\n", stacked_r2);
+    TRACE_DUMP_CORE ("R3  = 0x%lx\n", stacked_r3);
+    TRACE_DUMP_CORE ("R12 = 0x%lx\n", stacked_r12);
+    // TODO : add SP
+    //TRACE_DUMP_CORE ("sp  = 0x%lx\n", stacked_sp);
+    TRACE_DUMP_CORE ("LR  = 0x%lx\n", stacked_lr);
+    TRACE_DUMP_CORE ("PC  = 0x%lx\n", stacked_pc);
+    TRACE_DUMP_CORE ("PSR = 0x%lx\n", stacked_psr);
 
 #ifdef DUMP_CORE_HAS_FAULT_STATUS_REGISTER
     TRACE_DUMP_CORE ("CFSR = 0x%lx\n", _CFSR);
@@ -171,6 +177,8 @@ static void CoreDump( uint32_t *hardfault_args )
 	(void) stacked_r2;
 	(void) stacked_r3;
 	(void) stacked_r12;
+	// TODO : add SP
+	//(void) stacked_sp;
 	(void) stacked_lr;
 	(void) stacked_pc;
 	(void) stacked_psr;

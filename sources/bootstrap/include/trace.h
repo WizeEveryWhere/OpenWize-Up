@@ -1,3 +1,10 @@
+#ifndef _TRACE_H_
+#define _TRACE_H_
+
+#if defined(__cplusplus)
+extern "C"
+{
+#endif
 
 #include <stdint.h>
 
@@ -27,7 +34,15 @@ void trace(uint8_t id);
 #ifdef USE_BOOTSTRAP_TRACE
 #define TRACE_INIT() trace_init()
 #define TRACE(id) trace(id)
+#define TRACE_FINI() trace_fini()
 #else
 #define TRACE_INIT()
 #define TRACE(id)
+#define TRACE_FINI()
 #endif
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif // _TRACE_H_

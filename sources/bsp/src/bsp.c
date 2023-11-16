@@ -174,35 +174,92 @@ extern void __init_sys_calls__(void);
 /*! @} @endcond */
 
 
+boot_info_t gBootInfo;
 boot_state_t gBootState;
+/*!
+  * @static
+  * @brief Check the boot info
+  *
+  */
+static
+void _bsp_check_boot_info_(void)
+{
+	gBootInfo = (boot_info_t)BSP_Boot_GetInfo();
+	gBootState = (boot_state_t)BSP_Boot_GetState();
+
+	// Check if required to init calendar
+	if ( !(gBootState.calendar) )
+	{
+		// Reset the SRAM2
+		__HAL_SYSCFG_SRAM2_WRP_UNLOCK();
+		__HAL_SYSCFG_SRAM2_ERASE();
+
+		// Configure RTC Calendar
+		//BSP_Rtc_Time_Write((time_t)EPOCH_UNIX_TO_OURS);
+		BSP_Rtc_Time_Write((time_t)(1356998400U));
+		gBootState.calendar = 1;
+		// Save the BootState
+		BSP_Boot_SetSate(gBootState.state);
+
+		gBootInfo.unstab_cnt = 0;
+		gBootInfo.unauth_cnt = 0;
+	}
+
+	// Clear the boot info but keep counters
+	BSP_Boot_SetInfo(gBootInfo.info & 0xFFFF0000);
+
+	// check wake-up internal : RTC ALARM or RTC WAKEUP TIMER
+	if (gBootInfo.internal)
+	{
+		// Disable RTC protect
+		RTC->WPR = 0xCAU;
+		RTC->WPR = 0x53U;
+		// case RTC WAKEUP TIMER
+		if ( RTC->ISR & RTC_FLAG_WUTF )
+		{
+			gBootState.wkup_timer = 1;
+		}
+		// case RTC ALARM A // SHOULD never happen, in SHUTDOWN
+		if ( RTC->ISR & RTC_FLAG_ALRAF )
+		{
+			gBootState.wkup_alra = 1;
+		}
+		// case RTC ALARM B // SHOULD never happen, in SHUTDOWN
+		if ( RTC->ISR & RTC_FLAG_ALRBF )
+		{
+			gBootState.wkup_alrb = 1;
+		}
+
+		// Disable Timer and Alarms
+		RTC->CR &= ~(RTC_CR_WUTE | RTC_CR_ALRAE | RTC_CR_ALRBE);
+		// Disable Timer and Alarms interrupt
+		RTC->CR &= ~(RTC_CR_WUTIE | RTC_CR_ALRAIE | RTC_CR_ALRBIE);
+		// Clear flags
+		RTC->ISR &= ~(RTC_ISR_WUTF | RTC_ISR_ALRAF | RTC_ISR_ALRBF);
+		// Enable RTC protect
+		RTC->WPR = 0xFFU;
+	}
+
+}
+
 
 /*!
   * @brief This function initialize the bsp
   *
-  * @param [in] u32BootState The current boot state
-  * 
   * @return None
   */
-void BSP_Init(uint32_t u32BootState)
+void BSP_Init(void)
 {
-
 	__init_exception_handlers__();
 	__init_sys_handlers__();
 	__init_sys_calls__();
-
-	gBootState.state = u32BootState;
 
 	// Setup the RTC
 	//BSP_Rtc_Setup(255, 127);
 	BSP_Rtc_Setup(RTC_PREDIV_S, RTC_PREDIV_A);
 
-	// Check if required to init calendar
-	if ( gBootState.state & CALENDAR_UNINIT_MSK )
-	{
-		//BSP_Rtc_Time_Write((time_t)EPOCH_UNIX_TO_OURS);
-		BSP_Rtc_Time_Write((time_t)(1356998400U));
-		gBootState.state &= ~(CALENDAR_UNINIT_MSK);
-	}
+	// Check the boot info
+	_bsp_check_boot_info_();
 }
 #ifdef __cplusplus
 }

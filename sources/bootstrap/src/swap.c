@@ -1,14 +1,17 @@
+#if defined(__cplusplus)
+extern "C"
+{
+#endif
 
-#include <stdint.h>
-
+#include "def.h"
 #include "swap.h"
 #include "flash.h"
 
 /******************************************************************************/
-static int32_t flash_erase(uint32_t address, uint32_t len);
-static int32_t flash_write(uint32_t dest, uint32_t src, uint32_t len);
+static int32_t RAMFUNCTION flash_erase(uint32_t address, uint32_t len);
+static int32_t RAMFUNCTION flash_write(uint32_t dest, uint32_t src, uint32_t len);
 
-static int32_t flash_erase(uint32_t address, uint32_t len)
+static int32_t RAMFUNCTION flash_erase(uint32_t address, uint32_t len)
 {
     register uint32_t FirstPage = 0;
     register uint32_t LastPage = 0;
@@ -32,7 +35,7 @@ static int32_t flash_erase(uint32_t address, uint32_t len)
     return 0;
 }
 
-static int32_t flash_write(uint32_t dest, uint32_t src, uint32_t len)
+static int32_t RAMFUNCTION flash_write(uint32_t dest, uint32_t src, uint32_t len)
 {
 	register uint32_t nbLine = len / 8;
 	register uint32_t rest = len % 8;
@@ -67,7 +70,7 @@ static int32_t flash_write(uint32_t dest, uint32_t src, uint32_t len)
     return 0;
 }
 
-int swap(register struct __exch_info_s * pp)
+int RAMFUNCTION swap(register struct __exch_info_s * pp)
 {
 	hal_flash_lock(0);
 	if ( flash_erase(pp->dest, pp->dest_sz) )
@@ -102,3 +105,8 @@ failed :
 	 *
 	 */
 }
+
+/******************************************************************************/
+#if defined(__cplusplus)
+}
+#endif

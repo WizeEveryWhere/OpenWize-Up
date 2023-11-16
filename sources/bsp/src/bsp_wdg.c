@@ -1,5 +1,5 @@
 /**
-  * @file: update_area.h
+  * @file: bsp_wdg.c
   * @brief: // TODO This file ...
   * 
   *****************************************************************************
@@ -21,33 +21,25 @@
   *
   * Revision history
   * ----------------
-  * 1.0.0 : 2023/07/11[GBI]
+  * 1.0.0 : 2023/08/27[TODO: your name]
   * Initial version
   *
   *
   */
-#ifndef UPDATE_AREA_H_
-#define UPDATE_AREA_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-#include "update.h"
+#include "bsp_wdg.h"
+#include "platform.h"
+#include <stm32l4xx_hal.h>
 
-#ifndef BUILD_STANDALONE_APP
-	#include "img.h"
-#endif
+void BSP_Iwdg_Refresh(void)
+{
+	IWDG->KR = IWDG_KEY_RELOAD;
+}
 
-update_status_e UpdateArea_Setup(void);
-update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt);
-update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t *pData);
-update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz);
-update_status_e UpdateArea_CheckImg(uint32_t u32HashSW);
-update_status_e UpdateArea_WriteHeader(uint32_t img_sz);
-void UpdateArea_SetBootReq(uint32_t boot_req);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* UPDATE_AREA_H_ */

@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.h
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-06 18:12:38.179445304 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-16 14:20:10.576928276 +0100).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 06/11/2023 18:12 [neo]
+  * @par x.x.x : 16/11/2023 14:20 [neo]
   *
   */
 
@@ -36,7 +36,7 @@ extern C {
 
 /******************************************************************************/
 #define PARAM_ACCESS_CFG_SZ (0xFF)
-#define PARAM_DEFAULT_SZ (0xA0)
+#define PARAM_DEFAULT_SZ (0xA2)
 
 extern const param_s a_ParamAccess[PARAM_ACCESS_CFG_SZ];
 extern const uint8_t a_ParamDefault[PARAM_DEFAULT_SZ];
@@ -83,8 +83,10 @@ typedef enum {
     PING_REPLY7 = 0x3C, /*!< Response 7 received for the last connectivity test */
     PING_REPLY8 = 0x3D, /*!< Response 8 received for the last connectivity test (Lowest L7RssiDown) */
     EXECPING_PERIODE = 0x3E, /*!< Periodic time of execping sending by the device, in months */
-    EXTEND_FLAGS = 0xD0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] if 1: Activate the WDT (bootcount for roll-back FW); b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM; */
+    EXTEND_FLAGS = 0xD0, /*!< Get or Set the extend flags. b[0] if 1: Enable ATCI +DBG; b[1] : Reserved; b[2] if 1: Activate the immediate update when image is ready; b[3] : Reserved; b[4] : Reserved; b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM; b[6] if 1: Activate the device id writing in NVM; b[7] if 1: Activate the keys writing in NVM; */
     LOCAL_KEY_ID = 0xD1, /*!< Get or Set the local key id. */
+    BOOT_COUNT = 0xD2, /*!< Get the current boot counter value. */
+    BOOT_COUNT_MAX = 0xD3, /*!< Get or Set the maximum value of boot counter to rollback. */
     AUTO_ADJ_CLK_FREQ = 0xDA, /*!< Clock and Frequency Offset Auto-Adjustment (see struct adm_config_s). MSB : control, b[0] : Coarse clock auto-adjust on PONG. 1: enable, 0: disable b[1] : Reserved b[2] : Frequency Offset auto-adjust on PONG. 1: enable, 0: disable b[3] : Reserved b[4] : Coarse clock auto-adjust on PONG appliance 1: One Shot, 0: Every time b[5] : Adjust error due to the Gateway on clock auto-adjust 1: Enable, 0: Disable b[6] : Frequency Offset auto-adjust on PONG appliance. 1: One Shot, 0: Every time b[7] : Reserved LSB : RSSI min. level. */
     ADM_ANN_DIS_FLT = 0xDD, /*!< ADM ANN Reception Filter disable (see struct adm_config_s) b[0] : Day Prog. filter. 0: enable, 1: disable b[1] : Delta Second filter. 0: enable, 1: disable b[2] : HW ver.filter. 0: enable, 1: disable b[3] : SW Ver. Initial filter. 0: enable, 1: disable b[4] : SW Ver. Target filter. 0: enable, 1: disable b[5] : Max. Block Number filter. 0: enable, 1: disable b[6:7] : Reserved */
     ADM_PARAM_DIS_FLT = 0xDE, /*!< ADM R/W parameters Reception Filter disable (see struct adm_config_s) b[0] : Read parameter WO filter. 0: enable, 1: disable b[1] : Write parameter RO filter. 0: enable, 1: disable b[2:7] : Reserved */

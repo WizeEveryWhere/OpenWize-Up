@@ -21,6 +21,7 @@ target_sources(${MODULE_NAME}
         src/bsp_crc.c
         src/bsp_cal.c
         src/bsp_hires_tmr.c
+        src/bsp_wdg.c
         src/bsp.c
         src/fault_handler.c
         src/platform.c

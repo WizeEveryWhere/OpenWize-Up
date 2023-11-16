@@ -5,9 +5,12 @@
 #include <stm32l4xx_hal_rcc.h>
 
 /******************************************************************************/
+#include "def.h"
+
 #include "trace.h"
 #include "preload.h"
 #include "swap.h"
+#include "protect.h"
 
 #ifdef HAS_CRC_COMPUTE
 #include "crc.h"
@@ -17,6 +20,8 @@
 #define SYSMEM_ADDRESS (uint32_t)0x1FFF0000
 #endif
 
+__attribute__((weak)) const pf_t pfBL_2ndStage;
+
 /******************************************************************************/
 #define JMP(addr) \
     __asm__("mov pc,%0" \
@@ -25,81 +30,119 @@
             "r" (addr) \
            );
 
-static __attribute__ ((always_inline)) __attribute__ ((no_return))
-void NVIC_VectorReset(void)
+
+__attribute__ ((always_inline))
+__attribute__ ((no_return))
+static void NVIC_VectorReset(void)
 {
   __DSB();
-  SCB->AIRCR  = (uint32_t)( (0x5FAUL << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_VECTRESET_Msk );
-  //SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) | SCB_AIRCR_SYSRESETREQ_Msk);
+  SCB->AIRCR  = (uint32_t)( (0x5FAUL << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk );
   __DSB();
   while(1) { __NOP(); }
 }
 
-static __attribute__ ((always_inline)) __attribute__ ((no_return))
-void reboot(void) { NVIC_VectorReset(); }
+__attribute__ ((always_inline))
+__attribute__ ((no_return))
+static void reboot(void)
+{
+	NVIC_VectorReset();
+}
 
 void infinite_loop(void)
 {
-	register uint32_t cnt = 4000000;
+	register uint32_t cnt = 8000000;
 	TRACE(TRACE_MSG_FAILURE);
 	while (cnt) {__NOP(); cnt--; }
 	reboot();
 }
+/******************************************************************************/
 
-static void init_protect(
-		register unsigned char dest_id,
-		register unsigned char src_id,
-		register boot_request_e do_it
-		)
+__attribute__((noinit)) uint8_t u8UnstabCnt;
+__attribute__((noinit)) uint8_t u8UnauthCnt;
+
+uint32_t boot_get_info(void)
 {
-	if (do_it == BOOT_REQ_UPDATE)
+	register __IO uint32_t tempreg = 0;
+	uint32_t boot_info = 0;
+
+	// Enable PWR_CLK
+	__HAL_RCC_PWR_CLK_ENABLE();
+	// Get Register
+	tempreg = PWR->SR1;
+	// clear Standby flag and all wake-up flag
+	SET_BIT(PWR->SCR, (PWR_SCR_CSBF | PWR_SCR_CWUF) );
+	// Enable backup domain access
+	SET_BIT(PWR->CR1, PWR_CR1_DBP);
+	// Disable PWR_CLK
+	__HAL_RCC_PWR_CLK_DISABLE();
+
+	// Get wake-up pins
+	boot_info |= (tempreg & PWR_SR1_WUF) << WKUP_PIN_POS;
+	// Get if it was in Standby mode
+	boot_info |= (tempreg & PWR_SR1_SBF)?(STANDBY_WKUP_MSK):(0);
+	// Get if it was internal wake-up
+	boot_info |= (tempreg & PWR_SR1_WUFI)?(INTERNAL_WKUP_MSK):(0);
+
+	// Get Boot reason
+	tempreg = RCC->CSR >> RCC_CSR_FWRSTF_Pos;
+	// Clear reset flags
+	SET_BIT(RCC->CSR, RCC_CSR_RMVF);
+
+	// Get Boot reason
+	boot_info |= tempreg;
+	return boot_info;
+}
+
+static
+void boot_save_info(uint32_t u32BootInfo)
+{
+	register __IO uint32_t can_save = 0;
+
+	// Check if RTC is enable
+	can_save = RCC->BDCR & RCC_BDCR_RTCEN;
+	if (can_save)
 	{
-		// Update or backup is requested :
-		// - We should be able to erase, and write to ACTIVE_AREA
-		// - We should be able to read INACTIVE_AREA with id == src_id
-		// - We should not be able to erase, write nor read INACTIVE_AREA with id != src_id
-		//
-		// No protection really required, we are in the bootstrap. But some
-		// protection have to be enable somewhere.
-		// Assuming that protections were previously enabled somewhere else,
-		// then just "open all".
-		//
+		u8UnstabCnt = (RTC->BOOT_INFO_BKPR & BOOT_UNSTAB_CNT_MASK) >> BOOT_UNSTAB_CNT_POS;
+		u8UnauthCnt = (RTC->BOOT_INFO_BKPR & BOOT_UNAUTH_CNT_MASK) >> BOOT_UNAUTH_CNT_POS;
 	}
-	else
+
+	if(u32BootInfo == 0)
 	{
-		// Local Update or Nominal is requested :
-		// - We should not be able to erase, write nor read ACTIVE_AREA
-		// - We should be able to erase and write to INACTIVE_AREA with id == dest_id
-		// - We should not be able to erase, write nor read INACTIVE_AREA with id != dest_id
-		//
-		// From "STBootLoader" :
-		// - Only Erase, write (read permit) one of the INACTIVE_AREA
-		// From "Application" :
-		// - Only Erase, write (read permit) one of the INACTIVE_AREA
-		//
-		// Assuming that protections were previously enabled somewhere else,
-		// then just "open one INACTIVE_AREA".
-		//
-		// PCROP granularity is double word
-		// PCROP1_STRT =
-		// PCROP1_END  =
-		// PCROP_RDP   = ?
-		// RDERRIE
-		//
-		// FLASH_OPTR = 0x08000000 // nBOOT0 = 1, nSWBOOT0 = 0, nBOOT1 = 0
-		//
-		// WRP granularity is flash page size (2KB)
-		// WRP1A_STRT
-		// WRP1A_END
-		// WRP1B_STRT
-		// WRP1B_END
-		//
+		u8UnstabCnt = 0;
+		u8UnauthCnt = 0;
+	}
+	// check if instability
+	if(u32BootInfo & INSTAB_DETECT)
+	{
+		// increment boot_cnt
+		u8UnstabCnt++;
+	}
+	// check if unauth access
+	if(u32BootInfo & UNAUTH_ACCESS)
+	{
+		// increment unauth_cnt
+		u8UnauthCnt++;
+	}
+	// Check Backup domain
+	if (can_save)
+	{
+		// If enable, then save boot info can be saved into backup registers
+		u32BootInfo &= BOOT_INFO_MASK;
+		u32BootInfo |= (u8UnauthCnt << BOOT_UNAUTH_CNT_POS);
+		u32BootInfo |= (u8UnstabCnt << BOOT_UNSTAB_CNT_POS);
+
+		// Save the BootState
+		RTC->BOOT_INFO_BKPR = u32BootInfo;
+	}
+	//else
+	{
+		// If not enable, maybe application never start.
+		// So keep boot info as local variable in RAM
 	}
 }
 
 /******************************************************************************/
-__attribute__((weak)) const pf_t pfBL_2ndStage;
-
+__attribute__ ((naked))
 __attribute__ ((no_return)) //__attribute__ ((section (".boot")))
 void boot_strap(void)
 {
@@ -108,6 +151,7 @@ void boot_strap(void)
 
 	TRACE_INIT();
 
+	unsigned int boot_info = boot_get_info();
 	do_it = preload(pp);
 	TRACE(TRACE_MSG_ENTER);
 
@@ -124,11 +168,14 @@ void boot_strap(void)
 		TRACE(TRACE_MSG_REQ_UPDATE);
 		TRACE(TRACE_MSG_SWAP);
 		swap(pp);
+		boot_save_info(0);
 	}
 	else
 	{
 		register unsigned int start;
-
+#ifdef USE_ENABLE_IWDG
+		protect(pp);
+#endif
 		if (do_it == BOOT_REQ_NONE )
 		{
 			start = pp->src + HEADER_SZ;
@@ -169,6 +216,12 @@ void boot_strap(void)
 			* (uint32_t *)(0xFFFFFFFF) = 0;
 #endif
 		}
+		TRACE_FINI();
+		boot_save_info(boot_info);
+#ifdef USE_ENABLE_IWDG
+		wdg_init();
+		wdg_refresh();
+#endif
 	    __set_MSP(*(volatile uint32_t*)start);
 	    JMP( (*(volatile uint32_t*)(start + 4)) );
 	}

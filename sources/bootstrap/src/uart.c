@@ -1,9 +1,16 @@
+#if defined(__cplusplus)
+extern "C"
+{
+#endif
 
+#include "def.h"
 #include "uart.h"
 
-static void hal_gpio_init(void);
+/******************************************************************************/
 
-static void hal_gpio_init(void)
+static void RAMFUNCTION hal_gpio_init(void);
+
+static void RAMFUNCTION hal_gpio_init(void)
 {
 	register uint32_t temp;
 
@@ -21,10 +28,9 @@ static void hal_gpio_init(void)
 
 	temp = USARTx_GPIO_PORT->PUPDR & GPIOx_PUDR_MSK;
 	USARTx_GPIO_PORT->PUPDR = temp | GPIOx_PUDR;
-
 }
 
-void hal_uart_init(void)
+void RAMFUNCTION hal_uart_init(void)
 {
 	USARTx_CLK_ENABLE();
 	USARTx_GPIO_CLK_ENABLE();
@@ -38,7 +44,16 @@ void hal_uart_init(void)
 	SET_BIT(USARTx->CR1, USART_CR1_UE);
 }
 
-void hal_uart_send(uint8_t c)
+void RAMFUNCTION hal_uart_fini(void)
+{
+	USARTx_DeInit();
+	USARTx_CLK_DISABLE();
+
+	USARTx_GPIO_DeInit();
+	USARTx_GPIO_CLK_DISABLE();
+}
+
+void RAMFUNCTION hal_uart_send(uint8_t c)
 {
 	USARTx->TDR = c;
 	while (! ((READ_BIT(USARTx->ISR, USART_ISR_TC) == (USART_ISR_TC)) ? 1UL : 0UL) )
@@ -46,7 +61,7 @@ void hal_uart_send(uint8_t c)
 	}
 }
 
-uint8_t hal_uart_read(void)
+uint8_t RAMFUNCTION hal_uart_read(void)
 {
   while(! ((READ_BIT(USARTx->ISR, USART_ISR_RXNE) == (USART_ISR_RXNE)) ? 1UL : 0UL))
   {
@@ -55,3 +70,7 @@ uint8_t hal_uart_read(void)
   return (uint8_t)(READ_BIT(USARTx->RDR, USART_RDR_RDR) & 0xFFU);
 }
 
+/******************************************************************************/
+#if defined(__cplusplus)
+}
+#endif

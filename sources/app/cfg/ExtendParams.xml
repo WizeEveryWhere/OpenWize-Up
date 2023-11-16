@@ -14,7 +14,7 @@ Get or Set the extend flags.
 b[0] if 1: Enable ATCI +DBG;
 b[1] : Reserved;
 b[2] if 1: Activate the immediate update when image is ready;
-b[3] if 1: Activate the WDT (bootcount for roll-back FW);
+b[3] : Reserved;
 b[4] : Reserved;
 b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
 b[6] if 1: Activate the device id writing in NVM;
@@ -27,6 +27,16 @@ b[7] if 1: Activate the keys writing in NVM;
                name="LOCAL_KEY_ID"
                desc="Get or Set the local key id.">
          0x00</Parameter>
+    <Parameter id="D2" loc="RO" rem="RO" size="1"
+               ref="REF_N"
+               name="BOOT_COUNT"
+               desc="Get the current boot counter value.">
+         0x00</Parameter>
+    <Parameter id="D3" loc="RW" rem="RW" size="1"
+               ref="REF_N"
+               name="BOOT_COUNT_MAX"
+               desc="Get or Set the maximum value of boot counter to rollback.">
+         0x05</Parameter>
     <!-- ******************************************************************* -->
     
     <!-- Wize Core form id="DA" to  id="EF" -->

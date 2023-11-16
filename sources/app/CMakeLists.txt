@@ -4,6 +4,10 @@ find_package(build_support REQUIRED)
 
 set(MODULE_NAME App_WizeUp)
 
+if(CUSTOM_BIN_NAME)
+    set(MODULE_NAME ${CUSTOM_BIN_NAME})
+endif(CUSTOM_BIN_NAME)
+
 ################################################################################
 add_subdirectory(ATCI)
 add_subdirectory(extra)
@@ -20,12 +24,12 @@ target_sources(${MODULE_NAME}
         sys/rtos.c
         sys/sys_init.c
         sys/default_device_config.c 
-        gen/parameters_cfg.c
-        gen/parameters_default.c
         update/update.c
         update/update_area.c
+        ../../${CFG_GEN_DIR}/gen/parameters_cfg.c
+        ../../${CFG_GEN_DIR}/gen/parameters_default.c
     )
-    
+
 # Add include dir    
 target_include_directories(
     ${MODULE_NAME} 
@@ -33,8 +37,8 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/sys
-        ${CMAKE_CURRENT_SOURCE_DIR}/gen
         ${CMAKE_CURRENT_SOURCE_DIR}/update
+        ../../${CFG_GEN_DIR}/gen
     )
 
 # Add some link flags

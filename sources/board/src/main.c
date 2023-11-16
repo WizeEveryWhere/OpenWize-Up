@@ -50,60 +50,33 @@ extern void app_entry(void);
   */
 int main(void)
 {
-#define MAX_BOOT_CNT 5
-  //uint32_t u32PrevBootState;
-  uint32_t u32BootCnt;
-  uint32_t u32UnauthAcc;
-  uint32_t u32BootState;
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	SystemClock_Config();
+	LSEClock_Config();
+	BSP_Rtc_Setup_Clk(RCC_RTCCLKSOURCE_LSE);
 
-  SystemClock_Config();
-  LSEClock_Config();
-  BSP_Rtc_Setup_Clk(RCC_RTCCLKSOURCE_LSE);
+	/** Enable MSI Auto calibration */ // Must be called after LSEON and LSERDY
+	HAL_RCCEx_EnableMSIPLLMode();
 
-  /** Enable MSI Auto calibration */ // Must be called after LSEON and LSERDY
-  HAL_RCCEx_EnableMSIPLLMode();
+	// Init the BSP
+	BSP_Init();
+	/*
+	* The "PeriphClock_Config" call is not required because all "Peripherals
+	* independent clock" have expected configuration at Reset.
+	*/
+	//PeriphClock_Config();
 
-  // Get boot state
-  u32BootState = BSP_Boot_GetState();
+	MX_GPIO_Init();
+	BSP_PwrLine_Init();
 
-#define MAX_BOOT_CNT 5
-  // check if instability
-  if(u32BootState & INSTAB_DETECT)
-  {
-	  // increment boot_cnt
-	  u32BootCnt++;
-	  if (u32BootCnt > MAX_BOOT_CNT)
-	  {
-	  	//swap to the previous sw slot (if any)
-	    //(option) reboot
-	  }
-  }
-  // check if unauth access
-  if(u32BootState & UNAUTH_ACCESS)
-  {
-	  // increment unauth_cnt
-	  u32UnauthAcc++;
-  }
+	BSP_Uart_Init(UART_ID_COM, '\r', UART_MODE_NONE);
 
-  BSP_Init(u32BootState);
-  /*
-  * The "PeriphClock_Config" call is not required because all "Peripherals
-  * independent clock" have expected configuration at Reset.
-  */
-  //PeriphClock_Config();
-
-  MX_GPIO_Init();
-  BSP_PwrLine_Init();
-
-  BSP_Uart_Init(UART_ID_COM, '\r', UART_MODE_NONE);
-
-  app_entry();
-  while (1)
-  {
-  }
+	app_entry();
+	while (1)
+	{
+	}
 }
 
 /**
@@ -112,40 +85,37 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSICalibrationValue = 0;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11; // 48 Mhz
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /** Initializes the CPU, AHB and APB busses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  // Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) // 48 Mhz OK
-  {
-    Error_Handler();
-  }
+	// Initializes the CPU, AHB and APB busses clocks
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+	RCC_OscInitStruct.MSICalibrationValue = 0;
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11; // 48 Mhz
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	// Initializes the CPU, AHB and APB busses clocks
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+								 |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	// Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) // 48 Mhz OK
+	{
+		Error_Handler();
+	}
 
-  /** Configure the main internal regulator output voltage
-  */
-  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	// Configure the main internal regulator output voltage
+	if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+	{
+		Error_Handler();
+	}
 }
 
 /**

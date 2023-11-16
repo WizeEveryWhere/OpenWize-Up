@@ -7,14 +7,26 @@ set(LD_SCRIPT STM32L451CEUX_def.ld)
 set(STARTUP   startup_stm32l4xx.s)
 
 ################################################################################
+function(display_option)
+    message ("      -> HAS_CRC_COMPUTE     : ${HAS_CRC_COMPUTE}")
+    message ("      -> USE_BOOTSTRAP_TRACE : ${USE_BOOTSTRAP_TRACE}")
+    message ("      -> USE_LPUART_COM      : ${USE_LPUART_COM}")
+    message ("      -> USE_ENABLE_IWDG     : ${USE_ENABLE_IWDG}")
+endfunction(display_option)
+
+################################################################################
 option(HAS_2ND_STAGE_OR_SYS_BL "TODO : description." OFF)
 option(HAS_CRC_COMPUTE         "Compute CRC for exchange area" ON)
 option(HAS_SHA256_COMPUTE      "TODO : description." OFF)
 option(HAS_AES256_COMPUTE      "TODO : description." OFF)
+option(HAS_MEMORY_LOADER       "TODO : description." OFF)
 option(USE_BOOTSTRAP_TRACE     "Activate the trace." ON)
 option(USE_LPUART_COM          "Use the LPUART as trace port (default UART4)" OFF)
+option(USE_ENABLE_IWDG         "Enable IWDG from bootstrap" ON)
 
 ################################################################################
+
+display_option()
 
 # Add executable 
 add_executable(${MODULE_NAME})
@@ -43,7 +55,8 @@ target_include_directories(
 # Add some link flags
 target_link_options(${MODULE_NAME}
     PUBLIC
-        --specs=nano.specs 
+        #--specs=nano.specs 
+        --specs=nosys.specs
         -Wl,-Map=${MODULE_NAME}.map 
         -Wl,--gc-sections
         "-T${CMAKE_CURRENT_SOURCE_DIR}/ld/${LD_SCRIPT}"
@@ -58,7 +71,7 @@ endif(HAS_2ND_STAGE_OR_SYS_BL)
 
 
 if(HAS_CRC_COMPUTE)
-    set(HAL_CRC_MODULE_ENABLE ON)
+    set(HAL_CRC_MODULE_ENABLED ON)
     target_sources(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/crc.c)
     add_compile_definitions(HAS_CRC_COMPUTE=1)
 endif(HAS_CRC_COMPUTE)
@@ -84,6 +97,12 @@ if(USE_LPUART_COM)
     add_compile_definitions(USE_LPUART1=1)
 endif(USE_LPUART_COM)
 
+if(USE_ENABLE_IWDG)
+    set(HAL_IWDG_MODULE_ENABLED ON)
+    target_sources(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/wdg.c)
+    target_sources(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/protect.c)
+    add_compile_definitions(USE_ENABLE_IWDG=1)
+endif(USE_ENABLE_IWDG)
 ################################################################################
 setup_install(
     TARGET ${MODULE_NAME} 

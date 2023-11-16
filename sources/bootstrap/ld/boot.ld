@@ -8,9 +8,12 @@ MEMORY
   RAM2      (xrw) : ORIGIN = RAM_2_ORG,  LENGTH = RAM_2_SIZE 
 
   RAM_CONT  (xrw) : ORIGIN = RAM_1_ORG,    LENGTH = RAM_1_SIZE + RAM_2_SIZE 
+
+  BOOTSTRAP_RAM (xrw) : ORIGIN = BOOTSTRAP_RAM_ORG,  LENGTH = BOOTSTRAP_RAM_SIZE
+
 }
 
-REGION_ALIAS("RAM", RAM1);
+REGION_ALIAS("RAM", BOOTSTRAP_RAM);
 
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM);
@@ -53,8 +56,8 @@ SECTIONS
     *(.glue_7t)        /* glue thumb to arm code */
     *(.eh_frame)
 
-    KEEP (*(.init))
-    KEEP (*(.fini))
+    /* KEEP (*(.init)) */
+    /* KEEP (*(.fini)) */
 
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
@@ -160,6 +163,14 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
+  } >RAM
+
+  .noinit :
+  {
+    . = ALIGN(4);
+    *(.noinit)           /* .noinit sections */
+    *(.noinit*)          /* .noinit* sections */
+    . = ALIGN(4);
   } >RAM
 
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */

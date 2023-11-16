@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 #define CRC_POLY DEFAULT_CRC32_POLY
 #define CRC_INITVALUE DEFAULT_CRC_INITVALUE
 #define CRC_POLYLENGTH CRC_POLYLENGTH_32B

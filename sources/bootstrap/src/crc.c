@@ -1,19 +1,22 @@
-
-#include <stm32l4xx_hal_rcc.h>
-#include "stm32l4xx_hal_crc.h"
-#include "crc.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "def.h"
+#include "crc.h"
+
+#include <stm32l4xx_hal_rcc.h>
+#include "stm32l4xx_hal_crc.h"
+
+/******************************************************************************/
+
 #if CRC_POLYLENGTH == CRC_POLYLENGTH_32B
-static uint32_t crc32_compute(uint32_t *pData, uint32_t len);
+static uint32_t RAMFUNCTION crc32_compute(uint32_t *pData, uint32_t len);
 #else
 static uint32_t crc16_compute(uint16_t pData, uint32_t len);
 #endif
 
-void crc_init(void)
+void RAMFUNCTION crc_init(void)
 {
 	// Enable CRC clock
 	__HAL_RCC_CRC_CLK_ENABLE();
@@ -35,7 +38,7 @@ void crc_init(void)
 #endif
 
 }
-void crc_deinit(void)
+void RAMFUNCTION crc_deinit(void)
 {
 	// Reset CRC calculation unit
 	CRC->CR |= CRC_CR_RESET;
@@ -46,7 +49,7 @@ void crc_deinit(void)
 }
 
 #if CRC_POLYLENGTH == CRC_POLYLENGTH_32B
-static uint32_t crc32_compute(uint32_t *pData, uint32_t len)
+static uint32_t RAMFUNCTION crc32_compute(uint32_t *pData, uint32_t len)
 {
 	register uint32_t index;      /* CRC input data buffer index */
 	register CRC_TypeDef *p_reg = CRC;
@@ -62,7 +65,7 @@ static uint32_t crc32_compute(uint32_t *pData, uint32_t len)
 }
 
 #else
-static uint32_t crc16_compute(uint16_t pData, uint32_t len)
+static uint32_t RAMFUNCTION crc16_compute(uint16_t pData, uint32_t len)
 {
 	uint32_t i;  /* input data buffer index */
 	__IO uint16_t *pReg;
@@ -83,7 +86,7 @@ static uint32_t crc16_compute(uint16_t pData, uint32_t len)
 }
 #endif
 
-uint32_t crc_compute(uint32_t *pData, uint32_t len)
+uint32_t RAMFUNCTION crc_compute(uint32_t *pData, uint32_t len)
 {
 #if CRC_POLYLENGTH == CRC_POLYLENGTH_32B
 	return crc32_compute(pData, len);
@@ -92,8 +95,8 @@ uint32_t crc_compute(uint32_t *pData, uint32_t len)
 #endif
 }
 
+/******************************************************************************/
+
 #ifdef __cplusplus
 }
 #endif
-
-

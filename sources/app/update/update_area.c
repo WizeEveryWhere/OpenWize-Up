@@ -34,9 +34,7 @@ extern "C" {
 #include "img_storage.h"
 #include "bsp.h"
 
-#ifndef BUILD_STANDALAONE_APP
-	#include "img.h"
-#else
+#ifdef BUILD_STANDALONE_APP
 	#define MAGIC_WORD_0 0xDEADC0DEUL // Dead Code
 	#define MAGIC_WORD_8 0x0DAC0DACUL // o dec o dac
 #endif
@@ -58,7 +56,7 @@ struct update_area_s
 /******************************************************************************/
 extern unsigned int __header_size__;
 
-#ifndef BUILD_STANDALAONE_APP
+#ifndef BUILD_STANDALONE_APP
 	struct __exch_info_s * const p = (struct __exch_info_s * const)&(__exchange_area_org__);
 #endif
 
@@ -69,7 +67,7 @@ static int32_t _update_area_erase_header_(void);
 
 update_status_e UpdateArea_Setup(void)
 {
-#ifndef BUILD_STANDALAONE_APP
+#ifndef BUILD_STANDALONE_APP
 	uint32_t crc;
 	crc = p->crc + 1;
 #warning "*** Ensure that CRC computation is enable in the bootstrap ***"
@@ -201,8 +199,8 @@ update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 
 	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + img_sz;
 
-	img_sz += (u32TgtAdd % 8);
-	u32TgtAdd += (u32TgtAdd % 8);
+	img_sz += 8 - (u32TgtAdd % 8);
+	u32TgtAdd += 8 - (u32TgtAdd % 8);
 
 	if ( *(uint32_t*)u32TgtAdd != temp[0] )
 	{
@@ -223,12 +221,20 @@ update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 		return UPD_STATUS_STORE_FAILED;
 	}
 
-#ifndef BUILD_STANDALAONE_APP
-	p->request = BOOT_REQ_UPDATE;
+#ifndef BUILD_STANDALONE_APP
+	UpdateArea_SetBootReq(BOOT_REQ_UPDATE);
 #endif
 
 	return UPD_STATUS_READY;
 }
+
+inline void UpdateArea_SetBootReq(uint32_t boot_req)
+{
+#ifndef BUILD_STANDALONE_APP
+		p->request = (boot_request_e)boot_req;
+#endif
+}
+
 /******************************************************************************/
 static int32_t _update_area_erase_header_(void)
 {

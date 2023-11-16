@@ -64,9 +64,6 @@ uint8_t BSP_Console_Send(uint8_t *pData, uint16_t u16Length)
 	dev_res_e eRet = DEV_INVALID_PARAM;
 
 	eRet = HAL_UART_Transmit(aDevUart[UART_ID_COM].hHandle, pData, u16Length, aDevUart[UART_ID_COM].u32TxTmo);
-	//eRet = HAL_UART_Transmit(aDevUart[UART_ID_COM].hHandle, pData, u16Length, CONSOLE_TX_TIMEOUT);
-	//eRet = HAL_UART_Transmit_DMA(paUART_BusHandle[UART_ID_CONSOLE], pData, u16Length);
-	//eRet = HAL_UART_Transmit_IT(paUART_BusHandle[UART_ID_CONSOLE], pData, u16Length);
 	return eRet;
 }
 
@@ -75,8 +72,6 @@ uint8_t BSP_Console_Received(uint8_t *pData, uint16_t u16Length)
 	dev_res_e eRet = DEV_INVALID_PARAM;
 
 	eRet = HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, pData, u16Length, aDevUart[UART_ID_COM].u32RxTmo);
-	//eRet = HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, pData, u16Length, CONSOLE_RX_TIMEOUT);
-
 	return eRet;
 }
 
@@ -86,13 +81,23 @@ inline uint8_t BSP_Console_SetRXTmo(uint32_t u32Tmo)
 	return DEV_SUCCESS;
 }
 
+inline uint32_t BSP_Console_GetRXTmo(void)
+{
+	return aDevUart[UART_ID_COM].u32RxTmo;
+}
+
 inline uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo)
 {
 	aDevUart[UART_ID_COM].u32TxTmo = u32Tmo;
 	return DEV_SUCCESS;
 }
 
-inline void BSP_Console_FluxRx(void)
+inline uint32_t BSP_Console_GetTXTmo(void)
+{
+	return aDevUart[UART_ID_COM].u32TxTmo;
+}
+
+inline void BSP_Console_FlushRx(void)
 {
 	uint8_t tmp;
 	while( HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, &tmp, 1, 0) == 0);
@@ -197,8 +202,6 @@ uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode)
 	BSP_Uart_SetDefault(u8DevId);
 	u8_Status = HAL_UART_Init(huart);
 	//----------------
-
-
 
 
 

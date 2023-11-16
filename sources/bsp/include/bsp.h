@@ -47,6 +47,7 @@ extern "C" {
 #include <bsp_lp.h>
 
 #include <bsp_uart.h>
+#include <bsp_wdg.h>
 
 #include <bsp_cal.h>
 
@@ -90,7 +91,7 @@ extern void usleep(uint32_t microsecond);
 extern uint64_t BSP_GetUid(void);
 
 extern void Error_Handler(void);
-extern void BSP_Init(uint32_t u32BootState);
+extern void BSP_Init(void);
 
 #ifdef  USE_FULL_ASSERT
 extern void assert_failed(char *file, uint32_t line);

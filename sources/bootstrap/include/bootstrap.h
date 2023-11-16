@@ -1,12 +1,12 @@
+#ifndef _BOOTSTRAP_H_
+#define _BOOTSTRAP_H_
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#ifndef RAMFUNCTION
-#if defined(RAM_CODE)
-#  if defined(ARCH_ARM)
-#    define RAMFUNCTION __attribute__((used,section(".ramcode"),long_call))
-#  else
-#    define RAMFUNCTION __attribute__((used,section(".ramcode")))
-#  endif
-#else
-# define RAMFUNCTION
+
+
+#ifdef __cplusplus
+}
 #endif
-#endif
+#endif /* _BOOTSTRAP_H_ */
