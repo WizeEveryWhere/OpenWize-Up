@@ -94,7 +94,7 @@ PERM_SECTION(".param") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
 
 extern phy_power_t aPhyPower[PHY_NB_PWR];
 extern int16_t i16RssiOffsetCal;
-
+uint8_t bPaState;
 /*!
  * @brief This define hard-coded default device id
  */
@@ -283,7 +283,7 @@ void Storage_SetDefault(void)
 {
 	WizeApi_SetDeviceId(&sDefaultDevId);
 	memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	EX_PHY_SetPa(bDefaultPaState);
+	bPaState = bDefaultPaState;
 	i16RssiOffsetCal = i16DefaultRssiOffsetCal;
 	Phy_ClrCal();
 	Param_Init(a_ParamDefault);
@@ -337,7 +337,7 @@ uint8_t Storage_Store(void)
 		WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
 	}
 
-	store_special.bPaState = EX_PHY_GetPa();
+	store_special.bPaState = bPaState;
 
 	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
 	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
@@ -391,7 +391,7 @@ uint8_t Storage_Get(void)
 	// Init special
 	WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
 	memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	EX_PHY_SetPa(store_special.bPaState);
+	bPaState = store_special.bPaState;
 	i16RssiOffsetCal = store_special.i16PhyRssiOffset;
 	Phy_SetCal(store_special.aPhyCalRes);
 	return 0;

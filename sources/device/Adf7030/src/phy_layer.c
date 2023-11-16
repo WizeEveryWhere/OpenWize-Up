@@ -140,6 +140,11 @@ pa_ramp_rate_e pa_ramp_rate __attribute__(( weak )) = RAMP_OFF;
 #endif
 
 /*!
+ * @brief This variable hold the PA state
+ */
+uint8_t bPaState __attribute__(( weak )) = 0;
+
+/*!
  * @brief This variable hold the RSSI offset after its calibration
  */
 int16_t i16RssiOffsetCal __attribute__(( weak )) = 0;
@@ -364,10 +369,13 @@ int32_t Phy_adf7030_setup(
                 eExtLnaPin
                 )))
         {
+
             /* Set to default the SPI struct */
-        	BSP_Spi_SetDefault(pCtx->SPIInfo.hSPIDevice);
+        	//BSP_Spi_SetDefault(pCtx->SPIInfo.hSPIDevice);
+        	BSP_Spi_SetDefault(&spi_ADF7030);
         	/* Init the SPI peripheral */
-            if ( !(BSP_Spi_Init(pCtx->SPIInfo.hSPIDevice)) )
+        	if ( !(BSP_Spi_Init(&spi_ADF7030)) )
+        	//if ( !(BSP_Spi_Init(pCtx->SPIInfo.hSPIDevice)) )
             {
             	i32Ret = PHY_STATUS_OK;
             }
@@ -1267,6 +1275,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 		switch(eCmd)
 		{
 			case PHY_CTL_CMD_PWR_OFF:
+				BSP_PwrLine_Clr(PA_EN_MSK);
 				BSP_PwrLine_Clr(RF_EN_MSK);
 				break;
 			case PHY_CTL_CMD_PWR_ON:
@@ -1274,6 +1283,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 				// sleep for x µS or mS
 				BSP_PwrLine_Set(RF_EN_MSK);
 				// TODO : add micro-sleep to ensure power "propagating"
+				(bPaState)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
 			case PHY_CTL_CMD_RESET:
 			default:
 				adf7030_1_PulseReset(pDevice);
@@ -1878,7 +1888,12 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 			switch(eCtl)
 			{
 				case PHY_CTL_SET_PA:
-					(args)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
+					//(args)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
+					bPaState = (args)?(1):(0);
+					if(pDevice->eState & ADF7030_1_STATE_READY)
+					{
+						(bPaState)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
+					}
 					break;
 				case PHY_CTL_SET_TX_FREQ_OFF:
 					pPhydev->i16TxFreqOffset = (int16_t)args;
@@ -1921,7 +1936,8 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 					}
 					break;
 				case PHY_CTL_GET_PA:
-					*(uint8_t*)args = (BSP_PwrLine_Get(PA_EN_MSK))?(1):(0);
+					//*(uint8_t*)args = (BSP_PwrLine_Get(PA_EN_MSK))?(1):(0);
+					*(uint8_t*)args = bPaState;
 					break;
 				case PHY_CTL_GET_TX_FREQ_OFF:
 					*(uint8_t*)args = pPhydev->i16TxFreqOffset;
