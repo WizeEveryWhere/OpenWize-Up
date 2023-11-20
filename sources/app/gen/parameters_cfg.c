@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-16 14:20:10.576928276 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-19 10:21:36.154285449 +0100).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 16/11/2023 14:20 [neo]
+  * @par x.x.x : 19/11/2023 10:21 [neo]
   *
   */
 
@@ -242,7 +242,7 @@ const param_s a_ParamAccess[0xFF] = {
     INIT_ACCESS_TABLE(0xD0, RW, NA, IMM, REF_N, 1, 117, 0x0),
     INIT_ACCESS_TABLE(0xD1, RW, NA, IMM, REF_N, 1, 118, 0x06),
     INIT_ACCESS_TABLE(0xD2, RO, RO, IMM, REF_N, 1, 119, 0x0),
-    INIT_ACCESS_TABLE(0xD3, RW, RW, IMM, REF_N, 1, 120, 0x0),
+    INIT_ACCESS_TABLE(0xD3, RW, RW, IMM, REF_N, 1, 120, 0x05),
     INIT_ACCESS_TABLE(0xD4, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xD5, NA, NA, IMM, REF_N, 0, 0, 0x0),
     INIT_ACCESS_TABLE(0xD6, NA, NA, IMM, REF_N, 0, 0, 0x0),
