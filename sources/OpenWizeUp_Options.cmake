@@ -142,9 +142,6 @@ add_xml_cfg(DESTINATION PARAM_XML_FILE_LIST SOURCE "DefaultRestr.xml")
 #-------------------------------------------------------------------------------
 if(BUILD_STANDALONE_APP)
     add_compile_definitions(BUILD_STANDALONE_APP=1)
-else(BUILD_STANDALONE_APP)
-    set(HAL_CRC_MODULE_ENABLE ON)
-    add_compile_definitions(HAS_CRC_COMPUTE=1)
 endif(BUILD_STANDALONE_APP)
 
 if(LOWPOWER_DEBUG)

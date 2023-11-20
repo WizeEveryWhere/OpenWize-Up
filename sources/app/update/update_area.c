@@ -70,13 +70,11 @@ update_status_e UpdateArea_Setup(void)
 #ifndef BUILD_STANDALONE_APP
 	uint32_t crc;
 	crc = p->crc + 1;
-#warning "*** Ensure that CRC computation is enable in the bootstrap ***"
-#ifdef HAS_CRC_COMPUTE
 	// check the CRC
 	BSP_CRC_Init();
 	crc = BSP_CRC_Compute( (uint32_t*)p, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
 	BSP_CRC_Deinit();
-#endif
+
 	if ( p->crc == crc )
 	{
 		sUpdateArea.u32HeaderSz     = p->header_sz;
@@ -185,22 +183,28 @@ update_status_e UpdateArea_CheckImg(uint32_t u32HashSW)
 
 update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 {
+	uint32_t u32FinaleSize;
 	// Finalize with Header
 	uint32_t temp[2];
 
-	// magic_dead
-	temp[0] = sUpdateArea.u32MagicTrailer;
-	temp[1] = 0xFFFFFFFF;
+	// size to write = image size + header size + trailer size + flash 8 byte write padding alignment if any
+	u32FinaleSize = img_sz + sUpdateArea.u32HeaderSz + 4;
+	if (u32FinaleSize % 8)
+	{
+		u32FinaleSize += 8 - (u32FinaleSize % 8);
+	}
 
-	if ( (img_sz > sUpdateArea.u32ImgMaxSz) || (sUpdateArea.bIsInit != MAGIC_WORD_8))
+	if ( (u32FinaleSize > sUpdateArea.u32ImgMaxSz) || (sUpdateArea.bIsInit != MAGIC_WORD_8))
 	{
 		return UPD_STATUS_STORE_FAILED;
 	}
 
-	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + img_sz;
+	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + u32FinaleSize - 4;
 
-	img_sz += 8 - (u32TgtAdd % 8);
-	u32TgtAdd += 8 - (u32TgtAdd % 8);
+
+	// magic_dead
+	temp[0] = sUpdateArea.u32MagicTrailer;
+	temp[1] = 0xFFFFFFFF;
 
 	if ( *(uint32_t*)u32TgtAdd != temp[0] )
 	{
@@ -212,7 +216,7 @@ update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 
 	// magic_header , img_sz
 	temp[0] = sUpdateArea.u32MagicHeader;
-	temp[1] = img_sz;
+	temp[1] = u32FinaleSize;
 
 	if ( BSP_Flash_Write(
 		(sUpdateArea.u32ImgAdd - sUpdateArea.u32HeaderSz), (uint64_t*)temp, 1)
@@ -235,6 +239,12 @@ inline void UpdateArea_SetBootReq(uint32_t boot_req)
 #endif
 }
 
+inline void UpdateArea_SetBootable(void)
+{
+#ifndef BUILD_STANDALONE_APP
+		p->bootable = 0x1;
+#endif
+}
 /******************************************************************************/
 static int32_t _update_area_erase_header_(void)
 {

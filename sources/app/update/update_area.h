@@ -46,6 +46,7 @@ update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t 
 update_status_e UpdateArea_CheckImg(uint32_t u32HashSW);
 update_status_e UpdateArea_WriteHeader(uint32_t img_sz);
 void UpdateArea_SetBootReq(uint32_t boot_req);
+void UpdateArea_SetBootable(void);
 
 #ifdef __cplusplus
 }

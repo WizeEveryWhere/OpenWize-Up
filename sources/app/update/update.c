@@ -59,7 +59,7 @@ void Update_Task(void const * argument);
 #define UPDATE_TASK_NAME update
 #define UPDATE_TASK_FCT Update_Task
 #define UPDATE_STACK_SIZE 400
-#define UPDATE_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
+#define UPDATE_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+2)
 SYS_TASK_CREATE_DEF(update, UPDATE_STACK_SIZE, UPDATE_PRIORITY);
 
 // Define the timeout on trying to acquire update

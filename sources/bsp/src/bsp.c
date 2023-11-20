@@ -176,6 +176,7 @@ extern void __init_sys_calls__(void);
 
 boot_info_t gBootInfo;
 boot_state_t gBootState;
+
 /*!
   * @static
   * @brief Check the boot info
@@ -239,9 +240,18 @@ void _bsp_check_boot_info_(void)
 		// Enable RTC protect
 		RTC->WPR = 0xFFU;
 	}
-
 }
 
+/*!
+  * @brief Clear the boot info (counter)
+  *
+  */
+void BSP_UpdateInfo(void)
+{
+	gBootInfo.unstab_cnt = 0;
+	gBootInfo.unauth_cnt = 0;
+	BSP_Boot_SetInfo(gBootInfo.info & 0xFFFF0000);
+}
 
 /*!
   * @brief This function initialize the bsp

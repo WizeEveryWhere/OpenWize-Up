@@ -48,15 +48,12 @@ extern "C" {
 
 #include <bsp_uart.h>
 #include <bsp_wdg.h>
+#include <bsp_crc.h>
 
 #include <bsp_cal.h>
 
 #ifdef HAS_HIRES_TIME_MEAS
 #include <bsp_hires_tmr.h>
-#endif
-
-#ifdef HAS_CRC_COMPUTE
-#include <bsp_crc.h>
 #endif
 
 #ifdef USE_SPI
@@ -91,6 +88,8 @@ extern void usleep(uint32_t microsecond);
 extern uint64_t BSP_GetUid(void);
 
 extern void Error_Handler(void);
+
+extern void BSP_UpdateInfo(void);
 extern void BSP_Init(void);
 
 #ifdef  USE_FULL_ASSERT
