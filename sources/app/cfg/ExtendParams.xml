@@ -33,6 +33,7 @@ b[7] if 1: Activate the keys writing in NVM;
                desc="Get the current boot counter value.">
          0x00</Parameter>
     <Parameter id="D3" loc="RW" rem="RW" size="1"
+               restr="05"
                ref="REF_N"
                name="BOOT_COUNT_MAX"
                desc="Get or Set the maximum value of boot counter to rollback.">

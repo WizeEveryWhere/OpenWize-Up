@@ -53,6 +53,7 @@
     <Restriction id="05" rtype="RANGE" rsize="8BITS"> 
         0 14 
         <!-- CIPH_CURRENT_KEY -->
+        <!-- BOOT_COUNT_MAX -->
     </Restriction>
 
     <Restriction id="06" rtype="RANGE" rsize="8BITS"> 
