@@ -5,6 +5,7 @@ extern "C"
 #endif
 
 #include "preload.h"
+#include "crc.h"
 
 #define MAGIC_NB 2
 
@@ -149,6 +150,7 @@ static void init_exch_info(
 	pp->dest_sz = 0;
 	pp->magic = 0x0;
 	pp->header_sz = HEADER_SZ;
+	//pp->bootable = 0;
 
 	register unsigned int i;
 	for (i = 0; i < 10; i++)
@@ -279,6 +281,11 @@ boot_request_e preload(register struct __exch_info_s * pp )
 	}
 
 	init_exch_info(pp, dest_id, src_id, do_it);
+
+	crc_init();
+	pp->crc = crc_compute( (uint32_t*)pp, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
+	crc_deinit();
+
 	return do_it;
 }
 

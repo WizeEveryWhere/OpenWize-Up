@@ -8,7 +8,6 @@ set(STARTUP   startup_stm32l4xx.s)
 
 ################################################################################
 function(display_option)
-    message ("      -> HAS_CRC_COMPUTE     : ${HAS_CRC_COMPUTE}")
     message ("      -> USE_BOOTSTRAP_TRACE : ${USE_BOOTSTRAP_TRACE}")
     message ("      -> USE_LPUART_COM      : ${USE_LPUART_COM}")
     message ("      -> USE_ENABLE_IWDG     : ${USE_ENABLE_IWDG}")
@@ -16,7 +15,6 @@ endfunction(display_option)
 
 ################################################################################
 option(HAS_2ND_STAGE_OR_SYS_BL "TODO : description." OFF)
-option(HAS_CRC_COMPUTE         "Compute CRC for exchange area" ON)
 option(HAS_SHA256_COMPUTE      "TODO : description." OFF)
 option(HAS_AES256_COMPUTE      "TODO : description." OFF)
 option(HAS_MEMORY_LOADER       "TODO : description." OFF)
@@ -41,6 +39,7 @@ target_sources(${MODULE_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/flash.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/uart.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/trace.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crc.c
     	${CMAKE_CURRENT_SOURCE_DIR}/startup/${STARTUP}
     )
 
@@ -68,13 +67,6 @@ target_link_options(${MODULE_NAME}
 if(HAS_2ND_STAGE_OR_SYS_BL)
 	add_compile_definitions(HAS_2ND_STAGE_OR_SYS_BL=1)
 endif(HAS_2ND_STAGE_OR_SYS_BL)
-
-
-if(HAS_CRC_COMPUTE)
-    set(HAL_CRC_MODULE_ENABLED ON)
-    target_sources(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/crc.c)
-    add_compile_definitions(HAS_CRC_COMPUTE=1)
-endif(HAS_CRC_COMPUTE)
 
 if(HAS_SHA256_COMPUTE OR HAS_AES256_COMPUTE)
     if(HAS_SHA256_COMPUTE)

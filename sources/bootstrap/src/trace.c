@@ -12,6 +12,7 @@ extern "C"
 #define msg_br_app "Go to App\r\n"
 #define msg_reboot "Reboot\r\n"
 #define msg_failure "Failure\r\n"
+#define msg_not_bootable "Img can't boot\r\n"
 #define msg_br_bl2 "Go to BL2\r\n"
 #define msg_br_sys "Go to SYS\r\n"
 #define msg_req_0 "REQ_NONE\r\n"
@@ -34,6 +35,7 @@ static const char * const trace_str[] =
 	[TRACE_MSG_REQ_LOCAL] = msg_req_2,
 	[TRACE_MSG_REQ_UNK] = msg_req_x,
 	[TRACE_MSG_FAILURE] = msg_failure,
+	[TRACE_MSG_NOT_BOOTABLE] = msg_not_bootable,
 };
 
 static const uint8_t trace_len[TRACE_MSG_NB] =
@@ -51,6 +53,7 @@ static const uint8_t trace_len[TRACE_MSG_NB] =
 	[TRACE_MSG_REQ_LOCAL] = sizeof(msg_req_2),
 	[TRACE_MSG_REQ_UNK] = sizeof(msg_req_x),
 	[TRACE_MSG_FAILURE] = sizeof(msg_failure),
+	[TRACE_MSG_NOT_BOOTABLE] = sizeof(msg_not_bootable),
 };
 
 uint8_t trace_enable;

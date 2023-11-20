@@ -74,6 +74,7 @@ struct __exch_info_s {
 	unsigned int dest;
 	unsigned int dest_sz;
 	unsigned int header_sz;
+	unsigned int bootable;
 	unsigned int reserved[10];
 	unsigned int crc;
 };

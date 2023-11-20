@@ -24,6 +24,7 @@ typedef enum
 	TRACE_MSG_REQ_UNK,
 	// ---
 	TRACE_MSG_FAILURE,
+	TRACE_MSG_NOT_BOOTABLE,
 	// ---
 	TRACE_MSG_NB,
 } trace_id_e;

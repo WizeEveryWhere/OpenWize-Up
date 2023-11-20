@@ -12,12 +12,12 @@
 #include "swap.h"
 #include "protect.h"
 
-#ifdef HAS_CRC_COMPUTE
-#include "crc.h"
+#ifndef SYSMEM_ADDRESS
+	#define SYSMEM_ADDRESS (uint32_t)0x1FFF0000
 #endif
 
-#ifndef SYSMEM_ADDRESS
-#define SYSMEM_ADDRESS (uint32_t)0x1FFF0000
+#ifndef BOOT_CNT_MAX
+	#define BOOT_CNT_MAX 5
 #endif
 
 __attribute__((weak)) const pf_t pfBL_2ndStage;
@@ -155,76 +155,80 @@ void boot_strap(void)
 	do_it = preload(pp);
 	TRACE(TRACE_MSG_ENTER);
 
-#ifdef HAS_CRC_COMPUTE
-	crc_init();
-	pp->crc = crc_compute( (uint32_t*)pp, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
-	crc_deinit();
-#else
-	pp->crc = 0;
-#endif
-
-	if (do_it == BOOT_REQ_UPDATE)
+	do
 	{
-		TRACE(TRACE_MSG_REQ_UPDATE);
-		TRACE(TRACE_MSG_SWAP);
-		swap(pp);
-		boot_save_info(0);
-	}
-	else
-	{
-		register unsigned int start;
-#ifdef USE_ENABLE_IWDG
-		protect(pp);
-#endif
-		if (do_it == BOOT_REQ_NONE )
+		if (do_it == BOOT_REQ_UPDATE)
 		{
-			start = pp->src + HEADER_SZ;
-			// jump to app
-			SCB->VTOR = start;
-			TRACE(TRACE_MSG_REQ_NONE);
-			TRACE(TRACE_MSG_APP);
+			TRACE(TRACE_MSG_REQ_UPDATE);
+			TRACE(TRACE_MSG_SWAP);
+			swap(pp);
+			boot_save_info(0);
 		}
-		else // do_it == BOOT_REQ_LOCAL
+		else
 		{
-			if (do_it == BOOT_REQ_LOCAL)
+			register unsigned int start;
+
+			boot_save_info(boot_info);
+#ifdef USE_ENABLE_IWDG
+			protect(pp);
+			wdg_init();
+			wdg_refresh();
+#endif
+			if ( (u8UnstabCnt > BOOT_CNT_MAX) && (pp->bootable == 0) )
 			{
-				TRACE(TRACE_MSG_REQ_LOCAL);
+				// img is not bootable
+				pp->request = BOOT_REQ_BACK;
+				TRACE(TRACE_MSG_NOT_BOOTABLE);
+				break;
 			}
-			else
+
+			pp->bootable = 0;
+			if (do_it == BOOT_REQ_NONE )
 			{
-				TRACE(TRACE_MSG_REQ_UNK);
+				start = pp->src + HEADER_SZ;
+				// jump to app
+				SCB->VTOR = start;
+				TRACE(TRACE_MSG_REQ_NONE);
+				TRACE(TRACE_MSG_APP);
 			}
+			else // do_it == BOOT_REQ_LOCAL
+			{
+				if (do_it == BOOT_REQ_LOCAL)
+				{
+					TRACE(TRACE_MSG_REQ_LOCAL);
+				}
+				else
+				{
+					TRACE(TRACE_MSG_REQ_UNK);
+				}
 
 #ifdef HAS_2ND_STAGE_OR_SYS_BL
-			// 2nd Stage BL is required
-			if(pfBL_2ndStage)
-			{
-				TRACE(TRACE_MSG_BL2);
-				pfBL_2ndStage(pp);
-			}
-			else
-			{
-				// TODO :
-				// read gpio to check if ST bootloader is authorized
-				start = SYSMEM_ADDRESS;
-			    __HAL_RCC_SYSCFG_CLK_ENABLE();
-			    MODIFY_REG(SYSCFG->MEMRMP, SYSCFG_MEMRMP_MEM_MODE, SYSCFG_MEMRMP_MEM_MODE_0);
-			    TRACE(TRACE_MSG_SYS);
-			}
+				// 2nd Stage BL is required
+				if(pfBL_2ndStage)
+				{
+					TRACE(TRACE_MSG_BL2);
+					pfBL_2ndStage(pp);
+				}
+				else
+				{
+					// TODO :
+					// read gpio to check if ST bootloader is authorized
+					start = SYSMEM_ADDRESS;
+					__HAL_RCC_SYSCFG_CLK_ENABLE();
+					MODIFY_REG(SYSCFG->MEMRMP, SYSCFG_MEMRMP_MEM_MODE, SYSCFG_MEMRMP_MEM_MODE_0);
+					TRACE(TRACE_MSG_SYS);
+				}
 #else
-			// panic...try to generate hardfault
-			* (uint32_t *)(0xFFFFFFFF) = 0;
+				// panic...try to generate hardfault
+				* (uint32_t *)(0xFFFFFFFF) = 0;
 #endif
+			}
+			TRACE_FINI();
+			__set_MSP(*(volatile uint32_t*)start);
+			JMP( (*(volatile uint32_t*)(start + 4)) );
 		}
-		TRACE_FINI();
-		boot_save_info(boot_info);
-#ifdef USE_ENABLE_IWDG
-		wdg_init();
-		wdg_refresh();
-#endif
-	    __set_MSP(*(volatile uint32_t*)start);
-	    JMP( (*(volatile uint32_t*)(start + 4)) );
-	}
+	} while (0);
+
 	TRACE(TRACE_MSG_REBOOT);
 	reboot();
 }
