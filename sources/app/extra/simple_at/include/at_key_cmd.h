@@ -42,6 +42,9 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
+#define ATKMAC_KEY_LEN			16
+#define ATKENC_KEY_LEN			16
+
 /*!
  * @brief		Execute ATKEY command (Modify the value of one key)
  *
@@ -60,7 +63,7 @@ extern "C" {
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }

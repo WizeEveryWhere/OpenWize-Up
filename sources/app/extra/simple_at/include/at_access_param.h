@@ -43,6 +43,21 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
+#define ATIDENT_MFIELD_LEN		2
+#define ATIDENT_AFIELD_LEN		6
+
+/*!
+ * @brief		Execute AT command (nothing to do)
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_AT_Cmd(atci_cmd_t *atciCmdData);
+
 /*!
  * @brief		Execute ATI command (Queries the identification of the module)
  *
@@ -57,7 +72,7 @@ extern "C" {
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_ATI_Cmd(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATPARAM command (Modify/read the value of a Wize LAN parameter)
@@ -87,7 +102,7 @@ atci_error_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATIDENT command (Modify/read the value of M-field and A-field)
@@ -112,7 +127,7 @@ atci_error_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }

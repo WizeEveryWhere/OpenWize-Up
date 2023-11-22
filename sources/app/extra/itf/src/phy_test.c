@@ -195,6 +195,9 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 
 }
 
+#define TEST_MODE_DEF_CH        PHY_CH120
+#define TEST_MODE_DEF_MOD       PHY_WM2400
+
 /*!
  * @static
  * @brief		Get a default test mode structure

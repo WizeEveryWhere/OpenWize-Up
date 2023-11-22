@@ -53,7 +53,7 @@
  * FUNCTIONS PROTOTYPES - AT responses
  *============================================================================*/
 
-const char* Atci_Get_Dbg_Str(atci_error_t error);
+const char* Atci_Get_Dbg_Str(atci_error_e error);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Enable / Disable the debug messages
@@ -84,7 +84,7 @@ void Atci_Send_Sleep_Msg(void);
  *
  * @return		None
  *----------------------------------------------------------------------------*/
-void Atci_Resp_Ack(atci_status_t errCode);
+void Atci_AckNack(atci_error_e errCode);
 
 
 /*!-----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ void Atci_Resp_Ack(atci_status_t errCode);
  *
  *----------------------------------------------------------------------------*/
 void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData);
-
+void Atci_Resp(atci_cmd_t *atciCmdData);
 
 /*==============================================================================
  * FUNCTIONS PROTOTYPES - AT debug messages

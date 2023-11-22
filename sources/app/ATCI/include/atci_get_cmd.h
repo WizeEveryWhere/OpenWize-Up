@@ -89,8 +89,6 @@ typedef enum
 	PARAM_ERR
 } atci_param_state_t;
 
-extern const char * const atci_cmd_code_str[NB_AT_CMD];
-
 /*==============================================================================
  * FUNCTIONS PROTOTYPES - Command reception
  *============================================================================*/
@@ -102,7 +100,7 @@ extern const char * const atci_cmd_code_str[NB_AT_CMD];
  *
  * @return		None
  *----------------------------------------------------------------------------*/
-void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo);
+//void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Receive AT command from UART interface
@@ -118,7 +116,7 @@ void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo);
  * @retval ATCI_RX_ERR if buffer overflow or RX error
  * @retval ATCI_RX_CMD_TIMEOUT if no characters received for a specified time
  *----------------------------------------------------------------------------*/
-atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf);
+//atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf, uint32_t timeout);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Clean reception in order to receive next command
@@ -126,7 +124,7 @@ atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf);
  * @param[in,out]	atciCmdData (Pointer on "atci_cmd_t" structure
  *
  *----------------------------------------------------------------------------*/
-void Atci_Restart_Rx(atci_cmd_t *atciCmdData);
+//void Atci_Restart_Rx(atci_cmd_t *atciCmdData);
 
 /*==============================================================================
  * FUNCTIONS - command decoding
@@ -148,7 +146,7 @@ void Atci_Restart_Rx(atci_cmd_t *atciCmdData);
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_error_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
+atci_error_e Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Extract one command parameter from buffer (parameter is a 8, 16 or 32 bits integer)
@@ -177,7 +175,7 @@ atci_error_t Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_error_t Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize);
+atci_error_e Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize);
 
 
 /*==============================================================================
@@ -207,7 +205,7 @@ void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData);
  * 	- else error code (ATCI_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_error_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
+atci_error_e Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
 
 /*!-----------------------------------------------------------------------------
  * @brief		Update last param length and update next param pointer
@@ -220,7 +218,7 @@ atci_error_t Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
  * 	- else error code (ATCI_ERR)
  *
  *----------------------------------------------------------------------------*/
-atci_error_t Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize);
+atci_error_e Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize);
 
 
 

@@ -41,6 +41,36 @@ extern "C" {
 
 #include <stdint.h>
 #include "atci.h"
+/******************************************************************************/
+
+//-----------------------------------
+// Factory calibration
+#define FC_TX_PWR_CFG_NB_VAL	3
+
+#define FC_TX_PWR_0dB_ID		0x00
+#define FC_TX_PWR_m6dB_ID		0x01
+#define FC_TX_PWR_m12dB_ID		0x02
+#define FC_PA_EN_ID				0x10
+#define FC_RSSI_CAL_ID			0x20
+#define FC_ADF7030_CAL_ID		0xFC
+
+// PWR_COARSE is coded on 4 bits
+#define FC_TX_PWR_COARSE_MIN	1
+#define FC_TX_PWR_COARSE_MAX	6
+// PWR_FINE is coded on 7 bits
+#define FC_TX_PWR_FINE_MIN		3
+#define FC_TX_PWR_FINE_MAX		127
+// PWR_MICRO is coded on 7 bits
+#define FC_TX_PWR_MICRO_MIN		0 //1
+#define FC_TX_PWR_MICRO_MAX		31
+
+//-----------------------------------
+// Test mode
+#define TEST_MODE_DIS			0x00
+#define TEST_MODE_RX_0			0x10
+#define TEST_MODE_RX_1			0x11
+
+/******************************************************************************/
 
 /*!
  * @brief		Execute ATFC command (set or get factory configuration)
@@ -102,7 +132,7 @@ extern "C" {
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute TEST command (enable or disable a test mode)
@@ -128,7 +158,7 @@ atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }

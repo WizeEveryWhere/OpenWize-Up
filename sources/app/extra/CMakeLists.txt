@@ -9,6 +9,7 @@ add_library(${MODULE_NAME} INTERFACE)
 # Add sources to Build
 target_sources(${MODULE_NAME}
     INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_command.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_access_param.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_test_cmd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_wize_cmd.c

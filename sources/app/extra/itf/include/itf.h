@@ -37,7 +37,6 @@
 
 #include <stdint.h>
 #include "local_frm.h"
-
 #include "app_layer.h"
 
 #ifdef __cplusplus
@@ -95,6 +94,15 @@ typedef enum
 	SESSION_SRC_ID
 } evt_src_id;
 
+enum
+{
+	NONE_NOTIFY,
+	BOOT_NOTIFY, //= NB_AT_UNS,
+
+	//BOOT_NOTIFY,
+	SESSION_NOTIFY,
+	TIME_NOTIFY,
+};
 /******************************************************************************/
 
 

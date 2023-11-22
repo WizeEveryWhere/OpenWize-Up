@@ -88,64 +88,25 @@
 #define AT_CMD_CODE_MAX_LEN		16	// maximum command code length (reformatted text)
 #define AT_CMD_MAX_NB_PARAM		6	// maximum number of parameters for a command/response
 
-#define ATKMAC_KEY_LEN			16
-#define ATKENC_KEY_LEN			16
-#define ATIDENT_MFIELD_LEN		2
-#define ATIDENT_AFIELD_LEN		6
-
-// GBI : This is deprecate. Replaced with a "get" from parameter table.
-#define ATSEND_L7_MAX_MSG_LEN	102 //maximum length is 102 bytes of L7 data for PRES-EXCHANGE L6 frames (ATSEND command)
-
-#define PARAM_VARIABLE_LEN	0
-#define PARAM_INT8			0xFFF1
-#define PARAM_INT16			0xFFF2
-#define PARAM_INT32			0xFFF4
+#define PARAM_INT 			0xF000
+#define PARAM_INT8			0xF001
+#define PARAM_INT16			0xF002
+#define PARAM_INT32			0xF004
 #define PARAM_STR			0x8000
+#define PARAM_VARIABLE_LEN	0x0000
 
-#define IS_PARAM_INT(size)		((size & 0xFFF0)==0xFFF0)
-#define PARAM_INT_SIZE(size)	(size & 0x000F)
+#define IS_PARAM_INT(size)		( (size & PARAM_INT) == PARAM_INT )
+#define PARAM_INT_SIZE(size)	( size & ~(PARAM_INT) )
 
-#define IS_PARAM_STR(size)		((size & 0xF000)==0x8000)
-#define PARAM_STR_SIZE(size)	(size & 0x0FFF)
-
-
-// Factory calibration
-
-#define FC_TX_PWR_0dB_ID		0x00
-#define FC_TX_PWR_m6dB_ID		0x01
-#define FC_TX_PWR_m12dB_ID		0x02
-#define FC_PA_EN_ID				0x10
-#define FC_RSSI_CAL_ID			0x20
-#define FC_ADF7030_CAL_ID		0xFC
-
-#define FC_TX_PWR_CFG_NB_VAL	3
-
-// PWR_COARSE is coded on 4 bits
-#define FC_TX_PWR_COARSE_MIN	1
-#define FC_TX_PWR_COARSE_MAX	6
-// PWR_FINE is coded on 7 bits
-#define FC_TX_PWR_FINE_MIN		3
-#define FC_TX_PWR_FINE_MAX		127
-// PWR_MICRO is coded on 7 bits
-#define FC_TX_PWR_MICRO_MIN		0 //1
-#define FC_TX_PWR_MICRO_MAX		31
-
-#define TEST_MODE_DIS			0x00
-#define TEST_MODE_RX_0			0x10
-#define TEST_MODE_RX_1			0x11
-
-#define TEST_MODE_DEF_CH        PHY_CH120
-#define TEST_MODE_DEF_MOD       PHY_WM2400
+#define IS_PARAM_STR(size)		( (size & PARAM_INT) == PARAM_STR )
+#define PARAM_STR_SIZE(size)	( size & ~(PARAM_INT) )
 
 /*!
  * @}
  * @endcond
  */
-
-/*==============================================================================
- * TYPEDEF
- *============================================================================*/
-
+/******************************************************************************/
+/******************************************************************************/
 
 /*!
  * @brief This enum define the ATCI state
@@ -157,22 +118,11 @@ typedef enum
 	ATCI_EXEC_CMD, /*!<  */
 	ATCI_SLEEP,    /*!<  */
     ATCI_RESET,    /*!<  */
+	ATCI_EXEC_RSP, /*!<  */
 
 	ATCI_SESSION,  /*!<  */
 	ATCI_COMMAND,  /*!<  */
 } atci_state_t;
-
-
-/*!
- * @brief This enum define the RX ATCI status
- */
-typedef enum
-{
-	ATCI_RX_CMD_OK,       /*!<  */
-	ATCI_RX_CMD_NONE,     /*!<  */
-	ATCI_RX_CMD_ERR,      /*!<  */
-	ATCI_RX_CMD_TIMEOUT,  /*!<  */
-} atci_status_t;
 
 /*!
  * @brief This enum define the ATCI error code
@@ -189,74 +139,16 @@ typedef enum
 	ATCI_ERR_CMD_LEN       = 0x05,	/*!< Invalid command length (too short or too long to be decoded) */
 	ATCI_ERR_CMD_FORBIDDEN = 0x06,	/*!< Command is forbidden in the current state */
 	// --- Internal error
-	ATCI_ERR_RX_CMD        = 0x10, /*!< Internal error */
-	ATCI_ERR_RX_TMO        = 0x11, /*!< Internal error */
+	ATCI_ERR_INTERNAL      = 0x10, /*!< Internal error */
+	ATCI_ERR_RX_CMD        = 0x11, /*!< Internal error */
+	ATCI_ERR_RX_TMO        = 0x12, /*!< Internal error */
+
 	// --- Reserved for "user" error codes
 	ATCI_ERR_USER_START    = 0x80, /*!< Reserved for "user" error codes */
 	ATCI_ERR_USER_END      = 0xFE, /*!< Reserved for "user" error codes */
 	// --- Generic "unknown" error
 	ATCI_ERR_UNK           = 0xFF  /*!< Generic "unknown" error */
-} atci_error_t;
-
-/*!
- * @brief This enum define the ATCI command code
- */
-typedef enum
-{
-	CMD_AT,      /*!<  */
-	CMD_ATI,     /*!<  */
-	CMD_ATZ,     /*!<  */
-	CMD_ATQ,     /*!<  */
-	CMD_ATF,     /*!<  */
-	CMD_ATW,     /*!<  */
-	CMD_ATPARAM, /*!<  */
-	CMD_ATIDENT, /*!<  */
-	CMD_ATSEND,  /*!<  */
-	CMD_ATPING,  /*!<  */
-	CMD_ATFC,    /*!<  */
-	CMD_ATTEST,  /*!<  */
-	// ----
-#ifdef HAS_ATZn_CMD
-	CMD_ATZ0,     /*!<  */
-	CMD_ATZ1,     /*!<  */
-#else
-	CMD_ATZC,     /*!<  */
-#endif
-	// ----
-#ifndef HAS_ATKEY_CMD
-	CMD_ATKMAC,  /*!<  */
-	CMD_ATKENC,  /*!<  */
-#else
-	CMD_ATKEY,   /*!<  */
-#endif
-	// ----
-#ifdef HAS_ATSTAT_CMD
-	CMD_ATSTAT,
-#endif
-	// ----
-#ifdef HAS_ATCCLK_CMD
-	CMD_ATCCLK,
-#endif
-	// ----
-#ifdef HAS_ATUID_CMD
-	CMD_ATUID,
-#endif
-	// ----
-#ifdef HAS_LO_UPDATE_CMD
-	CMD_ATANN,
-	CMD_ATBLK,
-	CMD_ATUPD,
-#ifdef HAS_LO_ATBMAP_CMD
-	CMD_ATBMAP,
-#endif
-#endif
-	// ----
-#ifdef HAS_EXTERNAL_FW_UPDATE
-	CMD_ATADMANN,
-#endif
-	// ----
-	NB_AT_CMD //used to get number of commands
-} atci_cmd_code_t;
+} atci_error_e;
 
 /*!
  * @brief This enum define the ATCI command type and parameter decoding
@@ -269,7 +161,7 @@ typedef enum
 	AT_CMD_READ_WITHOUT_PARAM,		/*!< read command without parameter */
 	AT_CMD_READ_WITH_PARAM_TO_GET,	/*!< read command with parameters (not all parameters decoded) */
 	AT_CMD_READ_WITH_PARAM			/*!< read command with parameters (all parameters decoded) */
-} atci_cmd_type_t;
+} atci_cmd_type_e;
 
 /*!
  * @brief This enum define the ATCI command/response parameters size and data pointer
@@ -291,24 +183,28 @@ typedef struct
 	};
 } atci_cmd_param_t;
 
+
+typedef struct at_desc_s at_desc_t;
+
 /*!
  * @brief This enum define the ATCI command/response main structure
  */
-typedef struct
+typedef struct atci_cmd_s
 {
 	// --- used as uart input buffer
-	//uint8_t buf[AT_CMD_BUF_LEN];                  /*!< cmd data buffer used to receive cmd from UART */
-	//uint16_t len;                                 /*!< cmd length in buffer */
-
-	console_buf_t *pComTxBuf;
-	console_buf_t *pComRxBuf;
+	console_buf_t *pComTxBuf; /*!< buffer used to send cmd to UART */
+	console_buf_t *pComRxBuf; /*!< buffer used to receive cmd from UART */
 
 
 	// --- used to extract input command
 	uint16_t idx;                                 /*!< read index in buffer */
 	char cmdCodeStr[AT_CMD_CODE_MAX_LEN];         /*!< reformatted command code string */
-	atci_cmd_code_t cmdCode;                      /*!< command code (decoded) */
-	atci_cmd_type_t cmdType;                      /*!< if command is read or write and if it has parameters or not */
+	struct at_desc_s * pCmdDesc;
+	uint16_t cmd_code_nb;
+	uint16_t cmdCode;                      /*!< command code (decoded) */
+	atci_cmd_type_e cmdType;                      /*!< if command is read or write and if it has parameters or not */
+
+
 	// ---
 	uint8_t paramsMem[AT_CMD_DATA_MAX_LEN];       /*!< buffer where parameters data are saved */
 	uint16_t paramsMemIdx;                        /*!< 1st free byte in paramsMem */
@@ -316,8 +212,52 @@ typedef struct
 	uint8_t nbParams;                             /*!< number of command/response parameters */
 	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; /*!< command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters) */
 
-	void *hMutex;
+
+	// ---
+	uint8_t bLpAllowed;
+	uint8_t bNeedAck;
+	uint8_t bNeedReboot;
+
+	uint8_t bSession;
+
+	atci_state_t eState;
+	atci_error_e eErr;
+
+	int32_t (*pf_inner_loop)(struct atci_cmd_s *pAtciCtx);
+
 } atci_cmd_t;
+
+/*!
+ * @brief This struct define the ATCI command description
+ */
+struct at_desc_s
+{
+	atci_error_e (*pf)(atci_cmd_t *pAtciCtx);
+	const char * const str;
+};
+
+typedef struct
+{
+	void *hAtciTsk;
+	void *hUnsTsk;
+	void *hAtciLock;
+	void *hUnsQueue;
+
+	atci_cmd_t sAtciCmd;
+
+	console_buf_t *pComTxBuf;
+	console_buf_t *pComRxBuf;
+
+	// ---
+	uint8_t bLpAllowed;
+	uint8_t bSession;
+	uint8_t bShouldAck;
+
+	atci_state_t eState;
+	atci_error_e eErr;
+} atci_ctx_t;
+
+
 
 /*==============================================================================
  * FUNCTIONS PROTOTYPES
@@ -332,7 +272,16 @@ typedef struct
  * @param[in]	argument: unused
  *
  *-----------------------------------------------------------------------------*/
-void Atci_Task(void const *argument);
+void Atci_Setup(void);
+
+int32_t Atci_Com(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+int32_t Atci_Run(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+
+
+int32_t UNS_Notify(uint32_t evt);
+int32_t UNS_NotifyAtci(uint32_t evt);
+int32_t UNS_NotifyTime(uint32_t evt);
+int32_t UNS_NotifySession(uint32_t evt);
 
 #endif /* INC_ATCI_H_ */
 

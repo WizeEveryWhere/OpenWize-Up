@@ -40,6 +40,7 @@ extern "C" {
 #include "atci.h"
 #include "update.h"
 #include "wize_app.h"
+#include "itf.h"
 
 extern void Sys_Init(void);
 extern void Sys_Start(void);
@@ -52,9 +53,11 @@ void App_Init(void);
   */
 void app_entry(void)
 {
+#ifndef NOT_BOOTABLE
   	Sys_Init();
   	App_Init();
   	Sys_Start();
+#endif
 }
 
 /******************************************************************************/
@@ -64,28 +67,14 @@ void app_entry(void)
  * @{
  */
 
-void* hLoItfTask;
-extern void Atci_Task(void const * argument);
-#define LOITF_TASK_NAME loitf
-#define LOITF_TASK_FCT Atci_Task
-#define LOITF_STACK_SIZE 800
-#define LOITF_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
-SYS_TASK_CREATE_DEF(loitf, LOITF_STACK_SIZE, LOITF_PRIORITY);
 
-
-//void* hUpdateTask;
-extern void Update_Task(void const * argument);
-#define UPDATE_TASK_NAME update
-#define UPDATE_TASK_FCT Update_Task
-#define UPDATE_STACK_SIZE 800
-#define UPDATE_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
-SYS_TASK_CREATE_DEF(update, UPDATE_STACK_SIZE, UPDATE_PRIORITY);
+extern void Atci_Setup(void);
 
 void* hMonitorTask;
 void Monitor_Task(void const * argument);
 #define MONITOR_TASK_NAME monitor
 #define MONITOR_TASK_FCT Monitor_Task
-#define MONITOR_STACK_SIZE 800
+#define MONITOR_STACK_SIZE 400
 #define MONITOR_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+1)
 SYS_TASK_CREATE_DEF(monitor, MONITOR_STACK_SIZE, MONITOR_PRIORITY);
 
@@ -101,24 +90,19 @@ extern struct update_ctx_s sUpdateCtx;
   */
 void App_Init(void)
 {
-	uint8_t u8ExtFlags = 0b11100101;
+	Update_Setup();
+	Atci_Setup();
 
-#ifdef HAS_EXTEND_PARAMETER
-	Param_Access(EXTEND_FLAGS, &u8ExtFlags, 0);
-#endif
-	Atci_Send_Dbg_Enable( (u8ExtFlags & EXT_FLAGS_DBG_MSG_EN_MSK) );
-
-	sUpdateCtx.hTask = SYS_TASK_CREATE_CALL(update, UPDATE_TASK_FCT, NULL);
-	//_setup_wakeup_loitf_();
-	hLoItfTask = SYS_TASK_CREATE_CALL(loitf, LOITF_TASK_FCT, NULL);
 	hMonitorTask = SYS_TASK_CREATE_CALL(monitor, MONITOR_TASK_FCT, NULL);
 
 	// FIXME
 	WizeApp_Init();
+	NetMgr_Init();
+	NetMgr_Uninit();
 }
 /******************************************************************************/
-
-extern admin_ann_fw_info_t sFwAnnInfo;;
+extern boot_info_t gBootInfo;
+extern admin_ann_fw_info_t sFwAnnInfo;
 extern struct update_ctx_s sUpdateCtx;
 
 #ifndef MONITOR_TMO_EVT
@@ -155,22 +139,45 @@ void Monitor_Task(void const * argument)
 	WizeApi_TimeMgr_Register(sys_get_pid());
 
 	uint8_t extend_flags = 0;
+	uint8_t boot_count_max = 0;
+	uint8_t boot_count_current = gBootInfo.unstab_cnt;
 
 #ifdef HAS_EXTEND_PARAMETER
 /*
 Get or Set the extend flags.
-b[0] if 1: Disable ATCI +DBG;
+b[0] if 1: Enable ATCI +DBG;
 b[1] : Reserved;
-b[2] : Reserved;
+b[2] if 1: Activate the immediate update when image is ready;
 b[3] : Reserved;
-b[4] if 1: Activate the immediat update when image is ready;
-b[5] if 1: Activate the WDT (bootcount for roll-back FW);
+b[4] : Reserved;
+b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
 b[6] if 1: Activate the device id writing in NVM;
 b[7] if 1: Activate the keys writing in NVM;
 */
 	Param_Access(EXTEND_FLAGS, &extend_flags, 0);
+	// Write the current boot count
+	Param_Access(BOOT_COUNT, &(boot_count_current), 1);
+	// Get the boot count max
+	Param_Access(BOOT_COUNT_MAX, &boot_count_max, 0);
 #endif
 
+	UNS_NotifyAtci(BOOT_NOTIFY);
+	//
+	LOG_DBG("Monitor Boot Count %d\n", gBootInfo.unstab_cnt);
+	if (boot_count_current > boot_count_max)
+	{
+		LOG_WRN("Instability detected...Roll-Back\n");
+#ifndef BUILD_STANDALONE_APP
+		//swap to the previous sw slot (if any)
+		UpdateArea_SetBootReq(BOOT_REQ_BACK);
+		//(option) reboot
+		BSP_Boot_Reboot(0);
+#endif
+	}
+	else
+	{
+		UpdateArea_SetBootable();
+	}
 	while(1)
 	{
 		if ( sys_flag_wait(&ulEvent, ulPeriod) )
@@ -187,6 +194,7 @@ b[7] if 1: Activate the keys writing in NVM;
 					{
 						WizeApp_WaitSesComplete(SES_INST);
 					}
+					UNS_NotifyTime((uint32_t)WIZEAPP_INFO_PERIO_INST);
 				}
 				// Back Full Power
 				if (ret & WIZEAPP_INFO_FULL_POWER)
@@ -194,39 +202,90 @@ b[7] if 1: Activate the keys writing in NVM;
 					// go back in full power
 					uint8_t temp = PHY_PMAX_minus_0db;
 					Param_Access(TX_POWER, &temp, 1 );
+
+					UNS_NotifyTime((uint32_t)WIZEAPP_INFO_FULL_POWER);
 				}
 				// Current update ?
-				if( sUpdateCtx.eUpdateStatus == UPD_STATUS_READY)
+				if( Update_IsReady() )
 				{
 					// Param_Access(DATEHOUR_LAST_UPDATE, tmp, 1);
 					// Param_Access(VERS_HW_TRX, tmp, 0);
 					// Param_Access(VERS_FW_TRX, tmp, 1);
 					BSP_Boot_Reboot(0);
 				}
+				// Clear boot count
+				BSP_UpdateInfo();
+			}
+			if (ulEvent & TIME_FLG_TIME_ADJ)
+			{
+				UNS_NotifyTime((uint32_t)WIZEAPP_INFO_CLOCK_MSK);
 			}
 		}
+		// Low Power management
+		/*
+		else if (ulEvent & LOWPOWER_EVT_REQ)
+		{
+			// Set LP allowed
+		}
+		*/
 		else
 		{
+#ifndef BUILD_STANDALONE_APP
+			BSP_Iwdg_Refresh();
+#endif
 			if(extend_flags & EXT_FLAGS_UPD_IMM)
 			{
-				if( sUpdateCtx.eUpdateStatus == UPD_STATUS_READY)
+				if( Update_IsReady() )
 				{
 					BSP_Boot_Reboot(0);
 				}
 			}
+			// Get state
+			int32_t state;
+			for (uint8_t i = 0; i < SES_NB; i++)
+			{
+				state = WizeApi_GetState(i);
+			}
+
+			state = NetMgr_IsBusy(); // priority 5
+			// timemgr task // priority 4
+			// wizeapi task // priority 4
+			state = Logger_IsBusy(); // priority 3
+			// update task // priority 2
+			// atci task  // priority 2
+			// uns task // priority 2
+
+
 			// Timeout
 			LOG_DBG("Monitor alive\n");
 		}
-
 #ifdef HAS_EXTEND_PARAMETER
 
 #endif
-
 	}
 }
 
 /******************************************************************************/
+/*
+ * task notification
+ * queue
+ * event_group
+ *
+ * semaphore
+ * bin_semaphore
+ * mutex
+ *
+ *
+ */
 
+/*
+// Determine whether we are in thread mode or handler mode.
+static int inHandlerMode (void)
+{
+  return __get_IPSR() != 0;
+}
+*/
+/******************************************************************************/
 void WizeApp_CtxClear(void)
 {
 	// TODO :
@@ -247,72 +306,6 @@ void WizeApp_CtxSave(void)
 	BSP_Rtc_Backup_Write(0, ((uint32_t*)&sTimeUpdCtx)[0]);
 	BSP_Rtc_Backup_Write(1, ((uint32_t*)&sTimeUpdCtx)[1]);
 }
-/******************************************************************************/
-#define LO_ITF_TMO_EVT 0xFFFFFFFF
-
-static const uint32_t session_mask[SES_NB] =
-{
-	[SES_INST] = SES_FLG_INST_MSK,
-	[SES_ADM]  = SES_FLG_ADM_MSK,
-	[SES_DWN]  = SES_FLG_DWN_MSK
-};
-
-int32_t WizeApp_WaitSesComplete(ses_type_t eSesId)
-{
-	uint32_t ret;
-	uint32_t ulEvent;
-	uint32_t mask;
-
-	if( eSesId < SES_NB)
-	{
-		mask = session_mask[eSesId];
-		do
-		{
-			if ( sys_flag_wait(&ulEvent, LO_ITF_TMO_EVT) == 0 )
-			{
-				// Timeout
-				return -1;
-			}
-
-			ret = WizeApp_Common(ulEvent);
-			ulEvent &= mask & SES_FLG_SES_COMPLETE_MSK;
-		} while ( !(ulEvent) );
-
-		ulEvent &= mask & SES_FLG_SES_ERROR_MSK;
-		if ( !(ulEvent) )
-		{
-			if(eSesId == SES_ADM)
-			{
-				if (ret == ADM_WRITE_PARAM)
-				{
-					return 1;
-				}
-				else if ( ret == ADM_ANNDOWNLOAD)
-				{
-					return 2;
-				}
-			}
-			return 0;
-		}
-	}
-	return -1;
-}
-
-uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi)
-{
-	uint8_t size = 0;
-	if(pData && rssi)
-	{
-		if ( ((admin_rsp_t*)sAdmCtx.aSendBuff)->L7ErrorCode == ADM_NONE )
-		{
-			size = sAdmCtx.sCmdMsg.u8Size - 1;
-			*rssi = sAdmCtx.sCmdMsg.u8Rssi;
-			memcpy(pData, &(sAdmCtx.aRecvBuff[1]), size);
-		}
-	}
-	return size;
-}
-
 /******************************************************************************/
 
 #ifdef __cplusplus

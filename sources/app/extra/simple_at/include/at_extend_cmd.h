@@ -25,6 +25,13 @@
   * Initial version
   *
   */
+
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
+
 #ifndef AT_EXTEND_CMD_H_
 #define AT_EXTEND_CMD_H_
 
@@ -35,27 +42,124 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
-atci_error_t Exec_ATF_Cmd(atci_cmd_t *atciCmdData);
-atci_error_t Exec_ATW_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
 
-#ifdef HAS_ATCCLK_CMD
-atci_error_t Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
-#endif
+/*!
+ * @brief Build and send ATCI notification
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE
+ */
+atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
 
-#ifdef HAS_ATUID_CMD
-atci_error_t Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
-#endif
+/*!
+ * @brief		Execute ATQ command (Restore registers to their factory settings)
+ *
+ * @details		Command format: "ATQ".
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData);
 
-#ifdef HAS_ATZn_CMD
-atci_error_t Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
-#endif
 
-#ifdef HAS_ATSTAT_CMD
-atci_error_t Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
-#endif
+/*
+ * @brief		Execute AT&F command (Restore registers to their factory settings)
+ *
+ * @details		Command format: "AT&F".
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute AT&W command (Store current registers values in flash)
+ *
+ * @details		Command format: "AT&W".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute AT%CCLK command (get the current clock as unix epoch)
+ *
+ * @details		Command format: "AT%CCLK".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute AT%UID command (get the unique identifier)
+ *
+ * @details		Command format: "AT%UID".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute ATZn command (reboot the system)
+ *
+ * @details		Command format: "ATZn".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute AT%STAT command (get the wize statistics)
+ *
+ * @details		Command format: "AT%STAT".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
+
+
+atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* AT_EXTEND_CMD_H_ */
+
+/*! @} */

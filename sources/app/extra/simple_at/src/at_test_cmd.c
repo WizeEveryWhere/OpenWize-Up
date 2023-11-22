@@ -48,13 +48,11 @@ extern "C" {
 /******************************************************************************/
 uint8_t bTestMode;
 
-static test_mode_info_t _atci_init_test_var_(void);
-
 /******************************************************************************/
 
-atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 {
-	atci_error_t status;
+	atci_error_e status;
 	uint8_t i;
 
 	phy_power_entry_t sPwrEntry;
@@ -95,8 +93,8 @@ atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 					*(atciCmdData->params[2].val8) = sPwrEntry.sEntryValue.fine;
 					*(atciCmdData->params[3].val8) = sPwrEntry.sEntryValue.micro;
 
-					//Atci_Resp_Data("ATFC", atciCmdData);
-					Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+					Atci_Resp(atciCmdData);
+					//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
 				}
 				else //write command
 				{
@@ -144,7 +142,8 @@ atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 					atciCmdData->params[1].size = PARAM_INT8;
 					Atci_Add_Cmd_Param_Resp(atciCmdData);
 					*(atciCmdData->params[1].val8) = (uint8_t) EX_PHY_GetPa();
-					Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+					Atci_Resp(atciCmdData);
+					//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
 				}
 				else if (atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)//write command
 				{
@@ -198,10 +197,10 @@ atci_error_t Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
-atci_error_t Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 {
 	uint8_t eRet = ATCI_ERR_NONE;
-	atci_error_t status;
+	atci_error_e status;
 
 	if (atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
 	{

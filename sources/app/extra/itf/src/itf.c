@@ -38,25 +38,19 @@ extern "C" {
 
 #include "itf.h"
 
-#include "crypto.h"
-#include "update.h"
-#include "update_area.h"
-
-#include "bsp.h"
-#include "crc_sw.h"
 #include <string.h>
 #include <machine/endian.h>
 
-#include "wize_app.h"
-//#include "stm32l4xx_hal.h"
+#include "at_command.h"
+#include "rtos_macro.h"
+#include "wize_app_itf.h"
 
 #include "parameters_cfg.h"
 #include "parameters.h"
 
-#include "atci.h"
-#include "rtos_macro.h"
-
-
+#include "update.h"
+#include "adm_internal.h"
+#include "crypto.h"
 
 /******************************************************************************/
 
@@ -221,7 +215,7 @@ void ITF_StoreBlock(uint16_t u16Id, uint8_t *pData)
 		memcpy(pBlk->aData, pData, BLK_SZ);
 		pBlk->u16Id = u16Id;
 		// notify pending frame
-		Notify_ATCI(NOTIFY_SRC_ID, UNS_ATBLK);
+		UNS_Notify(UNS_ATBLK);
 	}
 	sys_mutex_release(sItfCtx.hLock);
 }

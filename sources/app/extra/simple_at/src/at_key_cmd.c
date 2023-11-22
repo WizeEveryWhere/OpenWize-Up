@@ -45,9 +45,9 @@ extern "C" {
 
 /******************************************************************************/
 
-atci_error_t Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData)
 {
-	atci_error_t status;
+	atci_error_e status;
 	uint8_t i;
 
 	if (atciCmdData->cmdType != AT_CMD_WITH_PARAM_TO_GET)

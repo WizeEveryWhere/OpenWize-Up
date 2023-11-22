@@ -34,9 +34,9 @@
  *  @{
  */
 
-/*==============================================================================
- * INCLUDES
- *============================================================================*/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 
@@ -47,105 +47,62 @@
 
 #include "app_entry.h"
 #include "platform.h"
+#include "itf.h"
 
-/*==============================================================================
- * GLOBAL VARIABLES
- *============================================================================*/
+#include "at_command.h"
 
-/*==============================================================================
- * LOCAL FUNCTIONS PROTOTYPES
- *============================================================================*/
+/******************************************************************************/
 
-atci_error_t Exec_AT_Cmd(atci_cmd_t *atciCmdData);
-
-
-#include "at_access_param.h"
-#include "at_test_cmd.h"
-#include "at_wize_cmd.h"
-#include "at_key_cmd.h"
-#include "at_extend_cmd.h"
-
-#ifdef HAS_LO_UPDATE_CMD
-	#include "at_lo_update_cmd.h"
-#endif
-
-#ifdef HAS_EXTERNAL_FW_UPDATE
-	#include "at_ext_update_cmd.h"
-#endif
-
-/*!
- * @cond INTERNAL
- * @{
- */
-typedef atci_error_t (*pf_exec_cmd_t)(atci_cmd_t *atciCmdData);
-
-const pf_exec_cmd_t Atci_Exec_Cmd[NB_AT_CMD] =
+struct queue_evt_s
 {
-	[CMD_AT] = Exec_AT_Cmd, //nothing to do
-	[CMD_ATI] = Exec_ATI_Cmd,
-	[CMD_ATZ] = Exec_ATZn_Cmd,
-	[CMD_ATQ] = Exec_AT_Cmd, //something to do in states machine only
-	[CMD_ATF] = Exec_ATF_Cmd,
-	[CMD_ATW] = Exec_ATW_Cmd,
-	[CMD_ATPARAM] = Exec_ATPARAM_Cmd,
-	[CMD_ATIDENT] = Exec_ATIDENT_Cmd,
-	[CMD_ATSEND] = Exec_ATSEND_Cmd,
-	[CMD_ATPING] = Exec_ATPING_Cmd,
-	[CMD_ATFC] = Exec_ATFC_Cmd,
-	[CMD_ATTEST] = Exec_ATTEST_Cmd,
-
-#ifndef HAS_ATZn_CMD
-	[CMD_ATZC] = Exec_ATZn_Cmd,
-#else
-	[CMD_ATZ0] = Exec_ATZn_Cmd,
-	[CMD_ATZ1] = Exec_ATZn_Cmd,
-#endif
-
-#ifndef HAS_ATKEY_CMD
-	[CMD_ATKMAC] = Exec_ATKMAC_Cmd,
-	[CMD_ATKENC] = Exec_ATKENC_Cmd,
-#else
-	[CMD_ATKEY] = Exec_ATKEY_Cmd,
-#endif
-
-#ifdef HAS_ATSTAT_CMD
-	[CMD_ATSTAT] = Exec_ATSTAT_Cmd,
-#endif
-
-#ifdef HAS_ATCCLK_CMD
-	[CMD_ATCCLK] = Exec_ATCCLK_Cmd,
-#endif
-
-#ifdef HAS_ATUID_CMD
-	[CMD_ATUID] = Exec_ATUID_Cmd,
-#endif
-
-#ifdef HAS_EXTERNAL_FW_UPDATE
-	[CMD_ATADMANN] = Exec_ATADMANN_Cmd,
-#endif
-
-#ifdef HAS_LO_UPDATE_CMD
-	[CMD_ATANN] = Exec_ATANN_Cmd,
-	[CMD_ATBLK] = Exec_ATBLK_Cmd,
-	[CMD_ATUPD] = Exec_ATUPD_Cmd,
-#ifdef HAS_LO_ATBMAP_CMD
-	[CMD_ATBMAP] = Exec_ATBMAP_Cmd,
-#endif
-#endif
-
+	uint32_t src;
+	uint32_t evt;
 };
 
-static uint8_t _is_lp_allowed_(void);
-static uint8_t _init_lp_var_(void);
+void Atci_Setup(void);
+int32_t Atci_Com(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+int32_t Atci_Run(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
 
-/*!
- * @}
- * @endcond
- */
 
-/*==============================================================================
- * LOCAL VARIABLES
- *============================================================================*/
+/******************************************************************************/
+#ifndef ATCI_STACK_SIZE
+	#define ATCI_STACK_SIZE 300
+#endif
+
+#ifndef ATCI_PRIORITY
+	#define ATCI_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+2)
+#endif
+
+#ifndef UNS_STACK_SIZE
+	#define UNS_STACK_SIZE 120
+#endif
+
+#ifndef UNS_PRIORITY
+	#define UNS_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+2)
+#endif
+
+#ifndef UNS_QUEUE_LEN
+	#define UNS_QUEUE_LEN 10
+#endif
+
+#ifndef UNS_QUEUE_SIZE
+	#define UNS_QUEUE_SIZE sizeof(struct queue_evt_s)
+#endif
+
+#ifndef UNS_QUEUE_RCV_TMO
+	#define UNS_QUEUE_RCV_TMO 0xFFFFFFFF // in rtos cycles
+#endif
+
+#ifndef UNS_QUEUE_SEND_TMO
+	#define UNS_QUEUE_SEND_TMO 100 // in rtos cycles
+#endif
+
+#ifndef ATCI_MUTEX_TMO
+	#define ATCI_MUTEX_TMO 100 // in rtos cycles
+#endif
+
+
+/******************************************************************************/
 /*!
  * @cond INTERNAL
  * @{
@@ -153,114 +110,164 @@ static uint8_t _init_lp_var_(void);
 
 extern uint8_t bTestMode;
 
+extern console_buf_t consoleRxBuf;
+extern console_buf_t consoleTxBuf;
+
+/******************************************************************************/
+#define ATCI_TASK_NAME atci
+#define ATCI_TASK_FCT _atci_tsk_
+
+#define UNS_TASK_NAME uns
+#define UNS_TASK_FCT _uns_tsk_
+
+SYS_TASK_CREATE_DEF(atci, ATCI_STACK_SIZE, ATCI_PRIORITY);
+SYS_TASK_CREATE_DEF(uns, UNS_STACK_SIZE, UNS_PRIORITY);
+SYS_QUEUE_CREATE_DEF(uns, UNS_QUEUE_LEN, UNS_QUEUE_SIZE);
+SYS_MUTEX_CREATE_DEF(atci);
+
+
+static void _atci_init_(atci_cmd_t *pAtciCtx);
+static void _atci_tsk_(void const * argument);
+
+inline static int32_t _uns_as_session_(uint32_t evt);
+inline static int32_t _uns_as_time_(uint32_t evt);
+inline static int32_t _uns_as_notify_(uint32_t evt);
+inline static int32_t _uns_as_self_(uint32_t evt);
+static int32_t _uns_notify_(uint32_t src, uint32_t evt);
+static void _uns_tsk_(void const *argument);
+//static atci_error_e _uns_get_notify_code_(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+
+static uint8_t _is_lp_allowed_(void);
+static uint8_t _init_lp_var_(void);
+
+/******************************************************************************/
+//static
+void* hAtciTask;
+static void* hUnsTask;
+static void *hUnsQueue;
+static void *hAtciMutex;
+
 static uint32_t _u32_rx_cmd_tmo_;
 
-SYS_MUTEX_CREATE_DEF(atci);
+static atci_cmd_t sAtciCtx;
+
 /*!
  * @}
  * @endcond
  */
 
-/*==============================================================================
- * FUNCTIONS
- *============================================================================*/
+/******************************************************************************/
 
-/*!-----------------------------------------------------------------------------
- * @internal
+
+/*!
+ * @brief TODO:
  *
- * @brief		Receive AT command from UART interface
- *
- * @details		This function is blocking until a character has been received by UART or an error occurred
- *
- * @param[out]	atciCmdData Pointer "atci_cmd_t" structure:
- * 					- buf [in,out]: buffer to receive command (as text) from console
- * 					- len [in,out]: actual received command length (other fields are unused)
- *
- * @retval ATCI_NO_AT_CMD if no cmd received
- * @retval ATCI_AVAIL_AT_CMD if full command received
- * @retval ATCI_RX_ERR if buffer overflow or RX error
- * @retval ATCI_RX_CMD_TIMEOUT if no characters received for a specified time
- *
- * @endinternal
- *----------------------------------------------------------------------------*/
-atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf)
+ */
+void Atci_Setup(void)
 {
-	atci_status_t status = ATCI_RX_CMD_NONE;
-	uint32_t ulEvent;
+	hAtciTask = SYS_TASK_CREATE_CALL(atci, ATCI_TASK_FCT, &sAtciCtx);
+	hUnsTask = SYS_TASK_CREATE_CALL(uns, UNS_TASK_FCT, &sAtciCtx);
+	hUnsQueue = SYS_QUEUE_CREATE_CALL(uns);
+	hAtciMutex = SYS_MUTEX_CREATE_CALL(atci);
 
-	pComRxBuf->len = 0;
+	assert(hAtciTask);
+	assert(hUnsTask);
+	assert(hUnsQueue);
+	assert(hAtciMutex);
 
-	uint8_t ret = 0;
+	ITF_Setup();
+}
+
+/*!
+ * @brief TODO:
+ *
+ */
+int32_t Atci_Com(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
+{
+	console_buf_t *pComRxBuf = pAtciCtx->pComRxBuf;
+	atci_error_e eErr = ATCI_ERR_NONE;
 	// ---
-	ret |= BSP_Uart_Receive(UART_ID_COM, pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN);
-	if ( ret == DEV_SUCCESS )
+	switch (ulEvent)
 	{
-		if ( sys_flag_wait(&ulEvent, _u32_rx_cmd_tmo_) )
+		case UART_EVT_RX_ABT :// buffer overflow
 		{
-			switch(ulEvent)
+			// If the last char is not the character match one
+			if (pComRxBuf->data[pComRxBuf->len] != END_OF_CMD_CHAR)
 			{
-				case UART_EVT_RX_ABT: // buffer overflow
-					if (pComRxBuf->data[pComRxBuf->len] != END_OF_CMD_CHAR)
-					{
-						// If the last char is not the character match one
-						status = ATCI_RX_CMD_ERR;
-						break;
-					}
-				case UART_EVT_RX_CPLT:
-					if ( pComRxBuf->len > AT_CMD_CODE_MIN_LEN )
-					{
-						status = ATCI_RX_CMD_OK;
-					}
-					// Don't take the END_OF_CMD_CHAR
-					pComRxBuf->len--;
-					break;
-				default:
-					break;
+				eErr = ATCI_ERR_RX_CMD;
+				break;
 			}
+		}
+		case UART_EVT_RX_CPLT:
+		{
+			if ( pComRxBuf->len < AT_CMD_CODE_MIN_LEN )
+			{
+				eErr = ATCI_ERR_RX_CMD;
+				break;
+			}
+			// Don't take the END_OF_CMD_CHAR
+			pComRxBuf->len--;
+			eErr = Atci_Get_Cmd_Code(pAtciCtx);
+			break;
+		}
+		default:
+		{
+			eErr = ATCI_ERR_RX_CMD;
+			break;
+		}
+	}
+	pAtciCtx->eErr = eErr;
+	return (eErr)?(-1):(0);
+}
+
+/*!
+ * @brief TODO:
+ *
+ */
+int32_t Atci_Run(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
+{
+	atci_error_e eErr = ATCI_ERR_UNK;
+
+	if (sys_mutex_acquire(hAtciMutex, ATCI_MUTEX_TMO))
+	{
+		if (ulEvent)
+		{
+			// Unsolicited command
+			eErr = Generic_Notify_SetCode(pAtciCtx, ulEvent);
 		}
 		else
 		{
-			// Timeout
-			BSP_Uart_AbortReceive(UART_ID_COM);
-			status = ATCI_RX_CMD_TIMEOUT;
+			// "standard" command received by COM port, so keep error from Atci_Com
+			eErr = pAtciCtx->eErr;
 		}
+
+		pAtciCtx->eErr = ATCI_ERR_NONE;
+
+		// Try to Execute command
+		if (eErr == ATCI_ERR_NONE)
+		{
+			if (pAtciCtx->pCmdDesc[pAtciCtx->cmdCode].pf != NULL)
+			{
+				eErr = pAtciCtx->pCmdDesc[pAtciCtx->cmdCode].pf(pAtciCtx);
+			}
+			else
+			{
+				eErr = ATCI_ERR_CMD_UNK;
+			}
+		}
+		// Send ACK/NACK
+		if (pAtciCtx->bNeedAck)
+		{
+			Atci_AckNack(eErr);
+		}
+		else
+		{
+			pAtciCtx->bNeedAck = 1;
+		}
+		sys_mutex_release(hAtciMutex);
 	}
-	return status;
-}
-
-static uint8_t _bPaState_;
-
-/******************************************************************************/
-extern console_buf_t consoleRxBuf;
-extern console_buf_t consoleTxBuf;
-
-void Atci_Init(atci_cmd_t *atciCmdData)
-{
-	atciCmdData->pComTxBuf = &consoleTxBuf;
-	atciCmdData->pComRxBuf = &consoleRxBuf;
-
-	atciCmdData.hMutex = SYS_MUTEX_CREATE_CALL(atci);
-	assert(atciCmdData.hMutex);
-
-	Console_Init(END_OF_CMD_CHAR, &consoleRxBuf);
-	EX_PHY_SetCpy();
-	_bPaState_ = EX_PHY_GetPa();
-}
-
-void Atci_Sleep(void)
-{
-	Atci_Send_Sleep_Msg();
-	_bPaState_ = EX_PHY_GetPa();
-	EX_PHY_SetPa(0);
-	Console_Disable();
-	BSP_LowPower_Enter(LP_STOP2_MODE);
-}
-
-void Atci_Wakeup(void)
-{
-	Console_Enable();
-	EX_PHY_SetPa(_bPaState_);
-	Atci_Send_Wakeup_Msg();
+	// else // timeout
+	return (eErr)?(-1):(0);
 }
 
 /*!-----------------------------------------------------------------------------
@@ -273,116 +280,234 @@ void Atci_Wakeup(void)
  *
  * @endinternal
  *----------------------------------------------------------------------------*/
-void Atci_Task(void const *argument)
+
+#define COM_MSK 0x0F
+#define IND_MSK 0xF0
+
+/******************************************************************************/
+#include "wize_app_itf.h"
+
+//#define COM_MSK 0x00000F00 // << 8
+#define XXX_MSK 0x0000F000 // << 12
+#define TMO_MSK 0x000F0000 // << 16
+
+
+#define TMO_EVT 0x00010000
+#define TMO_RET 800 // in ms
+#define TMO_RET_MIN 5 // in ms
+
+/******************************************************************************/
+static int32_t _inner_loop_(atci_cmd_t *pAtciCtx)
 {
-	atci_state_t atciState = ATCI_WAKEUP;
-	atci_cmd_t atciCmdData;
-	atci_error_t status;
-	uint8_t bLpAllowed;
+	time_evt_t sTimeEvt;
+	int32_t ret;
+	uint32_t ulEvent;
+	uint32_t u32Tmo;
+	int16_t i16DeltaMs;
+	atci_error_e status;
+	uint8_t bComIsStarted;
+	uint8_t bTimeEvtIsStarted;
 
-	//Inits
+	ret = -1;
+	status = ATCI_ERR_NONE;
+	bComIsStarted = 0;
+	bTimeEvtIsStarted = 0;
 
-	Atci_Init(&atciCmdData);
-	bLpAllowed = _is_lp_allowed_();
-	//Loop
-	while(1)
+	u32Tmo = 0;
+	Param_Access(EXCH_RESPONSE_DELAY, (uint8_t*)&( u32Tmo ), 0);
+	if (u32Tmo)
 	{
-		switch(atciState)
-		{
-			case ATCI_SLEEP:
-				Atci_Sleep();
-				atciState = ATCI_WAKEUP;
-				break;
-			case ATCI_WAKEUP:
-				Atci_Wakeup();
-				atciState = ATCI_WAIT;
-				break;
-			case ATCI_WAIT:
-			{
-				switch(Atci_Rx_Cmd(atciCmdData.pComRxBuf))
-				{
-					case ATCI_RX_CMD_OK:
-						atciState = ATCI_EXEC_CMD;
-						break;
-					case ATCI_RX_CMD_ERR:
-						Atci_Resp_Ack(ATCI_ERR_RX_CMD);
-						break;
-					case ATCI_RX_CMD_TIMEOUT:
-						if ( bLpAllowed )
-						{
-							atciState = ATCI_SLEEP;
-							break;
-						}
-					default:
-						break;
-				}
-				break;
-			}
-
-			case ATCI_EXEC_CMD:
-			{
-				bLpAllowed = _is_lp_allowed_();
-
-				//decode and execute command
-				status = Atci_Get_Cmd_Code(&atciCmdData);
-				if(status == ATCI_ERR_NONE)
-				{
-					if(Atci_Exec_Cmd[atciCmdData.cmdCode] == NULL)
-						status = ATCI_ERR_CMD_UNK;
-					else
-						status = Atci_Exec_Cmd[atciCmdData.cmdCode](&atciCmdData);
-				}
-
-				//send response
-				if(status == ATCI_ERR_NONE)
-				{
-					Atci_Resp_Ack(status);
-					switch(atciCmdData.cmdCode)
-					{
-						case CMD_ATQ:
-							if (bLpAllowed)
-							{
-								atciState = ATCI_SLEEP;
-								break;
-							}
-						default: //other commands
-							atciState = ATCI_WAIT;
-							break;
-					}
-				}
-				else
-				{
-					Atci_Resp_Ack(status);
-					atciState = ATCI_WAIT;
-				}
-				break;
-			}
-
-			default:
-				Atci_Exec_Cmd[CMD_ATZ](&atciCmdData);
-				break;
-		}
+		u32Tmo--;
+		i16DeltaMs = TMO_RET;
 	}
+	else
+	{
+		i16DeltaMs = TMO_RET_MIN;
+	}
+	TimeEvt_TimerInit( &sTimeEvt, sys_get_pid(), TIMEEVT_CFG_ONESHOT);
+
+	if ( Exec_ATADMANN_Notify(pAtciCtx) != ATCI_ERR_NONE )
+	{
+		return ret;
+	}
+
+	TimeEvt_TimerStart(&sTimeEvt, u32Tmo, i16DeltaMs, (uint32_t)TMO_EVT);
+	bTimeEvtIsStarted = 1;
+
+	do
+	{
+		if (!bComIsStarted)
+		{
+			if ( BSP_Uart_Receive(UART_ID_COM, pAtciCtx->pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN) != DEV_SUCCESS)
+			{
+				ret = -2;
+				break;
+			}
+			bComIsStarted = 1;
+		}
+
+		if ( sys_flag_wait(&ulEvent, WIZE_APP_ITF_TMO_EVT) == 0)
+		{
+			// timeout
+			break;
+		}
+
+		if (ulEvent & COM_MSK)
+		{
+			bComIsStarted = 0;
+
+			status = ATCI_ERR_CMD_FORBIDDEN;
+			Atci_Com(pAtciCtx, ulEvent);
+			pAtciCtx->eErr = ATCI_ERR_NONE;
+			if (strcmp(pAtciCtx->cmdCodeStr, pAtciCtx->pCmdDesc[UNS_ATADMANN].str) == 0)
+			{
+				pAtciCtx->cmdCode = UNS_ATADMANN;
+				Atci_Cmd_Param_Init(pAtciCtx);
+				status = Atci_Buf_Get_Cmd_Param(pAtciCtx, PARAM_INT8);
+				if (status == ATCI_ERR_NONE)
+				{
+					ret = *(pAtciCtx->params[0].data);
+					break;
+				}
+			}
+			Atci_AckNack(status);
+		}
+
+		if (ulEvent & TMO_EVT)
+		{
+			break;
+		}
+
+	} while (1);
+
+	if (bTimeEvtIsStarted)
+	{
+		TimeEvt_TimerStop( &sTimeEvt);
+	}
+
+	if (bComIsStarted)
+	{
+		BSP_Uart_AbortReceive(UART_ID_COM);
+	}
+
+	return ret;
 }
 
 /******************************************************************************/
 
-/*!-----------------------------------------------------------------------------
- * @brief		Execute AT command (nothing to do)
+/*!
+ * @brief TODO:
  *
- * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
- *
- * @return
- * 	- ATCI_ERR_NONE if succeed
- * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *
- *----------------------------------------------------------------------------*/
-atci_error_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
+ */
+static void _atci_init_(atci_cmd_t *pAtciCtx)
 {
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
-		return ATCI_ERR_PARAM_NB;
+	pAtciCtx->pComTxBuf = &consoleTxBuf;
+	pAtciCtx->pComRxBuf = &consoleRxBuf;
 
-	return ATCI_ERR_NONE;
+	Console_Init(END_OF_CMD_CHAR, &consoleRxBuf);
+	EX_PHY_SetCpy();
+	//_bPaState_ = EX_PHY_GetPa();
+	//pAtciCtx->bPaState = EX_PHY_GetPa();
+	pAtciCtx->eErr = ATCI_ERR_NONE;
+
+	pAtciCtx->nbParams = 0;
+	pAtciCtx->idx = 0;
+
+	pAtciCtx->eState = ATCI_WAIT;
+
+	pAtciCtx->pf_inner_loop = _inner_loop_;
+
+	pAtciCtx->bNeedAck = 1;
+	pAtciCtx->bNeedReboot = 0;
+
+	pAtciCtx->pCmdDesc = aAtDescCmd;
+	pAtciCtx->cmd_code_nb = NB_AT_CMD; //sizeof(aAtDescCmd);
+}
+
+/*!
+ * @brief TODO:
+ *
+ */
+static void _atci_tsk_(void const *argument)
+{
+	atci_cmd_t *pAtciCtx;
+	assert(argument);
+	pAtciCtx = (atci_cmd_t *)argument;
+
+	uint32_t ulEvent;
+	uint32_t ulNotify;
+
+	uint8_t bTmo;
+	uint8_t bComIsStarted;
+
+	//Inits
+	bTmo = 0;
+	bComIsStarted = 0;
+	ulEvent = 0;
+	_atci_init_(pAtciCtx);
+
+	//UNS_NotifyAtci(BOOT_NOTIFY);
+
+	while(1)
+	{
+		sAtciCtx.bLpAllowed = _is_lp_allowed_();
+		do
+		{
+			if (ulEvent & COM_MSK)
+			{
+				Atci_Com(pAtciCtx, ulEvent);
+				bComIsStarted = 0;
+				sAtciCtx.eState = ATCI_EXEC_CMD;
+				ulEvent &= ~COM_MSK;
+			}
+			if (sAtciCtx.eState == ATCI_EXEC_CMD)
+			{
+				if ( (Atci_Run(pAtciCtx, 0) == 0) && (pAtciCtx->bNeedReboot))
+				{
+					pAtciCtx->bNeedReboot = 0;
+					pAtciCtx->cmdType = AT_CMD_WITHOUT_PARAM;
+					pAtciCtx->cmdCode = CMD_ATZ1;
+					sAtciCtx.eState = ATCI_EXEC_CMD;
+					ulEvent = ~COM_MSK;
+				}
+				else
+				{
+					sAtciCtx.eState = ATCI_WAIT;
+					ulEvent = 0;
+				}
+			}
+		} while (ulEvent);
+
+		// If COM is not started, then start it
+		if (!bComIsStarted)
+		{
+			if ( DEV_SUCCESS == BSP_Uart_Receive(UART_ID_COM, consoleRxBuf.data, (uint16_t)AT_CMD_BUF_LEN))
+			{
+				bComIsStarted = 1;
+			}
+			else
+			{
+				// failure
+				//_send_to_this_(COM_FAILURE);
+			}
+		}
+
+		// Wait for event
+		if ( sys_flag_wait(&ulEvent, _u32_rx_cmd_tmo_) == 0 )
+		{
+			// timeout
+			bTmo = 1;
+			if (bTmo && sAtciCtx.bLpAllowed)
+			{
+				BSP_Uart_AbortReceive(UART_ID_COM);
+				bComIsStarted = 0;
+				bTmo = 0;
+
+				sAtciCtx.cmdCode = CMD_ATQ;
+				sAtciCtx.eState = ATCI_EXEC_CMD;
+			}
+		}
+	}
 }
 
 /******************************************************************************/
@@ -391,10 +516,168 @@ atci_error_t Exec_AT_Cmd(atci_cmd_t *atciCmdData)
  * @cond INTERNAL
  * @{
  */
+/******************************************************************************/
+/*
+void WizeApi_OnTimeFlag(uint32_t u32Flg)
+{
+	_uns_as_time_(u32Flg);
+}
+*/
 
+int32_t UNS_Notify(uint32_t evt)
+{
+	return _uns_notify_(UNK_SRC_ID, evt );
+}
+
+int32_t UNS_NotifyAtci(uint32_t evt)
+{
+	return _uns_notify_(NOTIFY_SRC_ID, evt );
+}
+
+int32_t UNS_NotifyTime(uint32_t evt)
+{
+	return _uns_notify_(TIME_SRC_ID, evt );
+}
+
+int32_t UNS_NotifySession(uint32_t evt)
+{
+	return _uns_notify_(SESSION_SRC_ID, evt );
+}
+
+static int32_t _uns_notify_(uint32_t src, uint32_t evt)
+{
+	struct queue_evt_s sQEvt;
+	sQEvt.src = src;
+	sQEvt.evt = evt;
+
+	if ( sys_queue_send(hUnsQueue, &sQEvt, UNS_QUEUE_SEND_TMO) != pdTRUE )
+	{
+		// queue is full
+		LOG_WRN("UNS queue is full");
+		return -1;
+	}
+	return 0;
+}
+
+void ready_to_sleep()
+{
+
+}
+
+static void _uns_tsk_(void const *argument)
+{
+	atci_cmd_t *pAtciCtx;
+
+	struct queue_evt_s sQEvt = { .src = UNK_SRC_ID, .evt = 0 };
+	assert(argument);
+	pAtciCtx = (atci_cmd_t *)argument;
+
+	while(1)
+	{
+		if ( sys_queue_receive(hUnsQueue, &sQEvt,  UNS_QUEUE_RCV_TMO) )
+		{
+			// pending
+			switch(sQEvt.src)
+			{
+				case TIME_SRC_ID :
+				{
+					/*
+					// Day passed occurs
+					if (sQEvt.evt & TIME_FLG_DAY_PASSED)
+					{
+						uint32_t ret = WizeApp_Time();
+						// Back Full Power
+						if (ret & WIZEAPP_INFO_FULL_POWER)
+						{
+							// go back in full power
+							uint8_t temp = PHY_PMAX_minus_0db;
+							Param_Access(TX_POWER, &temp, 1 );
+							sQEvt.evt = (uint32_t)WIZEAPP_INFO_FULL_POWER;
+						}
+						// Periodic Install
+						if (ret & WIZEAPP_INFO_PERIO_INST)
+						{
+							// do periodic install
+							sQEvt.evt = (uint32_t)WIZEAPP_INFO_PERIO_INST;
+						}
+						// Current update ?
+						if( Update_IsReady() )
+						{
+							// Param_Access(DATEHOUR_LAST_UPDATE, tmp, 1);
+							BSP_Boot_Reboot(0);
+						}
+					}
+					if (sQEvt.evt & TIME_FLG_TIME_ADJ)
+					{
+						sQEvt.evt = (uint32_t)WIZEAPP_INFO_CLOCK_MSK;
+
+					}
+					*/
+
+
+
+					sQEvt.evt += TIME_NOTIFY + NB_AT_UNS;
+					break;
+				}
+				case NOTIFY_SRC_ID :
+				{
+					sQEvt.evt += NB_AT_UNS;
+					break;
+				}
+				/*
+				case SESSION_SRC_ID :
+				{
+					Atci_Run(pAtciCtx, sQEvt.evt);
+					break;
+				}
+				*/
+				case UNK_SRC_ID :
+				{
+					break;
+				}
+				default :
+				{
+					sQEvt.evt = 0;
+					break;
+				}
+			}
+
+			if (sQEvt.evt)
+			{
+				Atci_Run(pAtciCtx, sQEvt.evt);
+			}
+			// Should we sleep for ms before take into account a new element
+		}
+		/*
+		else
+		{
+			// timeout
+#ifndef BUILD_STANDALONE_APP
+			BSP_Iwdg_Refresh();
+#endif
+		}*/
+	}
+}
+
+/******************************************************************************/
 
 static uint8_t _is_lp_allowed_(void)
 {
+	uint8_t u8Flags_0 = 0;
+	uint8_t u8Flags_1 = 0;
+
+	// Check logger is enable
+	Param_Access(LOGGER_LEVEL, (uint8_t*)(&u8Flags_0), 0);
+	Param_Access(LOGGER_TIME_OPT, (uint8_t*)(&u8Flags_1), 0);
+	Logger_SetLevel( u8Flags_0, u8Flags_1 );
+
+	// check if ATCI DBG is enable
+	u8Flags_0 = 0b11100101;
+#ifdef HAS_EXTEND_PARAMETER
+	Param_Access(EXTEND_FLAGS, &u8Flags_0, 0);
+#endif
+	Atci_Send_Dbg_Enable( (u8Flags_0 & EXT_FLAGS_DBG_MSG_EN_MSK) );
+
 	return (_init_lp_var_() && ( !bTestMode ))?(1):(0);
 }
 
@@ -434,6 +717,11 @@ static uint8_t _init_lp_var_(void)
  * @}
  * @endcond
  */
-/*********************************** EOF **************************************/
+
+/******************************************************************************/
+
+#ifdef __cplusplus
+}
+#endif
 
 /*! @} */

@@ -66,16 +66,16 @@ console_buf_t consoleRxBuf;
  * FUNCTIONS - RX
  *=======================================================================================================*/
 
-extern void* hLoItfTask;
+extern void* hAtciTask;
 static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
 {
 	if (p_CbParam)
 	{
 		((console_buf_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
 	}
-	if (hLoItfTask)
+	if (hAtciTask)
 	{
-		sys_flag_set_isr(hLoItfTask, evt);
+		sys_flag_set_isr(hAtciTask, evt);
 	}
 }
 
@@ -93,6 +93,7 @@ void Console_Init(const char cMatch, void *pCbParam)
 	ret = BSP_Uart_Init(UART_ID_COM, cMatch, UART_MODE_EOB);
 	ret |= BSP_Uart_SetCallback(UART_ID_COM, _loitf_evt_, pCbParam);
 	assert(ret == DEV_SUCCESS);
+
 }
 
 /*!-----------------------------------------------------------------------------

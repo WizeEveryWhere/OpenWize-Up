@@ -46,7 +46,15 @@ extern "C" {
 
 /******************************************************************************/
 
-atci_error_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_AT_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	return ATCI_ERR_NONE;
+}
+
+atci_error_e Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 {
 	int sz;
 	int len;
@@ -102,7 +110,7 @@ atci_error_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 	atciCmdData->params[atciCmdData->nbParams].size = PARAM_INT8;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
 
-	Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+	Atci_Resp(atciCmdData);
 	// ---
 	Atci_Cmd_Param_Init(atciCmdData);
 	len = snprintf(atciCmdData->params[atciCmdData->nbParams].str, (AT_CMD_DATA_MAX_LEN-1), "%s", sFwInfo.build_date);
@@ -117,9 +125,9 @@ atci_error_t Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
-atci_error_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 {
-	atci_error_t status;
+	atci_error_e status;
 	param_access_e regAccess;
 	uint8_t regId;
 
@@ -146,8 +154,8 @@ atci_error_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 					return ATCI_ERR_UNK;
 				}
 				Param_Access(regId, atciCmdData->params[1].data, 0);
-				//Atci_Resp_Data("ATPARAM", atciCmdData);
-				Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+				Atci_Resp(atciCmdData);
+				//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
 			}
 		}
 		return ATCI_ERR_NONE;
@@ -192,7 +200,8 @@ atci_error_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 				return ATCI_ERR_UNK;
 
 			//display parameter
-			Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+			Atci_Resp(atciCmdData);
+			//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
 
 			return ATCI_ERR_NONE;
 		}
@@ -231,9 +240,9 @@ atci_error_t Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
-atci_error_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 {
-	atci_error_t status;
+	atci_error_e status;
 
 	if(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) //read command
 	{
@@ -249,7 +258,8 @@ atci_error_t Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 		// Read M-field and A-field
 		WizeApi_GetDeviceId( (device_id_t *)(atciCmdData->params[0].data));
 
-		Atci_Resp_Data(atci_cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		Atci_Resp(atciCmdData);
+		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
 		return ATCI_ERR_NONE;
 	}
 	else if(atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET) //write command

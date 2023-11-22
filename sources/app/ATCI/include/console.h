@@ -46,8 +46,6 @@
 
 #define CONSOLE_BUF_LEN  512
 
-//#define CONSOLE_RX_TIMEOUT_ms		5000
-
 #define CONSOLE_RX_ERR	 0xEF
 #define CONSOLE_BYTE_RX	 0x01
 #define CONSOLE_RX_EMPTY 0x00
