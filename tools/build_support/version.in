@@ -29,9 +29,9 @@ struct fw_info_s
     unsigned char version[4];
     unsigned long sha_digest;
     unsigned char dirty;
-    char *tag;
-    char *commit_date;
-    char *build_date;
+    char tag[16];
+    char commit_date[28];
+    char build_date[15];
 };
 
 #define DECLARE_FWINFO() \
@@ -60,11 +60,11 @@ extern const struct fw_info_s sFwInfo;
 
 struct hw_info_s 
 {
-    char *name;
-    char *vendor;
-    char *model;
+    char name[15];
+    char vendor[15];
+    char model[10];
     unsigned char version[4];
-    char *date;
+    char date[20];
 };
 
 #define DECLARE_HWINFO() \

@@ -40,9 +40,6 @@ extern "C" {
 #include <string.h>
 #include "storage.h"
 
-DECLARE_FWINFO();
-DECLARE_HWINFO();
-
 /*!
  * @cond INTERNAL
  * @{
@@ -60,12 +57,63 @@ DECLARE_HWINFO();
  * @}
  * @endcond
  */
+/******************************************************************************/
+
+PERM_SECTION(".roinfo.fw") DECLARE_FWINFO();
+PERM_SECTION(".roinfo.hw") DECLARE_HWINFO();
+
+/******************************************************************************/
+#include "phy_layer_private.h"
+#include "wize_api.h"
+
+/*!
+ * @brief This hold (hard-coded) the default PA state
+ */
+const uint8_t bDefaultPaState = 1;
+
+#ifdef PHY_USE_POWER_RAMP
+/*!
+ * @brief This hold (hard-coded) the default PA ramp state
+ */
+	const pa_ramp_rate_e eDefaultPaRampRate = RAMP_OFF;
+#endif
+
+/*!
+ * @brief This hold (hard-coded) the default phy power settings
+ */
+const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
+{
+		/*
+		[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
+		[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
+		[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
+		*/
+		// Correction values from Alciom measurement (2023/07/25)
+		[PHY_PMAX_minus_0db]  = {.coarse = 1, .fine = 0x25, .micro = 1}, //   0 dBm
+		[PHY_PMAX_minus_6db]  = {.coarse = 1, .fine = 0x11, .micro = 1}, //  -6 dBm
+		[PHY_PMAX_minus_12db] = {.coarse = 1, .fine = 0x09, .micro = 1}, // -12 dBm
+};
+
+/*!
+ * @brief This hold (hard-coded) the default phy rssi offset
+ */
+const int16_t i16DefaultRssiOffsetCal = 0x3C7;
+
+//extern
+PERM_SECTION(".perm") uint8_t bPaState;
+#ifdef PHY_USE_POWER_RAMP
+	//extern
+	PERM_SECTION(".perm") pa_ramp_rate_e ePaRampRate;
+#endif
+//extern
+PERM_SECTION(".perm") int16_t i16RssiOffsetCal;
+
+//extern
+PERM_SECTION(".perm") phy_power_t aPhyPower[PHY_NB_PWR];
 
 /******************************************************************************/
 #include "parameters_cfg.h"
 #include "parameters.h"
-
-extern const uint8_t a_ParamDefault[];
 
 /*!
   * @brief The parameters values table size
@@ -83,18 +131,15 @@ const uint8_t u8_ParamAccessCfgSz = PARAM_ACCESS_CFG_SZ;
 const uint8_t u8_ParamRestrCfgSz = PARAM_RESTR_CFG_SZ;
 
 
+extern const uint8_t a_ParamDefault[];
+
 /*!
   * @brief Table of parameters values
   */
-PERM_SECTION(".param") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
+PERM_SECTION(".perm") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
 
 /******************************************************************************/
-#include "phy_layer_private.h"
-#include "wize_api.h"
 
-extern phy_power_t aPhyPower[PHY_NB_PWR];
-extern int16_t i16RssiOffsetCal;
-uint8_t bPaState;
 /*!
  * @brief This define hard-coded default device id
  */
@@ -135,31 +180,6 @@ const device_id_t sDefaultDevId =
 	.u8Type = 0x00
 };
 
-/*!
- * @brief This hold (hard-coded) the default phy power settings
- */
-const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
-{
-		/*
-		[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
-		[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
-		[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
-		*/
-		// Correction values from Alciom measurement (2023/07/25)
-		[PHY_PMAX_minus_0db]  = {.coarse = 1, .fine = 0x25, .micro = 1}, //   0 dBm
-		[PHY_PMAX_minus_6db]  = {.coarse = 1, .fine = 0x11, .micro = 1}, //  -6 dBm
-		[PHY_PMAX_minus_12db] = {.coarse = 1, .fine = 0x09, .micro = 1}, // -12 dBm
-};
-
-/*!
- * @brief This hold (hard-coded) the default phy rssi offset
- */
-const int16_t i16DefaultRssiOffsetCal = 0x3C7;
-
-/*!
- * @brief This hold (hard-coded) the default PA state
- */
-const uint8_t bDefaultPaState = 1;
 /******************************************************************************/
 #include "crypto.h"
 #include "key_priv.h"
@@ -211,7 +231,7 @@ KEY_SECTION(".data.keys") key_s _a_Key_[KEY_MAX_NB];
 /*!
   * @brief Variable to hold the number of reboot on "crash"
   */
-PERM_SECTION(".param") uint8_t boot_count;
+//PERM_SECTION(".param") uint8_t boot_count;
 
 /******************************************************************************/
 #include "flash_storage.h"
@@ -234,7 +254,11 @@ struct _store_special_s
 {
 	device_id_t sDeviceInfo;
 	uint8_t     bPaState;
+#ifdef PHY_USE_POWER_RAMP
+	uint8_t     ePaRampRate;
+#else
 	uint8_t     ND1;
+#endif
 	int16_t     i16PhyRssiOffset;
 	phy_power_t aPhyPower[PHY_NB_PWR];
 	uint8_t     ND2[3];
@@ -262,7 +286,7 @@ void Storage_Init(uint8_t bForce)
 		if ( Storage_Get() == 1)
 		{
 			// error
-			printf("Flash : Failed to read ");
+			printf("NVM : Failed to read ");
 		}
 	}
 
@@ -284,6 +308,9 @@ void Storage_SetDefault(void)
 	WizeApi_SetDeviceId(&sDefaultDevId);
 	memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
 	bPaState = bDefaultPaState;
+#ifdef PHY_USE_POWER_RAMP
+	ePaRampRate = eDefaultPaRampRate;
+#endif
 	i16RssiOffsetCal = i16DefaultRssiOffsetCal;
 	Phy_ClrCal();
 	Param_Init(a_ParamDefault);
@@ -336,8 +363,10 @@ uint8_t Storage_Store(void)
 	{
 		WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
 	}
-
 	store_special.bPaState = bPaState;
+#ifdef PHY_USE_POWER_RAMP
+	store_special.ePaRampRate = (uint8_t)ePaRampRate;
+#endif
 
 	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
 	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
@@ -392,6 +421,9 @@ uint8_t Storage_Get(void)
 	WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
 	memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
 	bPaState = store_special.bPaState;
+#ifdef PHY_USE_POWER_RAMP
+	ePaRampRate = (pa_ramp_rate_e)store_special.ePaRampRate;
+#endif
 	i16RssiOffsetCal = store_special.i16PhyRssiOffset;
 	Phy_SetCal(store_special.aPhyCalRes);
 	return 0;

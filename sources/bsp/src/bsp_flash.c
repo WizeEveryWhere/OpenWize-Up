@@ -83,24 +83,27 @@ dev_res_e BSP_Flash_Erase(uint32_t u32PageId)
   */
 dev_res_e BSP_Flash_EraseArea(uint32_t u32Address, uint32_t u32NbBytes)
 {
-	dev_res_e eRet = DEV_SUCCESS;
-	uint16_t page_id;
-	uint16_t last_page;
+	dev_res_e eRet = DEV_FAILURE;
+	uint8_t retry = 3;
 
-	if ( (u32Address + u32NbBytes) % FLASH_PAGE_SIZE )
+	if ( ( (u32Address + u32NbBytes) % FLASH_PAGE_SIZE) == 0 )
 	{
-		// out of page size
-		eRet = DEV_FAILURE;
-	}
-	else
-	{
-		last_page = BSP_Flash_GetPage(u32Address + u32NbBytes);
-		page_id = BSP_Flash_GetPage(u32Address);
-		do
+		FLASH_EraseInitTypeDef pEraseInit;
+		uint32_t u32ErrCode;
+
+		if (HAL_FLASH_Unlock() == HAL_OK)
 		{
-			uint8_t retry = 3;
-			do {
-				eRet = BSP_Flash_Erase(page_id);
+			pEraseInit.Banks = 0;
+			pEraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+			pEraseInit.Page = BSP_Flash_GetPage(u32Address);
+			pEraseInit.NbPages = BSP_Flash_GetPage(u32Address + u32NbBytes) - pEraseInit.Page + 1;
+
+			do
+			{
+				if (HAL_FLASHEx_Erase(&pEraseInit, &u32ErrCode) == HAL_OK)
+				{
+					eRet = DEV_SUCCESS;
+				}
 				if ( eRet == DEV_SUCCESS )
 				{
 					retry = 0;
@@ -109,13 +112,10 @@ dev_res_e BSP_Flash_EraseArea(uint32_t u32Address, uint32_t u32NbBytes)
 				retry--;
 			} while (retry);
 
-			if (eRet != DEV_SUCCESS)
-			{
-				break;
-			}
-			page_id++;
-		} while(page_id < last_page);
+			HAL_FLASH_Lock();
+		}
 	}
+	// else { // out of page size }
 	return eRet;
 }
 

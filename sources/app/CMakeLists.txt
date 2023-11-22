@@ -82,7 +82,7 @@ target_sources(
 target_include_directories(
     ${MODULE_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/gen
+        ../../${CFG_GEN_DIR}/gen
     )
 
 # Add some link flags

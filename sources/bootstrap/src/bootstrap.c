@@ -183,6 +183,10 @@ void boot_strap(void)
 			}
 
 			pp->bootable = 0;
+			crc_init();
+			pp->crc = crc_compute( (uint32_t*)pp, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
+			crc_deinit();
+
 			if (do_it == BOOT_REQ_NONE )
 			{
 				start = pp->src + HEADER_SZ;

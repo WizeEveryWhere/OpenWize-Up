@@ -3,13 +3,13 @@
   
 <ParameterList>
     <!-- ******************************************************************* -->
-    <!-- Test Mode Parameters id="FA" to  id="FB" -->
+    <!-- Test Mode Parameters id="F9" to  id="FB" -->
     <!-- ******************************************************************* -->
     <Parameter id="F9" loc="RW" rem="NA" size="1"
                ref="REF_N" 
                name="TEST_MODE_RSSI_CAL_REF" 
                desc="Get or Set the input RF power (dB) applied to calibrate the RSSI.">
-        -77</Parameter>
+        0xB3</Parameter>
     <Parameter id="FA" loc="RW" rem="NA" size="1"
                restr="01"
                ref="REF_N" 

@@ -68,16 +68,32 @@ typedef enum {
     BT_0_5  = 0b11,
 }tx_gaussion_bt_e;
 
+/*
+ * The following come from the "ADF7030-1 Software Reference Manual : UG-1002.
+ * The reference section is related to OOK Framing, but we expect that PA ramping
+ * explanations are also true for other modulation.
+ *
+ * The internal ADF7030-1 PA ramp-up and ramp-down times are identical and are
+ * calculated as follows:
+ * 		Ramp Time/Symbols = PA_FINE/(PA_FINE_INC × 32) + 1/8
+ * where:
+ * 		PA_FINE_INC is derived from PA_RAMP_RATE in the PROFILE_RADIO_DIG_TX_CFG1
+ * 		register (see Table 21).
+ * 		PA_FINE is in the PROFILE_RADIO_DIG_TX_CFG0 register.
+ *
+ *
+ */
 typedef enum {
-    RAMP_OFF            = 0b000,
-    RAMP_4_bit_per_db   = 0b001,
-    RAMP_8_bit_per_db   = 0b010,
-    RAMP_16_bit_per_db  = 0b011,
-    RAMP_32_bit_per_db  = 0b100,
-    RAMP_64_bit_per_db  = 0b101,
-    RAMP_128_bit_per_db = 0b110,
-    RAMP_256_bit_per_db = 0b111,
-}pa_ramp_rate_e;
+	// ------------------------  // Minimum PA_FINE_INC
+    RAMP_OFF            = 0b000, // Not applicable; ramp time/symbols = 1/16
+    RAMP_4_bit_per_db   = 0b001, // 65
+    RAMP_8_bit_per_db   = 0b010, // 33
+    RAMP_16_bit_per_db  = 0b011, // 17
+    RAMP_32_bit_per_db  = 0b100, // 9
+    RAMP_64_bit_per_db  = 0b101, // 5
+    RAMP_128_bit_per_db = 0b110, // 3
+    RAMP_256_bit_per_db = 0b111, // 2
+} pa_ramp_rate_e;
 
 typedef enum {
     WIDEBAND_MODE   = 0b0, /*!< Wideband phy mode */
@@ -138,7 +154,7 @@ typedef enum {
 	WAKE_UP_CS   = 0b1000, /*!< Select CS as wake-up source */
 }wake_src_e;
 
-/* The following come from teh "ADF7030-1 Software Reference Manual : UG-1002.
+/* The following come from the "ADF7030-1 Software Reference Manual : UG-1002.
  * Unfortunately, the tests had shown that is wrong.
 	typedef enum {
 		GPIO_CLK_FREQ_D1   = 0b000, // base frequency     : 6.5 MHz.

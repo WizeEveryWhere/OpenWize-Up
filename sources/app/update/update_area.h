@@ -35,16 +35,14 @@ extern "C" {
 #include <stdint.h>
 #include "update.h"
 
-#ifndef BUILD_STANDALONE_APP
-	#include "img.h"
-#endif
+#include "img.h"
 
 update_status_e UpdateArea_Setup(void);
 update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt);
 update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t *pData);
 update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz);
 update_status_e UpdateArea_CheckImg(uint32_t u32HashSW);
-update_status_e UpdateArea_WriteHeader(uint32_t img_sz);
+update_status_e UpdateArea_WriteHeader(struct __img_info_s *p_img_info);
 void UpdateArea_SetBootReq(uint32_t boot_req);
 void UpdateArea_SetBootable(void);
 

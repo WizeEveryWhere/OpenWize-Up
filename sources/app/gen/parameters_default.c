@@ -1,6 +1,6 @@
 /*!
   * @file parameters_default.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-19 10:21:36.154285449 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-22 11:09:10.235494651 +0100).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 19/11/2023 10:21 [neo]
+  * @par x.x.x : 22/11/2023 11:09 [neo]
   *
   */
 
@@ -89,7 +89,7 @@ const uint8_t a_ParamDefault[] = {
    0x0,0x0, /*!< Offset to start RX before (in ms) (MSB first, Signed number limited to +/-1000ms).*/
    0x0, /*!< L2 Reception Filter disable (see struct proto_config_s) b[0] : Crc filter. 0: enable, 1: disable b[1] : Afield filter. 0: enable, 1: disable b[2] : MField filter. 0: enable, 1: disable b[3] : CiFiled filter. 0: enable, 1: disable b[4] : DownId filter. 0: enable, 1: disable b[5:7] : Reserved*/
    0x0, /*!< L6 Reception Filter disable (see struct proto_config_s) b[0] : Reserved b[1] : HashKmac filter. 0: enable, 1: disable b[2] : HashKenc filter. 0: enable, 1: disable b[3] : L6NetId filter. 0: enable, 1: disable b[4:7] : Reserved*/
-   '-',  /*!< Get or Set the input RF power (dB) applied to calibrate the RSSI.*/
+   0xb3, /*!< Get or Set the input RF power (dB) applied to calibrate the RSSI.*/
    0x78, /*!< Get or Set the current test mode channel*/
    0x0, /*!< Get or Set the current test mode modulation*/
    0x51, /*!< Get or Set the LowPower mode. b[0] : Enable/Disable, b[1:3] : Reserved, b[4:7] : Delay (in second) without activity to go in low power mode (0 : manual only).*/

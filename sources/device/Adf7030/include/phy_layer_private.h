@@ -181,14 +181,6 @@ int32_t Phy_GetCal(uint8_t *pBuf);
 int32_t Phy_SetCal(uint8_t *pBuf);
 int32_t Phy_ClrCal(void);
 
-#ifdef PHY_USE_POWER_RAMP
-	extern pa_ramp_rate_e pa_ramp_rate;
-#endif
-
-//extern int16_t rssi_offset_cal ;
-
-//extern phy_power_t aPhyPower[PHY_NB_PWR];
-
 extern const char * const aChanStr[PHY_NB_CH];
 extern const char * const aModulationStr[PHY_NB_MOD];
 extern const char * const aTestModeStr[PHY_NB_TST_MODE];

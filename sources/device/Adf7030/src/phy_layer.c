@@ -136,7 +136,7 @@ phy_power_t aPhyPower[PHY_NB_PWR] __attribute__(( weak )) =
 };
 
 #ifdef PHY_USE_POWER_RAMP
-pa_ramp_rate_e pa_ramp_rate __attribute__(( weak )) = RAMP_OFF;
+pa_ramp_rate_e ePaRampRate __attribute__(( weak )) = RAMP_OFF;
 #endif
 
 /*!
@@ -855,7 +855,7 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 #ifdef PHY_USE_POWER_RAMP
 				radio_dig_tx_cfg1_t tx_cfg1;
 				tx_cfg1 = (radio_dig_tx_cfg1_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_RADIO_DIG_TX_CFG1_Addr));
-				tx_cfg1.RADIO_DIG_TX_CFG1_b.PA_RAMP_RATE = pa_ramp_rate;
+				tx_cfg1.RADIO_DIG_TX_CFG1_b.PA_RAMP_RATE = ePaRampRate;
 				adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RADIO_DIG_TX_CFG1_Addr, tx_cfg1.RADIO_DIG_TX_CFG1);
 #endif
 				pDevice->bTxPwrDone = 1;

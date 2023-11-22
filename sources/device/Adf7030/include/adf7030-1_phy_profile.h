@@ -112,13 +112,11 @@ typedef union {
         uint32_t                    : 1;
         uint32_t TX_MOD_TYPE        : 3; // see mod_type_e
         uint32_t RX_MOD_TYPE        : 3; // see mod_type_e
-        //uint32_t                    : 2;
         uint32_t                    : 5;
         uint32_t GPIO_CLK_FREQ_SEL  : 3; /*!< Selection of Clock Frequency on
                                                selected GPIO with command
                                                GEN_GPIO_CLK
                                                (see gpio_clk_freq_e)*/
-        //uint32_t                    : 5;
         uint32_t                    : 2;
         //uint32_t AUTO_PLL_CFG
         //uint32_t AUTO_CFG_DIG_RX

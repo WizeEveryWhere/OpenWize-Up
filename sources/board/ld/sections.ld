@@ -48,6 +48,18 @@ SECTIONS
   } >FLASH
 
   /* Constant data into "FLASH" Rom type memory */
+  .roinfo :
+  {
+    . = ALIGN(4);
+    __roinfo_org__ = .;
+    *(.roinfo.fw)      /* .roinfo* sections (constants, strings, etc.) */
+    *(.roinfo.hw)      /* .roinfo* sections (constants, strings, etc.) */
+    *(.roinfo*)        /* .roinfo* sections (constants, strings, etc.) */
+    *(.roinfo)         /* .roinfo sections (constants, strings, etc.) */
+    __roinfo_end__ = .;
+    . = ALIGN(4);
+  } >FLASH
+  
   .rodata :
   {
     . = ALIGN(4);

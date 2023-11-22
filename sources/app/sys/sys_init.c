@@ -136,13 +136,13 @@ void Sys_Init(void)
 
 	WizeApi_CtxClear();// FIXME
 	// -----------------------
-  	// Init Time Mgr
 	WizeApp_CtxRestore();
    	// Setup Time Event
   	TimeEvt_Setup();
 
-  	// Setup Wize
+  	// Setup Time Mgr
   	WizeApi_TimeMgr_Setup(&sTimeUpdCtx);
+  	// Setup Wize API
   	WizeApi_SesMgr_Setup(&sPhyDev, &sInstCtx, &sAdmCtx,	&sDwnCtx);
   	WizeApi_Enable(1);
 }

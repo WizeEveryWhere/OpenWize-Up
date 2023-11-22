@@ -174,8 +174,8 @@ extern void __init_sys_calls__(void);
 /*! @} @endcond */
 
 
-boot_info_t gBootInfo;
-boot_state_t gBootState;
+boot_info_t gBootInfo __attribute__(( weak ));
+boot_state_t gBootState __attribute__(( weak ));
 
 /*!
   * @static

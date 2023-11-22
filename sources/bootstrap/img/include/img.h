@@ -83,15 +83,19 @@ struct __exch_info_s {
 
 typedef int (*pf_t)(struct __exch_info_s* p);
 
-/*
+
+struct __img_info_s {
+	unsigned int magic;
+	unsigned int size; // app size + header size + footer magic + extra modulo 8 padding
+	unsigned int reserved[2];
+	unsigned int epoch;
+	unsigned int hash;
+};
+
 union __img_header_s {
 	unsigned int reserved[HEADER_SZ / sizeof(unsigned int)];
-	struct {
-		unsigned int magic;
-		unsigned int size; // app size + header size
-	};
+	struct __img_info_s img_info;
 };
-*/
 
 #if defined(__cplusplus)
 }

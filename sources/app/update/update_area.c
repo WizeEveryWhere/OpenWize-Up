@@ -56,9 +56,7 @@ struct update_area_s
 /******************************************************************************/
 extern unsigned int __header_size__;
 
-#ifndef BUILD_STANDALONE_APP
-	struct __exch_info_s * const p = (struct __exch_info_s * const)&(__exchange_area_org__);
-#endif
+struct __exch_info_s * const p = (struct __exch_info_s * const)&(__exchange_area_org__);
 
 struct update_area_s sUpdateArea;
 /******************************************************************************/
@@ -145,15 +143,33 @@ update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t 
 update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz)
 {
 	update_status_e status = UPD_STATUS_UNK;
+
 	if (eType < UPD_TYPE_NB)
 	{
 		if (eType != UPD_TYPE_EXTERNAL)
 		{
 			status = UpdateArea_CheckImg(u32HashSW);
+
 			if (status == UPD_STATUS_VALID)
 			{
+				struct __img_info_s s_img_info;
+				time_t t;
+
+				s_img_info.magic = sUpdateArea.u32MagicHeader;
+				s_img_info.hash = u32HashSW;
+				s_img_info.size = img_sz + sUpdateArea.u32HeaderSz + 4;
+				if (s_img_info.size % 8)
+				{
+					s_img_info.size += 8 - (s_img_info.size % 8);
+				}
+
+				time(&t);
+				s_img_info.epoch = (uint32_t)t;
+				s_img_info.reserved[0] = 0xFFFFFFFF;
+				s_img_info.reserved[1] = 0xFFFFFFFF;
+
 				// image is valid : Finalize with Header
-				status = UpdateArea_WriteHeader(img_sz);
+				status = UpdateArea_WriteHeader(&s_img_info);
 			}
 		}
 	}
@@ -181,8 +197,34 @@ update_status_e UpdateArea_CheckImg(uint32_t u32HashSW)
 	}
 }
 
-update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
+update_status_e UpdateArea_WriteHeader(struct __img_info_s *p_img_info)
+//update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 {
+	// Finalize with Header
+	uint32_t temp[2];
+	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + p_img_info->size - sUpdateArea.u32HeaderSz - 8;
+
+	if ( (p_img_info->size > sUpdateArea.u32ImgMaxSz) || (sUpdateArea.bIsInit != MAGIC_WORD_8))
+	{
+		return UPD_STATUS_STORE_FAILED;
+	}
+
+	// magic_dead
+	temp[0] = *(uint32_t*)u32TgtAdd;
+	temp[1] = sUpdateArea.u32MagicTrailer;
+	if ( BSP_Flash_Write(u32TgtAdd, (uint64_t*)temp, 1) != DEV_SUCCESS )
+	{
+		return UPD_STATUS_STORE_FAILED;
+	}
+	// header
+	if ( BSP_Flash_Write(
+		(sUpdateArea.u32ImgAdd - sUpdateArea.u32HeaderSz), (uint64_t*)p_img_info, sizeof(struct __img_info_s)/8)
+			!= DEV_SUCCESS)
+	{
+		return UPD_STATUS_STORE_FAILED;
+	}
+
+	/*
 	uint32_t u32FinaleSize;
 	// Finalize with Header
 	uint32_t temp[2];
@@ -199,14 +241,14 @@ update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 		return UPD_STATUS_STORE_FAILED;
 	}
 
-	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + u32FinaleSize - 4;
+	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + u32FinaleSize - sUpdateArea.u32HeaderSz - 8;
 
 
 	// magic_dead
-	temp[0] = sUpdateArea.u32MagicTrailer;
-	temp[1] = 0xFFFFFFFF;
+	temp[0] = *(uint32_t*)u32TgtAdd;
+	temp[1] = sUpdateArea.u32MagicTrailer;
 
-	if ( *(uint32_t*)u32TgtAdd != temp[0] )
+	//if ( *(uint32_t*)u32TgtAdd != temp[0] )
 	{
 		if ( BSP_Flash_Write(u32TgtAdd, (uint64_t*)temp, 1) != DEV_SUCCESS )
 		{
@@ -224,26 +266,19 @@ update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 	{
 		return UPD_STATUS_STORE_FAILED;
 	}
-
-#ifndef BUILD_STANDALONE_APP
+	*/
 	UpdateArea_SetBootReq(BOOT_REQ_UPDATE);
-#endif
-
 	return UPD_STATUS_READY;
 }
 
 inline void UpdateArea_SetBootReq(uint32_t boot_req)
 {
-#ifndef BUILD_STANDALONE_APP
-		p->request = (boot_request_e)boot_req;
-#endif
+	p->request = (boot_request_e)boot_req;
 }
 
 inline void UpdateArea_SetBootable(void)
 {
-#ifndef BUILD_STANDALONE_APP
-		p->bootable = 0x1;
-#endif
+	p->bootable = 0x1;
 }
 /******************************************************************************/
 static int32_t _update_area_erase_header_(void)

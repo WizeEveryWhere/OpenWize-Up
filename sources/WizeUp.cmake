@@ -92,7 +92,4 @@ foreach(mod_dir ${MOD_DIR_LST})
     endif()
 endforeach(mod_dir)
 
-if(BUILD_STANDALONE_APP)
-else()
-    include(sources/app_img.cmake)
-endif(BUILD_STANDALONE_APP)
+include(sources/app_img.cmake)
