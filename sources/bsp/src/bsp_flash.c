@@ -96,7 +96,7 @@ dev_res_e BSP_Flash_EraseArea(uint32_t u32Address, uint32_t u32NbBytes)
 			pEraseInit.Banks = 0;
 			pEraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
 			pEraseInit.Page = BSP_Flash_GetPage(u32Address);
-			pEraseInit.NbPages = BSP_Flash_GetPage(u32Address + u32NbBytes) - pEraseInit.Page + 1;
+			pEraseInit.NbPages = BSP_Flash_GetPage(u32Address + u32NbBytes) - pEraseInit.Page;
 
 			do
 			{
