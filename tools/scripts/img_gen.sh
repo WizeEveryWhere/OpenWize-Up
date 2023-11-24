@@ -198,71 +198,79 @@ function check_local_info
     
     echo "-> Checking";
     
-    # -------------------------------
-    res="OK";
-    # Check 8 bytes alignement
-    is_modulo=$(( ${mLocal[img_size]} % 8));
-    #is_modulo=5;
-    if [[ ${is_modulo} != 0 ]]
-    then
-        res="Bad";
-        ckecking_ok=0;
-    fi
-    printf "${format_str}(%d mod 8 = %d)\n" "Alignment" ${res} ${mLocal[img_size]} ${is_modulo};
+    local check_mod8_aligment=1;
+    local check_mod120_aligment=0;
+    local check_img_size=1;
     
     # -------------------------------
-    res="OK";
-    # Check 210 bytes alignement of FW binary
-    is_modulo=$(( ${mLocal[app_size]} % 210));
-    if [[ ${is_modulo} != 0 ]]
+    # Check 8 bytes alignement
+    if [[ ${check_mod8_aligment} == 1 ]]
     then
-        res="Bad";
-        ckecking_ok=0;       
-        printf "${format_2_str}(%d mod 210 = %d)\n" "..." ${res} ${mLocal[app_size]} ${is_modulo};
-        
-        # Downloadable image
-        padding=$(( 210 - ${is_modulo} ));
-        new_size=$(( ${mLocal[app_size]} + ${padding} ));
-        printf "${format_2_str}(New size = %d; Padding = %d)\n" "..." "" ${new_size} ${padding};        
-        
-        # Get the allocated downloadable image size
-        down_max_size=$( printf "%d" 0x${info[_I${img_id}_size_]} );
-        down_max_size=$(( ${down_max_size} - ${mLocal[header_size]} ));
-        is_modulo=$(( ${down_max_size} % 210));
+        res="OK";
+        is_modulo=$(( ${mLocal[img_size]} % 8));
         if [[ ${is_modulo} != 0 ]]
         then
-            down_max_size=$(( ${down_max_size} - ${is_modulo} ));
+            res="Bad";
+            ckecking_ok=0;
         fi
-        
+        printf "${format_str}(%d mod 8 = %d)\n" "Alignment" ${res} ${mLocal[img_size]} ${is_modulo};
+    fi
+    # -------------------------------
+    # Check 210 bytes alignement of FW binary (not required for factory)
+    if [[ ${check_mod210_aligment} == 1 ]]
+    then
         res="OK";
-        # Check size not exceed max downloadable allocated size
-        exceed_size=$(( ${new_size} - ${down_max_size} ));
+        #is_modulo=$(( ${mLocal[app_size]} % 210));
+        is_modulo=0;
+        if [[ ${is_modulo} != 0 ]]
+        then
+            res="Bad";
+            #ckecking_ok=0;
+            printf "${format_2_str}(%d mod 210 = %d)\n" "..." ${res} ${mLocal[app_size]} ${is_modulo};
+            
+            # Downloadable image
+            padding=$(( 210 - ${is_modulo} ));
+            new_size=$(( ${mLocal[app_size]} + ${padding} ));
+            printf "${format_2_str}(New size = %d; Padding = %d)\n" "..." "" ${new_size} ${padding};        
+            
+            # Get the allocated downloadable image size
+            down_max_size=$( printf "%d" 0x${info[_I${img_id}_size_]} );
+            down_max_size=$(( ${down_max_size} - ${mLocal[header_size]} ));
+            is_modulo=$(( ${down_max_size} % 210));
+            if [[ ${is_modulo} != 0 ]]
+            then
+                down_max_size=$(( ${down_max_size} - ${is_modulo} ));
+            fi
+            
+            res="OK";
+            # Check size not exceed max downloadable allocated size
+            exceed_size=$(( ${new_size} - ${down_max_size} ));
+            if [[ ${exceed_size} -gt 0 ]]
+            then
+                res="Bad";
+                #ckecking_ok=0;
+            fi
+            printf "${format_2_str}(%d  - %d) = %d\n" "..." ${res} ${new_size} ${down_max_size} ${exceed_size};
+            
+        fi
+        #printf "${format_str}(%d mod 210 = %d)\n" "Alignment" ${res} ${mLocal[app_size]} ${is_modulo};
+        #printf "${format_str}(%d with %d padding)\n" "New size" "OK" ${new_size} ${padding};
+    fi
+    # -------------------------------
+    # Check size not exceed max allocated size
+    if [[ ${check_img_size} == 1 ]]
+    then
+        res="OK";
+        img_max_size=$( printf "%d" 0x${info[_I${img_id}_size_]} );
+        exceed_size=$(( ${mLocal[img_size]} - ${img_max_size} ));
         if [[ ${exceed_size} -gt 0 ]]
         then
             res="Bad";
             ckecking_ok=0;
         fi
-        printf "${format_2_str}(%d  - %d) = %d\n" "..." ${res} ${new_size} ${down_max_size} ${exceed_size};
-        
+        printf "${format_str}(%d - % d) = %d\n" "Img size" ${res} ${mLocal[img_size]} ${img_max_size} ${exceed_size};
     fi
-    #printf "${format_str}(%d mod 210 = %d)\n" "Alignment" ${res} ${mLocal[app_size]} ${is_modulo};
-    #printf "${format_str}(%d with %d padding)\n" "New size" "OK" ${new_size} ${padding};
-    
     # -------------------------------
-    res="OK";
-    # Check size not exceed max allocated size
-    img_max_size=$( printf "%d" 0x${info[_I${img_id}_size_]} );
-    #img_max_size=100000;
-    exceed_size=$(( ${mLocal[img_size]} - ${img_max_size} ));
-    #echo " exceed_size ${exceed_size}";
-    if [[ ${exceed_size} -gt 0 ]]
-    then
-        res="Bad";
-        ckecking_ok=0;
-    fi
-    printf "${format_str}(%d - % d) = %d\n" "Img size" ${res} ${mLocal[img_size]} ${img_max_size} ${exceed_size};
-
-     # -------------------------------
     if [[ ${ckecking_ok} != 1 ]]
     then
         echo "  *--- Error ---*";
