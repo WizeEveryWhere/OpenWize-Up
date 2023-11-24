@@ -34,15 +34,13 @@
  *  @{
  */
 
-#ifndef INC_ATCI_H_
-#define INC_ATCI_H_
+#ifndef _ATCI_H_
+#define _ATCI_H_
 
 #include "version.h"
 #include "console.h"
 
-/*==============================================================================
- * DEFINES
- *============================================================================*/
+/******************************************************************************/
 
 /*!
  * @cond INTERNAL
@@ -109,22 +107,6 @@
 /******************************************************************************/
 
 /*!
- * @brief This enum define the ATCI state
- */
-typedef enum
-{
-	ATCI_WAKEUP,   /*!<  */
-	ATCI_WAIT,     /*!<  */
-	ATCI_EXEC_CMD, /*!<  */
-	ATCI_SLEEP,    /*!<  */
-    ATCI_RESET,    /*!<  */
-	ATCI_EXEC_RSP, /*!<  */
-
-	ATCI_SESSION,  /*!<  */
-	ATCI_COMMAND,  /*!<  */
-} atci_state_t;
-
-/*!
  * @brief This enum define the ATCI error code
  */
 typedef enum
@@ -183,6 +165,22 @@ typedef struct
 	};
 } atci_cmd_param_t;
 
+/*!
+ * @brief This enum define the ATCI state
+ */
+typedef enum
+{
+	ATCI_WAKEUP,   /*!<  */
+	ATCI_WAIT,     /*!<  */
+	ATCI_EXEC_CMD, /*!<  */
+	ATCI_SLEEP,    /*!<  */
+    ATCI_RESET,    /*!<  */
+	ATCI_EXEC_RSP, /*!<  */
+
+	ATCI_SESSION,  /*!<  */
+	ATCI_COMMAND,  /*!<  */
+} atci_state_e;
+
 
 typedef struct at_desc_s at_desc_t;
 
@@ -195,15 +193,13 @@ typedef struct atci_cmd_s
 	console_buf_t *pComTxBuf; /*!< buffer used to send cmd to UART */
 	console_buf_t *pComRxBuf; /*!< buffer used to receive cmd from UART */
 
-
 	// --- used to extract input command
-	uint16_t idx;                                 /*!< read index in buffer */
-	char cmdCodeStr[AT_CMD_CODE_MAX_LEN];         /*!< reformatted command code string */
-	struct at_desc_s * pCmdDesc;
-	uint16_t cmd_code_nb;
-	uint16_t cmdCode;                      /*!< command code (decoded) */
-	atci_cmd_type_e cmdType;                      /*!< if command is read or write and if it has parameters or not */
-
+	char cmdCodeStr[AT_CMD_CODE_MAX_LEN]; /*!< reformatted command code string */
+	struct at_desc_s * pCmdDesc;          /*!< Pointer on the AT function descriptor table */
+	uint16_t cmd_code_nb;                 /*!< The number of AT command in the descriptor table */
+	uint16_t cmdCode;                     /*!< command code (decoded) */
+	uint16_t idx;                         /*!< read index in buffer */
+	atci_cmd_type_e cmdType;              /*!< if command is read or write and if it has parameters or not */
 
 	// ---
 	uint8_t paramsMem[AT_CMD_DATA_MAX_LEN];       /*!< buffer where parameters data are saved */
@@ -211,24 +207,20 @@ typedef struct atci_cmd_s
 	// ---
 	uint8_t nbParams;                             /*!< number of command/response parameters */
 	atci_cmd_param_t params[AT_CMD_MAX_NB_PARAM]; /*!< command/response parameters list (give a size and a pointer in paramsMem buffer for each parameters) */
-
-
 	// ---
-	uint8_t bLpAllowed;
-	uint8_t bNeedAck;
-	uint8_t bNeedReboot;
+	uint8_t bLpAllowed;  /*!< Set if Low Power is allowed */
+	uint8_t bNeedAck;    /*!< Set if the last command required an acknowledge */
+	uint8_t bNeedReboot; /*!< Set if the last command required to reboot */
+	//uint8_t bSession;
+	atci_state_e eState; /*!<  */
+	atci_error_e eErr;   /*!<  */
 
-	uint8_t bSession;
-
-	atci_state_t eState;
-	atci_error_e eErr;
-
-	int32_t (*pf_inner_loop)(struct atci_cmd_s *pAtciCtx);
+	int32_t (*pf_inner_loop)(struct atci_cmd_s *pAtciCtx); /*!< Inner loop function pointer */
 
 } atci_cmd_t;
 
 /*!
- * @brief This struct define the ATCI command description
+ * @brief This struct define the ATCI command descriptor
  */
 struct at_desc_s
 {
@@ -253,36 +245,77 @@ typedef struct
 	uint8_t bSession;
 	uint8_t bShouldAck;
 
-	atci_state_t eState;
+	atci_state_e eState;
 	atci_error_e eErr;
 } atci_ctx_t;
 
 
+/******************************************************************************/
 
-/*==============================================================================
- * FUNCTIONS PROTOTYPES
- *============================================================================*/
-
-/*!-----------------------------------------------------------------------------
- * @brief		AT command interpreter task
+/*!
+ * @brief Setup the ATCI task
  *
- * @details		Wait AT command reception, decode and execute it
- * 				Manage sleep and reset
- *
- * @param[in]	argument: unused
- *
- *-----------------------------------------------------------------------------*/
+ */
 void Atci_Setup(void);
 
+/*!
+ * @brief This function proceed the AT command parsing
+ *
+ * @param [in] pAtciCtx Pointer on the ATCI context
+ * @param [in] ulEvent  Current event
+ *
+ * @return 0 if success, -1 otherwise
+ */
 int32_t Atci_Com(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+
+/*!
+ * @brief This function execute the AT command
+ *
+ * @param [in] pAtciCtx Pointer on the ATCI context
+ * @param [in] ulEvent  Current event
+ *
+ * @return 0 if success, -1 otherwise
+ */
 int32_t Atci_Run(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
 
-
+/*!
+ * @brief This function push a notification to the ATCI
+ *
+ * @param [in] evt Event or id of the notification
+ *
+ * @return 0 if success, -1 otherwise (queue is full)
+ */
 int32_t UNS_Notify(uint32_t evt);
+
+/*!
+ * @brief This function push a notification to the ATCI
+ *
+ * @param [in] evt Event or id of the notification
+ *
+ * @return 0 if success, -1 otherwise (queue is full)
+ */
 int32_t UNS_NotifyAtci(uint32_t evt);
+
+/*!
+ * @brief This function push a notification to the ATCI
+ *
+ * @param [in] evt Event or id of the notification
+ *
+ * @return 0 if success, -1 otherwise (queue is full)
+ */
 int32_t UNS_NotifyTime(uint32_t evt);
+
+/*!
+ * @brief This function push a notification to the ATCI
+ *
+ * @param [in] evt Event or id of the notification
+ *
+ * @return 0 if success, -1 otherwise (queue is full)
+ */
 int32_t UNS_NotifySession(uint32_t evt);
 
-#endif /* INC_ATCI_H_ */
+/******************************************************************************/
+
+#endif /* _ATCI_H_ */
 
 /*! @} */

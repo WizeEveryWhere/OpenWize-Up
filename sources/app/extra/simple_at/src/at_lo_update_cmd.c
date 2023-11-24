@@ -1,6 +1,6 @@
 /**
   * @file at_lo_update_cmd.c
-  * @brief // TODO This file ...
+  * @brief This file group some AT command.
   * 
   * @details
   *
@@ -46,6 +46,26 @@ extern "C" {
 /******************************************************************************/
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATANN command (Announce for local update)
+ *
+ * @details
+ *
+ * ATANN=$<key_id>,$<session_id>,$<announce>
+ * @parblock
+ * - <key_id> : The key id used to encrypt and authenticate the FW blocks (1 byte).
+ *              The key id 0 (unencrypted) is forbidden.
+ * - <session_id> : The local update session identification (4 bytes)
+ * - <announce> : The local update announcement information
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATANN_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
@@ -92,6 +112,26 @@ atci_error_e Exec_ATANN_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATBLK command (Set FW block)
+ *
+ * @details
+ *
+ * ATBLK=$<session_id>,$<block_id>,$<block>,$<auth>
+ * @parblock
+ * - <session_id> : A 4 bytes identifying the update session (8 digits)
+ * - <block_id> : A 2 bytes identifying the block number (4 digits)
+ * - <block> : A 210 bytes hexadecimal string ciphered (420 digits)
+ * - <auth> : A 4 bytes hash cmac authenticate the block (8 digits)
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATBLK_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status = ATCI_ERR_NONE;
@@ -128,6 +168,23 @@ atci_error_e Exec_ATBLK_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATUPD command (Request to apply local update)
+ *
+ * @details
+ *
+ * ATUPD=$<session_id>
+ * @parblock
+ * - <session_id> : A 4 bytes identifying the update session (8 digits)
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATUPD_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status = ATCI_ERR_PARAM_NB;
@@ -154,6 +211,17 @@ atci_error_e Exec_ATUPD_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATBMAP command (Get local update block bitmap representation)
+ *
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATBMAP_Cmd(atci_cmd_t *atciCmdData)
 {
 	return ATCI_ERR_NONE;

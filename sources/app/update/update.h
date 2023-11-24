@@ -1,6 +1,6 @@
 /**
   * @file update.h
-  * @brief // TODO This file ...
+  * @brief This file define the functions to treat the update session
   * 
   * @details
   *
@@ -25,8 +25,15 @@
   * Initial version
   *
   */
-#ifndef UPDATE_H_
-#define UPDATE_H_
+
+/*!
+ * @addtogroup update
+ * @ingroup app
+ * @{
+ */
+
+#ifndef _UPDATE_H_
+#define _UPDATE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,89 +44,108 @@ extern "C" {
 
 /******************************************************************************/
 /*!
- * @brief This
+ * @brief This enum define the type of update
  */
 typedef enum
 {
-	UPD_TYPE_INTERNAL  = 0, /**<   */
-	UPD_TYPE_EXTERNAL  = 1, /**<   */
-	UPD_TYPE_LOCAL     = 2, /**<   */
+	UPD_TYPE_INTERNAL  = 0, /**< Remote Internal update  */
+	UPD_TYPE_EXTERNAL  = 1, /**< Remote external update  */
+	UPD_TYPE_LOCAL     = 2, /**< Local Internal update  */
 	// ---
 	UPD_TYPE_NB,
 } update_type_e;
 
 /*!
- * @brief This
+ * @brief This enum define the current update state
  */
 typedef enum
 {
-	UPD_PEND_NONE      = 0x00, /**<   */
-	UPD_PEND_INTERNAL  = 0x01, /**<   */
-	UPD_PEND_EXTERNAL  = 0x02, /**<   */
-	UPD_PEND_LOCAL     = 0x03, /**<   */
+	UPD_PEND_NONE      = 0x00, /**< None */
+	UPD_PEND_INTERNAL  = 0x01, /**< An internal update is currently processed */
+	UPD_PEND_EXTERNAL  = 0x02, /**< An external update is currently processed */
+	UPD_PEND_LOCAL     = 0x03, /**< A local update is currently processed */
 	// ---
-	UPD_PEND_FORBIDDEN = 0x04, /**<   */
+	UPD_PEND_FORBIDDEN = 0x04, /**< Update is forbidden due to an internal error */
 } pend_update_e;
 
 /*!
- * @brief This
+ * @brief This enum define the return status
  */
 typedef enum
 {
-	UPD_STATUS_UNK          = 0x00, /**<   */
-	UPD_STATUS_SES_FAILED   = 0x01, /**<   */
-	UPD_STATUS_STORE_FAILED = 0x02, /**<   */
+	UPD_STATUS_UNK          = 0x00, /**< Status is unknown */
+	UPD_STATUS_SES_FAILED   = 0x01, /**< The last session failed */
+	UPD_STATUS_STORE_FAILED = 0x02, /**< Update was not able to write into memory */
 	// ---
-	UPD_STATUS_INPROGRESS   = 0x04, /**<   */
+	UPD_STATUS_INPROGRESS   = 0x04, /**< Update is progressing */
 	// ---
-	UPD_STATUS_INCOMPLETE   = 0x05, /**<   */
-	UPD_STATUS_CORRUPTED    = 0x06, /**<   */
-	UPD_STATUS_VALID        = 0x07, /**<   */
+	UPD_STATUS_INCOMPLETE   = 0x05, /**< The FW image is incomplete */
+	UPD_STATUS_CORRUPTED    = 0x06, /**< The FW image is corrupted. Hash is mismatched */
+	UPD_STATUS_VALID        = 0x07, /**< The FW image is valid */
 	// ---
-	UPD_STATUS_READY        = 0x08, /**<   */
+	UPD_STATUS_READY        = 0x08, /**< The FW partition is ready */
 	// ---
 } update_status_e;
 
 /*!
- * @brief This
- */
-struct update_itf_s
-{
-	uint8_t (*pfCheckAnnFW)(admin_ann_fw_info_t *pFwInfo, uint8_t *u8ErrorParam);
-	void (*pfNotifyAnnFW)(uint8_t eErrCode, uint8_t u8ErrorParam);
-	uint8_t (*pfOnBlkRecv)(uint16_t u16Id, const uint8_t *pData);
-
-
-	uint8_t (*pfInit)(admin_ann_fw_info_t *pFwInfo, uint8_t *u8ErrorParam);
-	uint8_t (*pfProcess)(uint16_t u16Id, const uint8_t *pData);
-	uint8_t (*pfFini)(admin_ann_fw_info_t *pFwInfo, uint8_t *u8ErrorParam);
-};
-
-/*!
- * @brief This
+ * @brief This hold the update context
  */
 struct update_ctx_s
 {
-	void            *hTask;
-	void            *hLock;        /**< Pointer on lock */
-	pend_update_e   ePendUpdate;   /**<   */
-	update_status_e eUpdateStatus; /**<   */
-	uint8_t         eErrCode;      /**<   */
-	uint8_t         eErrParam;     /**<   */
-
-	uint32_t        u32Tmo;        /**<   */
-
+	void            *hTask;        /**< Handler on the task  */
+	void            *hLock;        /**< Hnadler on lock */
+	pend_update_e   ePendUpdate;   /**< The current state  */
+	update_status_e eUpdateStatus; /**< The last status  */
+	uint32_t        u32Tmo;        /**< The update loop timeout */
 } ;
 
 /******************************************************************************/
-void Update_Setup(void);
-int32_t Update_Open(admin_ann_fw_info_t sFwAnnInfo);
-int32_t Update_Close(void);
-int32_t Update_Store(uint16_t u16Id, const uint8_t *pData);
-int32_t Update_Finalize(void);
-int32_t Update_IsReady(void);
 
-//void Update_Task(void const * argument);
+/*!
+ * @brief This function setup the update module
+ *
+ */
+void Update_Setup(void);
+
+/*!
+ * @brief This function open an update session
+ *
+ * @param [in] sFwInfo The FW info required to process this update (see admin_ann_fw_info_t)
+ *
+ * @return 0 if success, -1 otherwise
+ */
+int32_t Update_Open(admin_ann_fw_info_t sFwAnnInfo);
+
+/*!
+ * @brief This function close (force) an update session
+ *
+ * @return 0 if success, -1 otherwise
+ */
+int32_t Update_Close(void);
+
+/*!
+ * @brief This function store a piece of FW
+ *
+ * @param [in] u16Id Id of the block
+ * @param [in] pData Pointer on data to store
+ *
+ * @return 0 if success, -1 otherwise
+ */
+int32_t Update_Store(uint16_t u16Id, const uint8_t *pData);
+
+/*!
+ * @brief This function request to finalize the current update session
+ *
+ * @return 0 if success, -1 otherwise
+ */
+int32_t Update_Finalize(void);
+
+/*!
+ * @brief This function check if the FW in the current update is ready
+ *
+ * @return 1 if ready, 0 otherwise
+ */
+int32_t Update_IsReady(void);
 
 /******************************************************************************/
 
@@ -127,4 +153,6 @@ int32_t Update_IsReady(void);
 }
 #endif
 
-#endif /* UPDATE_H_ */
+#endif /* _UPDATE_H_ */
+
+/*! @} */

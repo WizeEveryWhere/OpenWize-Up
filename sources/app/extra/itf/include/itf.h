@@ -1,6 +1,6 @@
 /**
   * @file itf.h
-  * @brief // TODO This file ...
+  * @brief This file define the interface function prototype's.
   * 
   * @details
   *
@@ -43,47 +43,57 @@
 extern "C" {
 #endif
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 #ifndef NB_BLK_STORE_MAX
 	#define NB_BLK_STORE_MAX 4
 #endif
 
 /*!
- * @brief This
+ * @brief This struct hold a FW block
  */
 typedef struct __attribute__((packed)) blk_s
 { //
-	uint16_t u16Id;        /**<   */
-	uint8_t aData[BLK_SZ]; /**<   */
+	uint16_t u16Id;         /**< Block id */
+	uint8_t  aData[BLK_SZ]; /**< Block data */
 } blk_t;
 
 /*!
- * @brief This
+ * @brief This struct hold the temporary FW buffer
  */
 typedef struct
 {
-	uint8_t u8ReadyBlkCnt; /**<   */
-	uint8_t idx_write; /**<   */
-	uint8_t idx_read;  /**<   */
-	uint8_t fw_blk[NB_BLK_STORE_MAX][sizeof(blk_t)]; /**<   */
+	uint8_t u8ReadyBlkCnt; /**< Number of pending block */
+	uint8_t idx_write;     /**< Current index to write */
+	uint8_t idx_read;      /**< Current index to read */
+	uint8_t fw_blk[NB_BLK_STORE_MAX][sizeof(blk_t)]; /**< Buffer to store the FW block */
 } fw_buffer_t;
 
 /*!
- * @brief This
+ * @brief This define the interface context
  */
 struct itf_ctx_s
 {
-	void *hTask;                /**<   */
-	void *hLock;
-	uint32_t u32DwnId;          /**<   */
-	uint8_t u8Err;              /**<   */
-	uint8_t u8KeyId;            /**<   */
-
-	uint8_t u8MissedBlkCnt;     /**<   */
-	fw_buffer_t sFwBuffer;      /**<   */
-	//admin_ann_fw_info_t sFwAnnInfo;  /**<   */
+	void *hTask;            /**< Handler on the task */
+	void *hLock;            /**< Handler on the lock */
+	uint32_t u32DwnId;      /**< Current session id  */
+	uint8_t u8Err;          /**< Last error  */
+	uint8_t u8KeyId;        /**< Key id to used for encryption and authentication */
+	uint8_t u8MissedBlkCnt; /**< Number of missed block due to a full buffer */
+	fw_buffer_t sFwBuffer;  /**< Temporary FW buffer */
 };
 
+/*!
+ * @}
+ * @endcond
+ */
 /******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 typedef enum
 {
 	UNK_SRC_ID,
@@ -103,52 +113,29 @@ enum
 	SESSION_NOTIFY,
 	TIME_NOTIFY,
 };
+
+/*!
+ * @}
+ * @endcond
+ */
+
+/******************************************************************************/
 /******************************************************************************/
 
-
-
 /*!
- * @brief This function convert an admin_cmd_anndownload_t structure to
- * admin_ann_fw_info_t one
- *
- * @param[out] pFwAnnInfo Pointer to output structure
- * @param[in]  pAnn       Pointer to input structure
+ * @brief This function setup the interface
  *
  */
-//void ITF_AdmAnnToFwInfo(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_anndownload_t *pAnn);
-
-
-//uint8_t ITF_OnDwnAnnToSend(local_cmd_anndownload_t *pAnn);
-
-
-/*!
- * @brief This function treat the incoming local update announcement
- *
- * @param[in] pAnn    Pointer local ANN frame
- * @param[in] u8KeyId The key id to use to decrypt and authenticate
- *
- * @retval  (see local_dwn_err_code_e)
- *
- */
-//uint8_t ITF_OnDwnAnnRecv(local_cmd_anndownload_t *pAnn, uint8_t u8KeyId);
-
-
-
-/*!
- * @brief This function convert an local_cmd_anndownload_t structure to
- * admin_cmd_anndownload_t one
- *
- * @param[out] pLocalAnn Pointer to output structure
- * @param[in]  pAnn      Pointer to input structure
- *
- */
-void ITF_AdmAnnToLocalAnn(local_cmd_anndownload_t *pLocalAnn, admin_cmd_anndownload_t *pAnn);
-
-
 void ITF_Setup(void);
 
+/*!
+ * @brief This function initialize interface for a FW download to local interface .
+ *
+ * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If success or there is no pending FW download.
+ *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
+ *
+ */
 uint8_t ITF_On(void);
-
 
 /*!
  * @brief This function store fw block into local buffer
@@ -159,89 +146,97 @@ uint8_t ITF_On(void);
  */
 void ITF_StoreBlock(uint16_t u16Id, uint8_t *pData);
 
-
+/******************************************************************************/
 /******************************************************************************/
 
 /*!
- * @brief This function convert an admin_ann_fw_info_t structure to
- * local_cmd_anndownload_t one
+ * @brief This function build an announce to be send on local interface
  *
- * @param[out] pAnn       Pointer to output structure
- * @param[in]  pFwAnnInfo Pointer to input structure
+ * @param[out] pAnn       Pointer on resulting announce
+ * @param[in]  pFwAnnInfo Pointer on announce to build
  *
  */
 void ITF_FwInfoToLocalAnn(local_cmd_anndownload_t *pAnn, admin_ann_fw_info_t *pFwAnnInfo);
 
 /*!
- * @brief This function build a local frame with current fw block
+ * @brief This function build a local interface FW block frame from internal store.
  *
- * @param[out] pFrame Pointer on output frame
+ * @param[in] pFrame Pointer frame containing the request.
  *
- * @retval  (see local_dwn_err_code_e)
+ * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If the build success.
+ *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
  *
  */
 uint8_t ITF_LocalBlkSend(local_cmd_writeblock_t *pFrame);
 
 /*!
- * @brief  This
+ * @brief This function convert error code from local interface to admin. L7 layer ones
  *
- * @param [in]  eErrCode       (see local_dwn_err_code_e)
- * @param [out] u8ErrorParam
+ * @param[in]  eErrCode     Local interface error code.
+ * @param[out] u8ErrorParam Parameter number on which error occurs (if any).
  *
- * @retval  (see admin_ann_err_code_e)
- *
+ * @return The converted error code as describe in admin_ann_err_code_e.
  */
 uint8_t ITF_GetAdmErrCode(uint8_t eErrCode, uint8_t *u8ErrorParam);
 
 /******************************************************************************/
+/******************************************************************************/
+
 /*!
- * @brief This function convert an local_cmd_anndownload_t structure to
- * admin_ann_fw_info_t one
+ * @brief This function extract an announce from local interface
  *
- * @param[out] pFwAnnInfo Pointer to output structure
- * @param[in]  pAnn       Pointer to input structure
+ * @param[out] pFwAnnInfo Pointer on resulting announce
+ * @param[in]  pAnn       Pointer on announce to extract
  *
  */
 void ITF_LocalAnnToFwInfo(admin_ann_fw_info_t *pFwAnnInfo, local_cmd_anndownload_t *pAnn);
 
 /*!
- * @brief This function
+ * @brief This function request to start a new FW update session from local interface.
  *
- * @param[in] pFrame
+ * @param[in] pAnn    Pointer frame containing the request.
+ * @param[in] u8KeyId The id of the key which will be used for FW block encryption and authentication.
  *
- * @retval  (see local_dwn_err_code_e)
+ * @return Error code from local_dwn_err_code_e
  *
  */
 uint8_t ITF_LocalAnnRecv(local_cmd_anndownload_t *pAnn, uint8_t u8KeyId);
 
 /*!
- * @brief This function
+ * @brief This function request to extract and store a FW block from local interface.
  *
- * @param[in] pFrame
+ * @param[in] pFrame Pointer frame containing the request.
  *
- * @retval  (see local_dwn_err_code_e)
+ * @retval local_dwn_err_code_e::LO_DWN_ERR_NONE If success
+ *         local_dwn_err_code_e::LO_DWN_ERR_SES_ID If the given session id doesn't match
+ *         local_dwn_err_code_e::LO_DWN_ERR_AUTH If authentication failed
+ *         local_dwn_err_code_e::LO_DWN_ERR_BLK_ID If the block write failed
+ *         local_dwn_err_code_e::LO_DWN_ERR_UNK Otherwise
  *
  */
 uint8_t ITF_LocalBlkRecv(local_cmd_writeblock_t *pFrame);
 
 /*!
- * @brief This function
+ * @brief This function request to finalize a FW update from local interface.
  *
- * @param[in] pFrame
+ * @param[in] pFrame Pointer frame containing the request.
  *
- * @retval  (see local_dwn_err_code_e)
+ * @retval local_dwn_err_code_e::LO_DWN_ERR_NONE If success
+ *         local_dwn_err_code_e::LO_DWN_ERR_SES_ID If the given session id doesn't match
+ *         local_dwn_err_code_e::LO_DWN_ERR_CORRUPTED If the downloaded FW is corrupted
+ *         local_dwn_err_code_e::LO_DWN_ERR_BLK_CNT If the downloaded FW is incomplete
+ *         local_dwn_err_code_e::LO_DWN_ERR_WRITE If the final write failed
  *
  */
 uint8_t ITF_LocalUpdateReq(local_cmd_update_t *pFrame);
 
 /*!
- * @brief  This
+ * @brief This function convert error code from admin. L7 layer to local ones
  *
- * @param [in]  eErrCode      (see admin_ann_err_code_e)
- * @param [out] u8ErrorParam
+ * @param[in] eErrCode     L7 admin. layer error code.
+ * @param[in] u8ErrorParam Parameter number on which error occurs (if any).
  *
- * @retval  (see local_dwn_err_code_e)
- *
+ * @return The converted error code as describe in local_dwn_err_code_e.
  */
 uint8_t ITF_GetLocalErrCode(uint8_t eErrCode, uint8_t u8ErrorParam);
 

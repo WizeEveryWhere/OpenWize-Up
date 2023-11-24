@@ -1,6 +1,6 @@
 /**
   * @file itf.c
-  * @brief // TODO This file ...
+  * @brief This file implement interface function's
   * 
   * @details
   *
@@ -76,54 +76,8 @@ struct itf_ctx_s sItfCtx;
  * @endcond
  */
 /******************************************************************************/
-
 /******************************************************************************/
-
-/*
-uint8_t ITF_OnDwnAnnToSend(admin_ann_fw_info_t *pFwAnnInfo, uint8_t *u8ErrorParam)
-{
-	local_cmd_anndownload_t sAnn;
-	ITF_AdmAnnToFwInfo(pFwAnnInfo, &sAnn);
-
-
-	return 0;
-}
-*/
-/*
-void ITF_OnDwnAnnRet(admin_ann_fw_info_t sFwAnnInfo, uint8_t u8Err)
-{
-	uint8_t eErrParam;
-	uint8_t eErrCode;
-
-	if (sFwAnnInfo.u32Type == UPD_TYPE_EXTERNAL)
-	{
-		eErrCode = _get_adm_err_code_(u8Err, &eErrParam);
-	}
-	else if (sFwAnnInfo.u32Type == UPD_TYPE_INTERNAL)
-	{
-		eErrCode = AdmInt_AnnCheckIntFW(&sFwAnnInfo, &eErrParam);
-	}
-	else
-	{
-		return ;
-	}
-	// notify WizeApp ready
-	WizeApp_AnnReady(eErrCode, eErrParam);
-}
-*/
-
-
-
-/******************************************************************************/
-
-
-
-/******************************************************************************/
-
-
-
-
-
+#if 0
 /*!
  * @brief This function
  *
@@ -131,24 +85,6 @@ void ITF_OnDwnAnnRet(admin_ann_fw_info_t sFwAnnInfo, uint8_t u8Err)
  * @param[in]  pAnn
  *
  */
-/*
-void ITF_AdmAnnToFwInfo(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_anndownload_t *pAnn)
-{
-	pFwAnnInfo->u32DwnId    = (pAnn->L7DwnId[0] >> 16) | (pAnn->L7DwnId[1]) | (pAnn->L7DwnId[2] << 16);
-	pFwAnnInfo->u16SwVerIni = __ntohs( *(uint16_t*)(pAnn->L7SwVersionIni) );
-	pFwAnnInfo->u16SwVerTgt = __ntohs( *(uint16_t*)(pAnn->L7SwVersionTarget) );
-	pFwAnnInfo->u16MField   = *(uint16_t*)(pAnn->L7MField);
-	pFwAnnInfo->u16DcHwId   = __ntohs( *(uint16_t*)(pAnn->L7DcHwId) );
-	pFwAnnInfo->u16BlkCnt   = __ntohs( *(uint16_t*)(pAnn->L7BlocksCount) );
-	//pFwAnnInfo->u32HashSW = __ntohl( *(uint32_t*)(pAnn->L7HashSW) );
-	pFwAnnInfo->u32HashSW   = ( *(uint32_t*)(pAnn->L7HashSW) );
-	// ---
-	pFwAnnInfo->u8DayRepeat = pAnn->L7DayRepeat & 0x0F;
-	pFwAnnInfo->u8DeltaSec  = pAnn->L7DeltaSec;
-	pFwAnnInfo->u32DaysProg = __ntohl( *(uint32_t*)(pAnn->L7DaysProg) );
-}
-*/
-
 void ITF_AdmAnnToLocalAnn(local_cmd_anndownload_t *pLocalAnn, admin_cmd_anndownload_t *pAnn)
 {
 	*(uint32_t*)(pLocalAnn->DwnId)           = (pAnn->L7DwnId[0] >> 16) | (pAnn->L7DwnId[1]) | (pAnn->L7DwnId[2] << 16);
@@ -162,12 +98,24 @@ void ITF_AdmAnnToLocalAnn(local_cmd_anndownload_t *pLocalAnn, admin_cmd_anndownl
 	*(uint32_t*)(pLocalAnn->DaysProg)        = *(uint32_t*)(pAnn->L7DaysProg);
 	*(uint32_t*)(pLocalAnn->HashSW)          = *(uint32_t*)(pAnn->L7HashSW);
 }
+#endif
 
+/*!
+ * @brief This function setup the interface
+ *
+ */
 void ITF_Setup(void)
 {
 	sItfCtx.hLock = SYS_MUTEX_CREATE_CALL(itf);
 }
 
+/*!
+ * @brief This function initialize interface for a FW download to local interface .
+ *
+ * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If success or there is no pending FW download.
+ *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
+ *
+ */
 uint8_t ITF_On(void)
 {
 	admin_ann_fw_info_t sFwAnnInfo;
@@ -192,7 +140,13 @@ uint8_t ITF_On(void)
 	return LO_DWN_ERR_NONE;
 }
 
-
+/*!
+ * @brief This function store fw block into local buffer
+ *
+ * @param[in] u16Id The block id
+ * @param[in] pData Pointer on the block's data
+ *
+ */
 void ITF_StoreBlock(uint16_t u16Id, uint8_t *pData)
 {
 	blk_t *pBlk;
@@ -221,7 +175,15 @@ void ITF_StoreBlock(uint16_t u16Id, uint8_t *pData)
 }
 
 /******************************************************************************/
+/******************************************************************************/
 
+/*!
+ * @brief This function build an announce to be send on local interface
+ *
+ * @param[out] pAnn       Pointer on resulting announce
+ * @param[in]  pFwAnnInfo Pointer on announce to build
+ *
+ */
 void ITF_FwInfoToLocalAnn(local_cmd_anndownload_t *pAnn, admin_ann_fw_info_t *pFwAnnInfo)
 {
 	//pAnn->Type                          = (uint8_t)pFwAnnInfo->u32Type;
@@ -237,6 +199,15 @@ void ITF_FwInfoToLocalAnn(local_cmd_anndownload_t *pAnn, admin_ann_fw_info_t *pF
 	*(uint32_t*)(pAnn->HashSW)          = pFwAnnInfo->u32HashSW;
 }
 
+/*!
+ * @brief This function build a local interface FW block frame from internal store.
+ *
+ * @param[in] pFrame Pointer frame containing the request.
+ *
+ * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If the build success.
+ *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
+ *
+ */
 uint8_t ITF_LocalBlkSend(local_cmd_writeblock_t *pFrame)
 {
 	blk_t *pBlk;
@@ -256,6 +227,14 @@ uint8_t ITF_LocalBlkSend(local_cmd_writeblock_t *pFrame)
 	return sItfCtx.u8Err;
 }
 
+/*!
+ * @brief This function convert error code from local interface to admin. L7 layer ones
+ *
+ * @param[in]  eErrCode     Local interface error code.
+ * @param[out] u8ErrorParam Parameter number on which error occurs (if any).
+ *
+ * @return The converted error code as describe in admin_ann_err_code_e.
+ */
 uint8_t ITF_GetAdmErrCode(uint8_t eErrCode, uint8_t *u8ErrorParam)
 {
 	uint8_t err = ADM_UNK_CMD;
@@ -286,10 +265,16 @@ uint8_t ITF_GetAdmErrCode(uint8_t eErrCode, uint8_t *u8ErrorParam)
 	return err;
 }
 
-
 /******************************************************************************/
 /******************************************************************************/
 
+/*!
+ * @brief This function extract an announce from local interface
+ *
+ * @param[out] pFwAnnInfo Pointer on resulting announce
+ * @param[in]  pAnn       Pointer on announce to extract
+ *
+ */
 void ITF_LocalAnnToFwInfo(admin_ann_fw_info_t *pFwAnnInfo, local_cmd_anndownload_t *pAnn)
 {
 	//pFwAnnInfo->u32Type = 2;
@@ -308,6 +293,15 @@ void ITF_LocalAnnToFwInfo(admin_ann_fw_info_t *pFwAnnInfo, local_cmd_anndownload
 	pFwAnnInfo->u32DaysProg = 0;
 }
 
+/*!
+ * @brief This function request to start a new FW update session from local interface.
+ *
+ * @param[in] pAnn    Pointer frame containing the request.
+ * @param[in] u8KeyId The id of the key which will be used for FW block encryption and authentication.
+ *
+ * @return Error code from local_dwn_err_code_e
+ *
+ */
 uint8_t ITF_LocalAnnRecv(local_cmd_anndownload_t *pAnn, uint8_t u8KeyId)
 {
 	// check ann_local
@@ -364,6 +358,18 @@ uint8_t ITF_LocalAnnRecv(local_cmd_anndownload_t *pAnn, uint8_t u8KeyId)
 	return eErr;
 }
 
+/*!
+ * @brief This function request to extract and store a FW block from local interface.
+ *
+ * @param[in] pFrame Pointer frame containing the request.
+ *
+ * @retval local_dwn_err_code_e::LO_DWN_ERR_NONE If success
+ *         local_dwn_err_code_e::LO_DWN_ERR_SES_ID If the given session id doesn't match
+ *         local_dwn_err_code_e::LO_DWN_ERR_AUTH If authentication failed
+ *         local_dwn_err_code_e::LO_DWN_ERR_BLK_ID If the block write failed
+ *         local_dwn_err_code_e::LO_DWN_ERR_UNK Otherwise
+ *
+ */
 uint8_t ITF_LocalBlkRecv(local_cmd_writeblock_t *pFrame)
 {
 	blk_t *pBlk;
@@ -391,6 +397,18 @@ uint8_t ITF_LocalBlkRecv(local_cmd_writeblock_t *pFrame)
 	return sItfCtx.u8Err;
 }
 
+/*!
+ * @brief This function request to finalize a FW update from local interface.
+ *
+ * @param[in] pFrame Pointer frame containing the request.
+ *
+ * @retval local_dwn_err_code_e::LO_DWN_ERR_NONE If success
+ *         local_dwn_err_code_e::LO_DWN_ERR_SES_ID If the given session id doesn't match
+ *         local_dwn_err_code_e::LO_DWN_ERR_CORRUPTED If the downloaded FW is corrupted
+ *         local_dwn_err_code_e::LO_DWN_ERR_BLK_CNT If the downloaded FW is incomplete
+ *         local_dwn_err_code_e::LO_DWN_ERR_WRITE If the final write failed
+ *
+ */
 uint8_t ITF_LocalUpdateReq(local_cmd_update_t *pFrame)
 {
 	// Check the session id
@@ -427,6 +445,14 @@ uint8_t ITF_LocalUpdateReq(local_cmd_update_t *pFrame)
 	return sItfCtx.u8Err;
 }
 
+/*!
+ * @brief This function convert error code from admin. L7 layer to local ones
+ *
+ * @param[in] eErrCode     L7 admin. layer error code.
+ * @param[in] u8ErrorParam Parameter number on which error occurs (if any).
+ *
+ * @return The converted error code as describe in local_dwn_err_code_e.
+ */
 uint8_t ITF_GetLocalErrCode(uint8_t eErrCode, uint8_t u8ErrorParam)
 {
 	uint8_t err = LO_DWN_ERR_NONE;
@@ -465,12 +491,12 @@ uint8_t ITF_GetLocalErrCode(uint8_t eErrCode, uint8_t u8ErrorParam)
  * @{
  */
 
-
 /*!
  * @static
- * @brief  This
+ * @brief  This function initialize temporary buffer for FW block to/from local
+ *         interface.
  *
- * @param [in,out] pFwBuffer
+ * @param [in,out] pFwBuffer Pointer on the buffer structure
  *
  */
 static
@@ -485,9 +511,11 @@ void _fw_buffer_init_(fw_buffer_t *pFwBuffer)
 
 /*!
  * @static
- * @brief  This
+ * @brief  This function get the current read pointer on temporary FW buffer.
  *
- * @param [in,out] pFwBuffer
+ * @param [in,out] pFwBuffer Pointer on the buffer structure.
+ *
+ * @return The current read pointer. The NULL pointer is returned if buffer is empty.
  *
  */
 static
@@ -507,6 +535,15 @@ void* _fw_buffer_get_rptr_(fw_buffer_t *pFwBuffer)
 	return ptr;
 }
 
+/*!
+ * @static
+ * @brief  This function get the current write pointer on temporary FW buffer.
+ *
+ * @param [in,out] pFwBuffer Pointer on the buffer structure.
+ *
+ * @return The current write pointer. The NULL pointer is returned if buffer is full.
+ *
+ */
 static
 void* _fw_buffer_get_wptr_(fw_buffer_t *pFwBuffer)
 {

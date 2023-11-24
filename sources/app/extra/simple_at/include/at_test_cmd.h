@@ -1,6 +1,6 @@
 /**
   * @file: at_test_cmd.h
-  * @brief: // TODO This file ...
+  * @brief: This file group some AT command.
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -33,15 +33,20 @@
  *  @{
  */
 
-#ifndef AT_TEST_CMD_H_
-#define AT_TEST_CMD_H_
+#ifndef _AT_TEST_CMD_H_
+#define _AT_TEST_CMD_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
 #include "atci.h"
+
 /******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 //-----------------------------------
 // Factory calibration
@@ -69,6 +74,11 @@ extern "C" {
 #define TEST_MODE_DIS			0x00
 #define TEST_MODE_RX_0			0x10
 #define TEST_MODE_RX_1			0x11
+
+/*!
+ * @}
+ * @endcond
+ */
 
 /******************************************************************************/
 
@@ -163,6 +173,6 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData);
 #ifdef __cplusplus
 }
 #endif
-#endif /* AT_TEST_CMD_H_ */
+#endif /* _AT_TEST_CMD_H_ */
 
 /*! @} */

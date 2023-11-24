@@ -32,10 +32,6 @@
  *  @{
  */
 
-/*=========================================================================================================
- * INCLUDES
- *=======================================================================================================*/
-
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -46,25 +42,13 @@
 
 #include "console.h"
 
-/*=========================================================================================================
- * GLOBAL VARIABLES
- *=======================================================================================================*/
+/******************************************************************************/
 
 /*! @cond INTERNAL @{ */
 
 console_buf_t consoleTxBuf;
 console_buf_t consoleRxBuf;
 
-/*! @} @endcond */
-
-/*=========================================================================================================
- * LOCAL FUNCTIONS PROTOTYPES
- *=======================================================================================================*/
-
-
-/*=========================================================================================================
- * FUNCTIONS - RX
- *=======================================================================================================*/
 
 extern void* hAtciTask;
 static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
@@ -79,13 +63,17 @@ static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
 	}
 }
 
-/*!-----------------------------------------------------------------------------
+/*! @} @endcond */
+
+/******************************************************************************/
+
+/*!
  * @internal
  *
  * @brief		Init the UART console
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Init(const char cMatch, void *pCbParam)
 {
 	uint8_t ret;
@@ -96,41 +84,31 @@ void Console_Init(const char cMatch, void *pCbParam)
 
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Enable the UART console
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Enable(void)
 {
 	BSP_Uart_Open(UART_ID_COM);
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Disable the UART console
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Disable(void)
 {
 	BSP_Uart_Close(UART_ID_COM);
 }
 
-/*
-void Console_Send(void)
-{
-	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
-}
-*/
-/*==============================================================================
- * FUNCTIONS - TX
- *============================================================================*/
-
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send byte to console
@@ -140,13 +118,13 @@ void Console_Send(void)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Tx_Byte(uint8_t data)
 {
 	BSP_Console_Send(&data, 1);
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send data as strings representing hexadecimal number to console
@@ -157,7 +135,7 @@ void Console_Tx_Byte(uint8_t data)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Send_Array_To_Hex_Ascii(uint8_t *data, uint16_t len)
 {
 	uint16_t i;
@@ -176,7 +154,7 @@ void Console_Send_Array_To_Hex_Ascii(uint8_t *data, uint16_t len)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send data as strings representing hexadecimal number to console
@@ -187,7 +165,7 @@ void Console_Send_Array_To_Hex_Ascii(uint8_t *data, uint16_t len)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Send_Nb_To_Hex_Ascii(uint32_t data, uint8_t size)
 {
 	consoleTxBuf.len = 0;
@@ -210,7 +188,7 @@ void Console_Send_Nb_To_Hex_Ascii(uint32_t data, uint8_t size)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send string to console
@@ -222,7 +200,7 @@ void Console_Send_Nb_To_Hex_Ascii(uint32_t data, uint8_t size)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Send_Str(char *str)
 {
 	consoleTxBuf.len = strlen(str);
@@ -233,7 +211,7 @@ void Console_Send_Str(char *str)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send formated string to console (like printf)
@@ -245,7 +223,7 @@ void Console_Send_Str(char *str)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Console_Printf(char *format, ...)
 {
 	va_list argList;
@@ -258,11 +236,9 @@ void Console_Printf(char *format, ...)
 	BSP_Console_Send(consoleTxBuf.data, consoleTxBuf.len);
 }
 
-/*==============================================================================
- * FUNCTIONS - Tools
- *============================================================================*/
+/******************************************************************************/
 
-//------------------------------------------------------------------------------
+//-
 //	hexascii2nibble
 //
 // inputs: character ('0' to '9', 'a' to 'f', 'A' to 'F')
@@ -270,7 +246,7 @@ void Console_Printf(char *format, ...)
 // return : nibble value (0x00 to 0x0F or 0xFF in wrong character)
 // Overview: used to convert ASCII character representing an hexadecimal number to its value
 //
-//------------------------------------------------------------------------------
+//-
 uint8_t hexascii2nibble(uint8_t data)
 {
 	if((data >= '0') && (data <= '9'))
@@ -283,7 +259,7 @@ uint8_t hexascii2nibble(uint8_t data)
 		return 0xFF;
 }
 
-//------------------------------------------------------------------------------
+//-
 //	nibble2hexascii
 //
 // inputs: nibble value (0x00 to 0x0F)
@@ -291,7 +267,7 @@ uint8_t hexascii2nibble(uint8_t data)
 // return : character ('0' to '9', 'A' to 'F')
 // Overview: used to convert a value to an ASCII charcater representing an hexadecimal
 //
-//------------------------------------------------------------------------------
+//-
 uint8_t nibble2hexascii(uint8_t data)
 {
 	if(data <= 0x9)
@@ -302,7 +278,7 @@ uint8_t nibble2hexascii(uint8_t data)
 		return ' ';
 }
 
-//------------------------------------------------------------------------------
+//-
 //	decascii2nb
 //
 // inputs: character ('0' to '9)
@@ -310,7 +286,7 @@ uint8_t nibble2hexascii(uint8_t data)
 // return : value (0 to 9 or 0xFF in wrong character)
 // Overview: used to convert ASCII character representing a decimal number to its value
 //
-//------------------------------------------------------------------------------
+//-
 uint8_t decascii2nb(uint8_t data)
 {
 	if((data >= '0') && (data <= '9'))
@@ -319,12 +295,7 @@ uint8_t decascii2nb(uint8_t data)
 		return 0xFF;
 }
 
-/*==============================================================================
- * LOCAL FUNCTIONS
- *============================================================================*/
 
-
-
-/*********************************** EOF **************************************/
+/******************************************************************************/
 
 /*! @} */

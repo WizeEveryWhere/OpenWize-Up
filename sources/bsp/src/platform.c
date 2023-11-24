@@ -256,18 +256,6 @@ void BSP_LowPower_OnStopExit(lp_mode_e eLpMode)
 	BSP_GpioIt_SetLine( LINE_INIT(WKUP_PIN_NAME), 0);
 }
 
-/*
- * Flash option register (FLASH_OPTR)
- * OB_USER_nRST_STOP
- * OB_USER_nRST_STDBY
- * OB_USER_nRST_SHDW
- *
- * OB_USER_IWDG_SW
- * OB_USER_IWDG_STOP
- * OB_USER_IWDG_STDBY
- * OB_USER_WWDG_SW
- */
-
 /******************************************************************************/
 #ifdef USE_SPI
 #if defined(HAL_SPI_MODULE_ENABLED)

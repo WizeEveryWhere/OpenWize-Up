@@ -1,6 +1,6 @@
 /**
   * @file at_extend_cmd.h
-  * @brief // TODO This file ...
+  * @brief This file group some AT command
   * 
   * @details
   *
@@ -32,8 +32,8 @@
  *  @{
  */
 
-#ifndef AT_EXTEND_CMD_H_
-#define AT_EXTEND_CMD_H_
+#ifndef _AT_EXTEND_CMD_H_
+#define _AT_EXTEND_CMD_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,18 +41,6 @@ extern "C" {
 
 #include <stdint.h>
 #include "atci.h"
-
-atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
-
-/*!
- * @brief Build and send ATCI notification
- *
- * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
- *
- * @return
- * 	- ATCI_ERR_NONE
- */
-atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATQ command (Restore registers to their factory settings)
@@ -68,6 +56,19 @@ atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
  */
 atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData);
 
+/*!
+ * @brief		Execute ATZn command (reboot the system)
+ *
+ * @details		Command format: "ATZn".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
 
 /*
  * @brief		Execute AT&F command (Restore registers to their factory settings)
@@ -126,20 +127,6 @@ atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
 atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
 
 /*!
- * @brief		Execute ATZn command (reboot the system)
- *
- * @details		Command format: "ATZn".
- *
- * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
- *
- * @return
- * 	- ATCI_ERR_NONE if succeed
- * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
- *
- */
-atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
-
-/*!
  * @brief		Execute AT%STAT command (get the wize statistics)
  *
  * @details		Command format: "AT%STAT".
@@ -153,6 +140,29 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
  */
 atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
 
+/*!
+ * @brief Build and send ATCI notification
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE
+ */
+atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief
+ *
+ * @param[in,out] atciCmdData  Pointer on "atci_cmd_t" structure
+ * @param[in]	  ulEvent
+ *
+ * @retval atci_error_e::ATCI_ERR_NONE If success
+ *         atci_error_e::ATCI_ERR_INTERNAL If code/event is unknown
+ *
+ */
+atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+
+
 
 atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData);
 
@@ -160,6 +170,6 @@ atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData);
 }
 #endif
 
-#endif /* AT_EXTEND_CMD_H_ */
+#endif /* _AT_EXTEND_CMD_H_ */
 
 /*! @} */

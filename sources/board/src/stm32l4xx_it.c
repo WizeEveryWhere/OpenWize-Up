@@ -29,6 +29,18 @@ void RTC_Alarm_IRQHandler(void)
 	HAL_RTC_AlarmIRQHandler(&hrtc);
 }
 
+// FIXME:
+extern void CalibTimer_IRQHandler(void);
+
+/**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+	CalibTimer_IRQHandler();
+}
+
+
 #ifdef USE_UART4
 /**
   * @brief This function handles UART4 global interrupt.

@@ -1,6 +1,6 @@
 /**
   * @file: at_access_param.h
-  * @brief: // TODO This file ...
+  * @brief: This file group some AT command
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -33,8 +33,8 @@
  *  @{
  */
 
-#ifndef AT_ACCESS_PARAM_H_
-#define AT_ACCESS_PARAM_H_
+#ifndef _AT_ACCESS_PARAM_H_
+#define _AT_ACCESS_PARAM_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +43,16 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 #define ATIDENT_MFIELD_LEN		2
 #define ATIDENT_AFIELD_LEN		6
+/*!
+ * @}
+ * @endcond
+ */
 
 /*!
  * @brief		Execute AT command (nothing to do)
@@ -133,6 +141,6 @@ atci_error_e Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData);
 }
 #endif
 
-#endif /* AT_ACCESS_PARAM_H_ */
+#endif /* _AT_ACCESS_PARAM_H_ */
 
 /*! @} */

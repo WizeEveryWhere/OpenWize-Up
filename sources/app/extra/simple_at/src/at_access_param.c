@@ -1,6 +1,6 @@
 /**
   * @file: at_access_param.c
-  * @brief: // TODO This file ...
+  * @brief: This file group some AT command
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -46,6 +46,16 @@ extern "C" {
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute AT command (nothing to do)
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_AT_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
@@ -54,6 +64,20 @@ atci_error_e Exec_AT_Cmd(atci_cmd_t *atciCmdData)
 	return ATCI_ERR_NONE;
 }
 
+/*!
+ * @brief		Execute ATI command (Queries the identification of the module)
+ *
+ * @details		Command format: "ATI".
+ *
+ * 	Response format: "+ATI :"name",<manufacturer>,<model>,<hw version>,<major sw version>,<minor sw version>"
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 {
 	int sz;
@@ -125,6 +149,34 @@ atci_error_e Exec_ATI_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATPARAM command (Modify/read the value of a Wize LAN parameter)
+ *
+ * @details		This command may be a read or a write command:
+ *
+ * @parblock
+ * @li "ATPARAM?" : read all registers
+ * @li "ATPARAM=<address>?" : read register of address "address"
+ * @li "ATPARAM=<address>,<value>" : write "value" to register of address "address" (1 byte)
+ * @endparblock
+ *
+ * Read response format:
+ * @parblock
+ * "+ATPARAM:<address>,<value>"
+ * (this response is send for each register in read all register mode)
+ * @li address : is the register address (decimal or hexadecimal 8 bits number)
+ * @li value : may be a 8, 16 or 32 bits integer (decimal or hexadecimal format may be used) or an array (hexadecimal format must be used) -> refer to register list in specifications
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ * 					- params[0] is used for the register address witch is always a 8 bits integer
+ * 					- params[1] is used for the register value witch can be a 8, 16 or 32 bits integer or a bytes array
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
@@ -240,6 +292,29 @@ atci_error_e Exec_ATPARAM_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATIDENT command (Modify/read the value of M-field and A-field)
+ *
+ * @details		This command may be a read or a write command:
+ *
+ * @parblock
+ * @li "ATIDENT=<M-field>,<A-field>" : write M-field and A-field
+ * @li "ATIDENT?" : read M-field and A-field
+ * 		- <M-field> is 2 bytes array (must be in hex format)
+ * 		- <A-field> is 6 bytes array (must be in hex format)
+ *
+ * Response to a read command:
+ * @parblock
+ * @li "+ATIDENT:<M-field>,<A-field>"
+ * @endparblock
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATIDENT_Cmd(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;

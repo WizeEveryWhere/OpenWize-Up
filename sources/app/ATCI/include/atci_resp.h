@@ -34,13 +34,8 @@
  *  @{
  */
 
-#ifndef INC_ATCI_RESP_H_
-#define INC_ATCI_RESP_H_
-
-
-/*==============================================================================
- * INCLUDES
- *============================================================================*/
+#ifndef _ATCI_RESP_H_
+#define _ATCI_RESP_H_
 
 #include <stdint.h>
 #include <string.h>
@@ -49,45 +44,51 @@
 #include "console.h"
 #include "atci.h"
 
-/*==============================================================================
- * FUNCTIONS PROTOTYPES - AT responses
- *============================================================================*/
-
+/******************************************************************************/
+/*!
+ * @brief		Get the debug error message
+ *
+ * @param[in] error Error code
+ *
+ * @return	Pointer on the debug error message
+ */
 const char* Atci_Get_Dbg_Str(atci_error_e error);
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Enable / Disable the debug messages
  *
+ * @param[in] bFlag Enable : 1; Disable : 0
+ *
  * @return		None
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Send_Dbg_Enable(uint8_t bFlag);
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Send wakeup message
  *
  * @return		None
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Send_Wakeup_Msg(void);
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Send sleep message
  *
  * @return		None
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Send_Sleep_Msg(void);
 
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Send AT response status (OK or error)
  *
  * @param[in]	errCode Error code : 0 for success, else error code
  *
  * @return		None
- *----------------------------------------------------------------------------*/
+ */
 void Atci_AckNack(atci_error_e errCode);
 
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Send AT response data
  *
  * @param[in]	cmdCodeStr Command code as string
@@ -95,44 +96,18 @@ void Atci_AckNack(atci_error_e errCode);
  * 					- nbParams: number of parameters in command response
  * 					- params: parameters list (with size and data)
  *
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Send AT response data
+ *
+ * @param[in]	atciCmdData Pointer on atci_cmd_t command structure
+ *
+ */
 void Atci_Resp(atci_cmd_t *atciCmdData);
 
-/*==============================================================================
- * FUNCTIONS PROTOTYPES - AT debug messages
- *============================================================================*/
-
-// Do not use: see Atci_Debug_Param_Data macro
-void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData);
-
-
-/*==============================================================================
- * MACRO - AT info messages
- *============================================================================*/
-
-/*!-----------------------------------------------------------------------------
- * @brief		Send debug string
- *
- * @details Input the debug message
- *
- *----------------------------------------------------------------------------*/
-#define Atci_Info_Str(infoMsd)	do{Console_Send_Str("\r\n+INF: "); Console_Send_Str(infoMsd); Console_Send_Str("\r\n");}while(0)
-
-/*!-----------------------------------------------------------------------------
- * @brief		Send debug formated string like a printf
- *
- * @details As input a formated string and parameters
- *
- *----------------------------------------------------------------------------*/
-#define Atci_Info_Printf(...) do{Console_Send_Str("\r\n+INF: "); Console_Printf(__VA_ARGS__); Console_Send_Str("\r\n");}while(0)
-
-
-/*==============================================================================
- * MACRO - AT debug messages
- *============================================================================*/
-
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Send debug data: command/response parameters (with Atci_Resp_Data format)
  *
  * @details
@@ -142,28 +117,54 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData);
  * 					- nbParams: number of parameters in command response
  * 					- params: parameters list (with size and data)
  *
- *----------------------------------------------------------------------------*/
-#define Atci_Debug_Param_Data(dbgMsd, atciCmdData)	_Atci_Debug_Param_Data(dbgMsd, atciCmdData)
+ */
+void Atci_Debug_Param_Data(dbgMsd, atciCmdData);
 
-/*!-----------------------------------------------------------------------------
+/******************************************************************************/
+/*
+ * MACRO - AT info messages
+ */
+
+/*!
  * @brief		Send debug string
  *
  * @details Input the debug message
  *
- *----------------------------------------------------------------------------*/
-#define Atci_Debug_Str(dbgMsd) do{ _Atci_Debug_Param_Data(dbgMsd, NULL); }while(0)
+ */
+#define Atci_Info_Str(infoMsd)	do{Console_Send_Str("\r\n+INF: "); Console_Send_Str(infoMsd); Console_Send_Str("\r\n");}while(0)
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Send debug formated string like a printf
  *
  * @details As input a formated string and parameters
  *
- *----------------------------------------------------------------------------*/
+ */
+#define Atci_Info_Printf(...) do{Console_Send_Str("\r\n+INF: "); Console_Printf(__VA_ARGS__); Console_Send_Str("\r\n");}while(0)
+
+/******************************************************************************/
+/*
+ * MACRO - AT debug messages
+ */
+
+
+/*!
+ * @brief		Send debug string
+ *
+ * @details Input the debug message
+ *
+ */
+#define Atci_Debug_Str(dbgMsd) do{ Atci_Debug_Param_Data(dbgMsd, NULL); }while(0)
+
+/*!
+ * @brief		Send debug formated string like a printf
+ *
+ * @details As input a formated string and parameters
+ *
+ */
 #define Atci_Debug_Printf(...) do{Console_Send_Str("\r\n+DBG: "); Console_Printf(__VA_ARGS__); Console_Send_Str("\r\n");}while(0)
-//#define Atci_Debug_Printf(...)
 
+/******************************************************************************/
 
-#endif /* INC_ATCI_RESP_H_ */
-/************************************ EOF *************************************/
+#endif /* _ATCI_RESP_H_ */
 
 /*! @} */

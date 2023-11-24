@@ -18,17 +18,10 @@ add_compile_definitions(USE_SPI=1)
 
 add_compile_definitions(CONSOLE_RX_TIMEOUT=5000)
 
-# OpenWizeUp Options
-include(sources/OpenWizeUp_Options.cmake)
-
 add_compile_options(-Wall -ffunction-sections -fdata-sections -fstack-usage)
 
-# Just for test purpose
-option(NOT_BOOTABLE "Use this option to build a not bootable image (test purpose only)" OFF)
-if(NOT_BOOTABLE)
-    add_compile_definitions(NOT_BOOTABLE=1)
-endif(NOT_BOOTABLE)
-
+# OpenWizeUp Options
+include(sources/OpenWizeUp_Options.cmake)
 
 ################################################################################
 # Set Coss compile

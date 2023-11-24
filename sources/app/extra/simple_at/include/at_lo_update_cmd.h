@@ -1,6 +1,6 @@
 /**
   * @file at_lo_update_cmd.h
-  * @brief // TODO This file ...
+  * @brief This file group some AT command.
   * 
   * @details
   *
@@ -32,8 +32,8 @@
  *  @{
  */
 
-#ifndef AT_LO_UPDATE_CMD_H_
-#define AT_LO_UPDATE_CMD_H_
+#ifndef _AT_LO_UPDATE_CMD_H_
+#define _AT_LO_UPDATE_CMD_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +41,8 @@ extern "C" {
 
 #include <stdint.h>
 #include "atci.h"
+
+/******************************************************************************/
 
 /*!
  * @brief		Execute ATANN command (Announce for local update)
@@ -122,6 +124,6 @@ atci_error_e Exec_ATBMAP_Cmd(atci_cmd_t *atciCmdData);
 }
 #endif
 
-#endif /* AT_LO_UPDATE_CMD_H_ */
+#endif /* _AT_LO_UPDATE_CMD_H_ */
 
 /*! @} */

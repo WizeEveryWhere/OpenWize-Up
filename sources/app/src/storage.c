@@ -64,7 +64,6 @@ PERM_SECTION(".roinfo.hw") DECLARE_HWINFO();
 
 /******************************************************************************/
 #include "phy_layer_private.h"
-#include "wize_api.h"
 
 /*!
  * @brief This hold (hard-coded) the default PA state
@@ -100,16 +99,16 @@ const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 const int16_t i16DefaultRssiOffsetCal = 0x3C7;
 
 //extern
-PERM_SECTION(".perm") uint8_t bPaState;
+PERM_SECTION(".noinit") uint8_t bPaState;
 #ifdef PHY_USE_POWER_RAMP
 	//extern
-	PERM_SECTION(".perm") pa_ramp_rate_e ePaRampRate;
+	PERM_SECTION(".noinit") pa_ramp_rate_e ePaRampRate;
 #endif
 //extern
-PERM_SECTION(".perm") int16_t i16RssiOffsetCal;
+PERM_SECTION(".noinit") int16_t i16RssiOffsetCal;
 
 //extern
-PERM_SECTION(".perm") phy_power_t aPhyPower[PHY_NB_PWR];
+PERM_SECTION(".noinit") phy_power_t aPhyPower[PHY_NB_PWR];
 
 /******************************************************************************/
 #include "parameters_cfg.h"
@@ -136,49 +135,7 @@ extern const uint8_t a_ParamDefault[];
 /*!
   * @brief Table of parameters values
   */
-PERM_SECTION(".perm") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
-
-/******************************************************************************/
-
-/*!
- * @brief This define hard-coded default device id
- */
-const device_id_t sDefaultDevId =
-{
-//==========================================================================
-/* How does it work ?
- *
- * ( The Manufacturer ID shall be registered with the Flag association 30
- * http://www.dlms.com/organization/flagmanufacturesids/index.html)
- *
- * Device number : SET 00 02 82 22 30 03
- *
- * Position in alphabet
- * SET => 'S' : 19; 'E' : 5; 'T' : 20
- * Manufacturer ID => ( pos('S') << 5 + pos('E')) << 5 + pos('T') = (19 << 5 + 5) << 5 + 20
- *
- * So, :
- * Manufacturer = 0xB44C
- * TRx Number   = 0x00028222
- * Version      = 0x30
- * Type         = 0x03
- *
- * Then :
- * sDeviceInfo =
-   {
-		.aManuf = { 0x4C, 0xB4 },
-		.aNum = {0x22, 0x82, 0x02, 0x00},
-		.u8Ver = 0x30,
-		.u8Type = 0x03
-	}
- *
- */
-//==========================================================================
-	.aManuf = { 0xFF, 0xFF },
-	.aNum = {0x00, 0x00, 0x00, 0x00},
-	.u8Ver = 0x00,
-	.u8Type = 0x00
-};
+PERM_SECTION(".noinit") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
 
 /******************************************************************************/
 #include "crypto.h"
@@ -222,7 +179,50 @@ const key_s sDefaultKey[KEY_MAX_NB] =
 /*!
   * @brief Table of keys
   */
-KEY_SECTION(".data.keys") key_s _a_Key_[KEY_MAX_NB];
+//KEY_SECTION(".data.keys") key_s _a_Key_[KEY_MAX_NB];
+KEY_SECTION(".noinit") key_s _a_Key_[KEY_MAX_NB];
+
+/******************************************************************************/
+#include "wize_api.h"
+/*!
+ * @brief This define hard-coded default device id
+ */
+const device_id_t sDefaultDevId =
+{
+//==========================================================================
+/* How does it work ?
+ *
+ * ( The Manufacturer ID shall be registered with the Flag association 30
+ * http://www.dlms.com/organization/flagmanufacturesids/index.html)
+ *
+ * Device number : SET 00 02 82 22 30 03
+ *
+ * Position in alphabet
+ * SET => 'S' : 19; 'E' : 5; 'T' : 20
+ * Manufacturer ID => ( pos('S') << 5 + pos('E')) << 5 + pos('T') = (19 << 5 + 5) << 5 + 20
+ *
+ * So, :
+ * Manufacturer = 0xB44C
+ * TRx Number   = 0x00028222
+ * Version      = 0x30
+ * Type         = 0x03
+ *
+ * Then :
+ * sDeviceInfo =
+   {
+		.aManuf = { 0x4C, 0xB4 },
+		.aNum = {0x22, 0x82, 0x02, 0x00},
+		.u8Ver = 0x30,
+		.u8Type = 0x03
+	}
+ *
+ */
+//==========================================================================
+	.aManuf = { 0xFF, 0xFF },
+	.aNum = {0x00, 0x00, 0x00, 0x00},
+	.u8Ver = 0x00,
+	.u8Type = 0x00
+};
 
 /******************************************************************************/
 #include "platform.h"

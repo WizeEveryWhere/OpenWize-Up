@@ -34,17 +34,10 @@
  *  @{
  */
 
-#ifndef ATCI_GET_CMD_H_
-#define ATCI_GET_CMD_H_
+#ifndef _ATCI_GET_CMD_H_
+#define _ATCI_GET_CMD_H_
 
-
-/*==============================================================================
- * INCLUDES
- *============================================================================*/
-
-/*==============================================================================
- * DEFINES
- *============================================================================*/
+/******************************************************************************/
 
 /*! @cond INTERNAL @{ */
 
@@ -73,12 +66,6 @@
 #define TO_MAG(c)		((c)-0x20)
 #define UPPERCASE(c)	((c)-0x20)
 
-/*! @} @endcond */
-
-/*==============================================================================
- * TYPEDEF
- *============================================================================*/
-
 typedef enum
 {
 	PARAM_WAIT_BEGIN,
@@ -89,48 +76,14 @@ typedef enum
 	PARAM_ERR
 } atci_param_state_t;
 
-/*==============================================================================
- * FUNCTIONS PROTOTYPES - Command reception
- *============================================================================*/
+/*! @} @endcond */
 
-/*!-----------------------------------------------------------------------------
- * @brief		Set the RX command timeout
- *
- * @param[in]	The timeout value in ms
- *
- * @return		None
- *----------------------------------------------------------------------------*/
-//void Atci_Rx_Cmd_Tmo(uint32_t u32Tmo);
-
-/*!-----------------------------------------------------------------------------
- * @brief		Receive AT command from UART interface
- *
- * @details		This function is blocking until a character has been received by UART or an error occurred
- *
- * @param[out]	atciCmdData Pointer "atci_cmd_t" structure:
- * 					- buf [in,out]: buffer to receive command (as text) from console
- * 					- len [in,out]: actual received command length (other fields are unused)
- *
- * @retval ATCI_NO_AT_CMD if no cmd received
- * @retval ATCI_AVAIL_AT_CMD if full command received
- * @retval ATCI_RX_ERR if buffer overflow or RX error
- * @retval ATCI_RX_CMD_TIMEOUT if no characters received for a specified time
- *----------------------------------------------------------------------------*/
-//atci_status_t Atci_Rx_Cmd(console_buf_t *pComRxBuf, uint32_t timeout);
-
-/*!-----------------------------------------------------------------------------
- * @brief		Clean reception in order to receive next command
- *
- * @param[in,out]	atciCmdData (Pointer on "atci_cmd_t" structure
- *
- *----------------------------------------------------------------------------*/
-//void Atci_Restart_Rx(atci_cmd_t *atciCmdData);
-
-/*==============================================================================
+/******************************************************************************/
+/*
  * FUNCTIONS - command decoding
- *============================================================================*/
+ */
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Decode AT command code
  *
  * @details		When a full command has been received (Atci_Rx_Cmd return ATCI_AVAIL_AT_CMD) this function
@@ -145,10 +98,10 @@ typedef enum
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
 atci_error_e Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Extract one command parameter from buffer (parameter is a 8, 16 or 32 bits integer)
  *
  * @param[in,out] atciCmdData Pointer on "atci_cmd_t" structure:
@@ -174,23 +127,23 @@ atci_error_e Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData);
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
 atci_error_e Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize);
 
-
-/*==============================================================================
+/******************************************************************************/
+/*
  * FUNCTIONS - command parameters memory management
- *============================================================================*/
+ */
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Init 1st cmd data pointer and reset number of params
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
  *
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData);
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Init next param data pointer and increment number of params (previous params length must not
  * 					be modified extept if this new param is the last one)
  *
@@ -204,10 +157,10 @@ void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData);
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
 atci_error_e Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @brief		Update last param length and update next param pointer
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
@@ -217,12 +170,11 @@ atci_error_e Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData);
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
 atci_error_e Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize);
 
+/******************************************************************************/
 
-
-#endif /* ATCI_GET_CMD_H_ */
-/*********************************** EOF **************************************/
+#endif /* _ATCI_GET_CMD_H_ */
 
 /*! @} */

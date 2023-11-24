@@ -60,6 +60,7 @@ int main(void)
 	/** Enable MSI Auto calibration */ // Must be called after LSEON and LSERDY
 	HAL_RCCEx_EnableMSIPLLMode();
 
+#ifndef NOT_BOOTABLE // test purpose only (generate a small not bootable FW image)
 	// Init the BSP
 	BSP_Init();
 	/*
@@ -74,6 +75,7 @@ int main(void)
 	BSP_Uart_Init(UART_ID_COM, '\r', UART_MODE_NONE);
 
 	app_entry();
+#endif
 	while (1)
 	{
 	}
@@ -239,7 +241,6 @@ static void MX_GPIO_Init(void)
 	// PORT A :
 	// - Analog as default for : FE_TRX_Pin, IO6_Pin, IO5_Pin, IO4_Pin, IO3_Pin
 	// - Set by its driver for : ADF7030_RST_Pin, ADF7030_SS_Pin, SPI_CLK_Pin, SPI_MISO_Pin, SPI_MOSI_Pin
-	// - Set by its driver for :
 	// - Set as output         : FE_EN_Pin
 	// PORT B :
 	// - Analog as default for : IO2_Pin, IO1_Pin
@@ -281,7 +282,6 @@ static void MX_GPIO_Init(void)
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
 	HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
-
 }
 
 /**

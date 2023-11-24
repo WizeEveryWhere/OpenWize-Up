@@ -60,6 +60,9 @@ option(HAS_EXTEND_PARAMETER              "Use the extended parameter xml file." 
 option(BUILD_STANDALONE_APP              "Use this option when the bootstrap is not used." OFF)
 option(BUILD_NVM_BINARY                  "Build the non-volatile memory area content and produce a binary and elf files." OFF)
 
+# Just for test purpose
+option(NOT_BOOTABLE "Use this option to build a not bootable image (test purpose only)" OFF)
+
 # HW info
 set(HW_NAME    "WIZEUP" CACHE STRING "Define the board name print when ATI command is called.")
 set(HW_VENDOR  "ALCIOM" CACHE STRING "Define the board vendor print when ATI command is called.")
@@ -152,6 +155,11 @@ endif(LOWPOWER_DEBUG)
 if(BUILD_NVM_BINARY)
     add_compile_definitions(BUILD_NVM_BINARY=1)
 endif(BUILD_NVM_BINARY)
+
+# Just for test purpose ONLY
+if(NOT_BOOTABLE)
+    add_compile_definitions(NOT_BOOTABLE=1)
+endif(NOT_BOOTABLE)
 
 ################################################################################
 

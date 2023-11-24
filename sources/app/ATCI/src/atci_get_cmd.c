@@ -34,10 +34,6 @@
  *  @{
  */
 
-/*==============================================================================
- * INCLUDES
- *============================================================================*/
-
 #include <stdint.h>
 #include <string.h>
 
@@ -45,25 +41,32 @@
 #include "atci_get_cmd.h"
 #include "console.h"
 
-/*==============================================================================
- * GLOBAL VARIABLES
- *============================================================================*/
-/*! @internal */
+/******************************************************************************/
+static atci_error_e Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData);
+static atci_error_e Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType);
+static atci_error_e Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen);
 
-/*! @endinternal */
-
-/*==============================================================================
- * LOCAL FUNCTIONS PROTOTYPES
- *============================================================================*/
-
-atci_error_e Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData);
-atci_error_e Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType);
-atci_error_e Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen);
-
-/*==============================================================================
+/******************************************************************************/
+/*
  * FUNCTIONS - command decoding
- *============================================================================*/
+ */
 
+/*!
+ * @brief		Decode AT command code
+ *
+ * @details		When a full command has been received (Atci_Rx_Cmd return ATCI_AVAIL_AT_CMD) this function
+ * 				extract the command code from buffer and decode it.
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure:
+ * 					- buf [in]: received command as text from console
+ * 					- len [in]: received command length
+ * 					- cmdCode [out]: received command code (CMD_AT ... CMD_ATPING) (other fields are used internally)
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
+ *
+ */
 atci_error_e Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
@@ -90,6 +93,33 @@ atci_error_e Atci_Get_Cmd_Code(atci_cmd_t *atciCmdData)
 	return ATCI_ERR_CMD_UNK;
 }
 
+/*!
+ * @brief		Extract one command parameter from buffer (parameter is a 8, 16 or 32 bits integer)
+ *
+ * @param[in,out] atciCmdData Pointer on "atci_cmd_t" structure:
+ * @parblock
+ * - buf [in]: received command as text from console
+ * - len [in]: received command length
+ * - idx [out]: index in command buffer for command parameters beginning (if any; reset at the beginning of this function)
+ * - cmdType [in,out]: command type: if all parameters are read or not and if it is a read command or not (AT_CMD_WITHOUT_PARAM ... AT_CMD_READ_WITH_PARAM) (other fields are used internally or unused)
+ * - params [in,out]: command parameters list, the first free slot is used (nbParams)
+ * - size [out]: type of value (PARAM_INT8, PARAM_INT16, PARAM_INT32)
+ * - val8, val16 or val32 [out]: parameter value (according to size)
+ * - nbParams [in,out]: IN: current parameter list index to write; OUT new number of parameters read (nbParams incremented in function)
+ * @endparblock
+ *
+ * @param[in]	  valTypeSize Parameter type:
+ * @parblock
+ * - PARAM_INT8, PARAM_INT16 or PARAM_INT32 (8, 16 or 32 bits integer),
+ * - 0x00 = array of variable length,
+ * - 0x01~0x7F = array of this wanted length
+ * @endparblock
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
+ *
+ */
 atci_error_e Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSize)
 {
 	if(IS_PARAM_INT(valTypeSize))
@@ -98,10 +128,17 @@ atci_error_e Atci_Buf_Get_Cmd_Param(atci_cmd_t *atciCmdData, uint16_t valTypeSiz
 		return Atci_Buf_Get_Cmd_Param_Array(atciCmdData, valTypeSize);
 }
 
-/*==============================================================================
+/******************************************************************************/
+/*
  * FUNCTIONS - command parameters memory management
- *============================================================================*/
+ */
 
+/*!
+ * @brief		Init 1st cmd data pointer and reset number of params
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ */
 void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData)
 {
 	atciCmdData->nbParams = 0;
@@ -109,6 +146,21 @@ void Atci_Cmd_Param_Init(atci_cmd_t *atciCmdData)
 	atciCmdData->paramsMemIdx=0;
 }
 
+/*!
+ * @brief		Init next param data pointer and increment number of params (previous params length must not
+ * 					be modified extept if this new param is the last one)
+ *
+ * @details		This function does nothing if maximum number of parameter reached)
+ *
+ * @note        Atci_Buf_Get_Cmd_Param call this function if parameter extraction succeed
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- else error code (ATCI_ERR)
+ *
+ */
 atci_error_e Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->nbParams < AT_CMD_MAX_NB_PARAM)
@@ -142,6 +194,17 @@ atci_error_e Atci_Add_Cmd_Param_Resp(atci_cmd_t *atciCmdData)
 	}
 }
 
+/*!
+ * @brief		Update last param length and update next param pointer
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ * @param[in] 	    newSize     The size of parameter
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- else error code (ATCI_ERR)
+ *
+ */
 atci_error_e Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize)
 {
 	uint16_t newLen;
@@ -165,13 +228,11 @@ atci_error_e Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize
 		return ATCI_ERR_UNK;
 }
 
+/******************************************************************************/
+/******************************************************************************/
 
-/*==============================================================================
- * LOCAL FUNCTIONS
- *============================================================================*/
-
-
-/*!-----------------------------------------------------------------------------
+/*!
+ * @static
  * @brief		Extract command string from buffer
  *
  * @param[in,out]	atciCmdData Pointer "atci_cmd_t" structure:
@@ -186,12 +247,26 @@ atci_error_e Atci_Update_Cmd_Param_len(atci_cmd_t *atciCmdData, uint16_t newSize
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
+static
 atci_error_e Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
 {
 	uint16_t cmdLen = 0;
 
 	atciCmdData->cmdType = AT_CMD_WITHOUT_PARAM;
+
+	if (atciCmdData->pComRxBuf->len < AT_CMD_CODE_MIN_LEN )
+	{
+		return ATCI_ERR_RX_CMD;
+	}
+
+	atciCmdData->pComRxBuf->len--;
+
+	// If the last char is not the character match one
+	if (atciCmdData->pComRxBuf->data[atciCmdData->pComRxBuf->len] != END_OF_CMD_CHAR)
+	{
+		return ATCI_ERR_RX_CMD;
+	}
 
 	for (atciCmdData->idx = 0; atciCmdData->idx < atciCmdData->pComRxBuf->len;  atciCmdData->idx++)
 	{
@@ -239,7 +314,8 @@ atci_error_e Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
 	}
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
+ * @static
  * @brief		Extract one command parameter from buffer (parameter is a 8, 16 or 32 bits integer)
  *
  * @param[in,out]	atciCmdData Pointer "atci_cmd_t" structure:
@@ -259,7 +335,8 @@ atci_error_e Atci_Buf_Get_Cmd_Str(atci_cmd_t *atciCmdData)
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
+static
 atci_error_e Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valType)
 {
 	atci_param_state_t state = PARAM_WAIT_BEGIN;
@@ -427,7 +504,8 @@ atci_error_e Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
 	}
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
+ * @static
  * @brief		Extract one command parameter from buffer (parameter is a bytes array)
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure:
@@ -447,7 +525,8 @@ atci_error_e Atci_Buf_Get_Cmd_Param_Val(atci_cmd_t *atciCmdData, uint16_t valTyp
  * 	- ATCI_ERR_NONE if succeed
  * 	- else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR)
  *
- *----------------------------------------------------------------------------*/
+ */
+static
 atci_error_e Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valLen)
 {
 	atci_param_state_t state = PARAM_WAIT_BEGIN;
@@ -528,7 +607,6 @@ atci_error_e Atci_Buf_Get_Cmd_Param_Array(atci_cmd_t *atciCmdData, uint16_t valL
 	}
 }
 
-
-/*********************************** EOF **************************************/
+/******************************************************************************/
 
 /*! @} */

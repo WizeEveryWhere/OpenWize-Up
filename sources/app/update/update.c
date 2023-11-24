@@ -1,6 +1,6 @@
 /**
   * @file update.c
-  * @brief // TODO This file ...
+  * @brief This file implement the functions to treat the update session
   * 
   * @details
   *
@@ -26,6 +26,12 @@
   *
   */
 
+/*!
+ * @addtogroup update
+ * @ingroup app
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,7 +42,10 @@ extern "C" {
 #include "rtos_macro.h"
 
 /******************************************************************************/
-
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 #define UPDATE_REQ_MSK ( SES_FLG_AVAILABLE_MSK ) // 0x000FFF00
 #define UPDATE_REQ_OFFSET 8
 #define UPDATE_REQ_BITS 12
@@ -51,15 +60,31 @@ extern "C" {
 #define UPDATE_REQ(update_req) ( (update_req <<  UPDATE_REQ_OFFSET) & UPDATE_REQ_MSK )
 
 /******************************************************************************/
-/******************************************************************************/
 admin_ann_fw_info_t sFwAnnInfo;
-struct update_ctx_s sUpdateCtx;
 
-void Update_Task(void const * argument);
+/******************************************************************************/
+/******************************************************************************/
+static void _update_log_status_(update_status_e eUpdateStatus);
+static void _update_fsm_internal_(uint32_t ulEvent);
+static void _update_fsm_external_(uint32_t ulEvent);
+static void _update_fsm_local_(uint32_t ulEvent);
+static void _update_task_(void const * argument);
+
+static struct update_ctx_s sUpdateCtx;
+
+/******************************************************************************/
+
 #define UPDATE_TASK_NAME update
-#define UPDATE_TASK_FCT Update_Task
-#define UPDATE_STACK_SIZE 400
-#define UPDATE_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+2)
+#define UPDATE_TASK_FCT _update_task_
+
+#ifndef UPDATE_STACK_SIZE
+	#define UPDATE_STACK_SIZE 400
+#endif
+
+#ifndef UPDATE_PRIORITY
+	#define UPDATE_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+2)
+#endif
+
 SYS_TASK_CREATE_DEF(update, UPDATE_STACK_SIZE, UPDATE_PRIORITY);
 
 // Define the timeout on trying to acquire update
@@ -76,10 +101,12 @@ SYS_EVENT_CREATE_DEF(update);
 	#define UPDATE_TMO_LO 300000 // in ms
 #endif
 
-void Update_LogStatus(update_status_e eUpdateStatus);
-void Update_FsmInternal(uint32_t ulEvent);
-void Update_FsmExternal(uint32_t ulEvent);
-void Update_FsmLocal(uint32_t ulEvent);
+/*!
+ * @}
+ * @endcond
+ */
+
+/******************************************************************************/
 
 int32_t AdmInt_AnnIsLocalUpdate(void)
 {
@@ -95,6 +122,11 @@ int32_t AdmInt_AnnIsLocalUpdate(void)
 }
 
 /******************************************************************************/
+
+/*!
+ * @brief This function setup the update module
+ *
+ */
 void Update_Setup(void)
 {
 	sUpdateCtx.hTask = SYS_TASK_CREATE_CALL(update, UPDATE_TASK_FCT, NULL);
@@ -118,6 +150,13 @@ void Update_Setup(void)
 	sUpdateCtx.u32Tmo = UPDATE_TMO_EVT;
 }
 
+/*!
+ * @brief This function open an update session
+ *
+ * @param [in] sFwInfo The FW info required to process this update (see admin_ann_fw_info_t)
+ *
+ * @return 0 if success, -1 otherwise
+ */
 int32_t Update_Open(admin_ann_fw_info_t sFwInfo)
 {
 	update_status_e eStatus;
@@ -162,6 +201,11 @@ int32_t Update_Open(admin_ann_fw_info_t sFwInfo)
 	return -1;
 }
 
+/*!
+ * @brief This function close (force) an update session
+ *
+ * @return 0 if success, -1 otherwise
+ */
 int32_t Update_Close(void)
 {
 	sys_flag_set(sUpdateCtx.hTask, UPDATE_REQ(UPDATE_REQ_STOP) );
@@ -177,6 +221,14 @@ int32_t Update_Close(void)
 	return -1;
 }
 
+/*!
+ * @brief This function store a piece of FW
+ *
+ * @param [in] u16Id Id of the block
+ * @param [in] pData Pointer on data to store
+ *
+ * @return 0 if success, -1 otherwise
+ */
 int32_t Update_Store(uint16_t u16Id, const uint8_t *pData)
 {
 	if (sUpdateCtx.ePendUpdate != UPD_PEND_LOCAL)
@@ -187,6 +239,11 @@ int32_t Update_Store(uint16_t u16Id, const uint8_t *pData)
 	return 0;
 }
 
+/*!
+ * @brief This function request to finalize the current update session
+ *
+ * @return 0 if success, -1 otherwise
+ */
 int32_t Update_Finalize(void)
 {
 	/*
@@ -207,12 +264,26 @@ int32_t Update_Finalize(void)
 	return -1;
 }
 
+/*!
+ * @brief This function check if the FW in the current update is ready
+ *
+ * @return 1 if ready, 0 otherwise
+ */
 int32_t Update_IsReady(void)
 {
 	return ((sUpdateCtx.eUpdateStatus == UPD_STATUS_READY)?(1):(0));
 }
 
-void Update_LogStatus(update_status_e eUpdateStatus)
+/******************************************************************************/
+
+/*!
+ * static
+ * @brief This function log the given update status
+ *
+ * @param [in] eUpdateStatus The update status to log
+ *
+ */
+static void _update_log_status_(update_status_e eUpdateStatus)
 {
 	switch (eUpdateStatus)
 	{
@@ -243,9 +314,14 @@ void Update_LogStatus(update_status_e eUpdateStatus)
 	}
 }
 
-/******************************************************************************/
-
-void Update_FsmInternal(uint32_t ulEvent)
+/*!
+ * @static
+ * @brief This is the FSM for a remote internal update
+ *
+ * @param [in] ulEvent The current event to treat
+ *
+ */
+static void _update_fsm_internal_(uint32_t ulEvent)
 {
 	uint32_t ulUpdateReq;
 	do
@@ -311,7 +387,7 @@ void Update_FsmInternal(uint32_t ulEvent)
 					{
 						/* Notify "external" that download session is completed with failure */
 						/* YOUR CODE HERE : ExtApi_ProcNotify(EXT_PEND_DWN_FAILED); */
-						Update_LogStatus(UPD_STATUS_SES_FAILED);
+						_update_log_status_(UPD_STATUS_SES_FAILED);
 					}
 				}
 			}
@@ -319,7 +395,14 @@ void Update_FsmInternal(uint32_t ulEvent)
 	} while(0);
 }
 
-void Update_FsmExternal(uint32_t ulEvent)
+/*!
+ * @static
+ * @brief This is the FSM for a remote external update
+ *
+ * @param [in] ulEvent The current event to treat
+ *
+ */
+static void _update_fsm_external_(uint32_t ulEvent)
 {
 	uint32_t ulUpdateReq;
 
@@ -379,7 +462,7 @@ void Update_FsmExternal(uint32_t ulEvent)
 					{
 						/* Notify "external" that download session is completed with failure */
 						/* YOUR CODE HERE : ExtApi_ProcNotify(EXT_PEND_DWN_FAILED); */
-						Update_LogStatus(UPD_STATUS_SES_FAILED);
+						_update_log_status_(UPD_STATUS_SES_FAILED);
 					}
 				}
 			}
@@ -387,7 +470,14 @@ void Update_FsmExternal(uint32_t ulEvent)
 	} while(0);
 }
 
-void Update_FsmLocal(uint32_t ulEvent)
+/*!
+ * @static
+ * @brief This is the FSM for a local internal update
+ *
+ * @param [in] ulEvent The current event to treat
+ *
+ */
+static void _update_fsm_local_(uint32_t ulEvent)
 {
 	uint32_t ulUpdateReq;
 
@@ -436,7 +526,12 @@ void Update_FsmLocal(uint32_t ulEvent)
 	} while (0);
 }
 
-void Update_Task(void const * argument)
+/*!
+ * @static
+ * @brief The update task function
+ *
+ */
+static void _update_task_(void const * argument)
 {
 	(void)argument;
 	uint32_t ulEvent;
@@ -448,16 +543,16 @@ void Update_Task(void const * argument)
 			switch(sUpdateCtx.ePendUpdate)
 			{
 				case UPD_PEND_INTERNAL:
-					Update_FsmInternal(ulEvent);
-					Update_LogStatus(sUpdateCtx.eUpdateStatus);
+					_update_fsm_internal_(ulEvent);
+					_update_log_status_(sUpdateCtx.eUpdateStatus);
 					break;
 				case UPD_PEND_EXTERNAL:
-					Update_FsmExternal(ulEvent);
-					Update_LogStatus(sUpdateCtx.eUpdateStatus);
+					_update_fsm_external_(ulEvent);
+					_update_log_status_(sUpdateCtx.eUpdateStatus);
 					break;
 				case UPD_PEND_LOCAL:
-					Update_FsmLocal(ulEvent);
-					Update_LogStatus(sUpdateCtx.eUpdateStatus);
+					_update_fsm_local_(ulEvent);
+					_update_log_status_(sUpdateCtx.eUpdateStatus);
 					break;
 				case UPD_PEND_FORBIDDEN:
 					LOG_ERR("UPD : Area Failure\n");
@@ -487,3 +582,5 @@ void Update_Task(void const * argument)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

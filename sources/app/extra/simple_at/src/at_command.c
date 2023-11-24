@@ -1,6 +1,6 @@
 /**
   * @file: at_command.c
-  * @brief: // TODO This file ...
+  * @brief: This file define the AT command global table
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -26,6 +26,13 @@
   *
   *
   */
+
+/*!
+ *  @addtogroup atci
+ *  @ingroup app
+ *  @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,7 +78,14 @@ extern "C" {
 #else
 	#define GROUP3(Id, Str, pFct) UN_DECLARE_AT(Id, Str, pFct)
 #endif
+/*!
+ * @}
+ * @endcond
+ */
 
+/*!
+ * @brief This table describe all AT command
+ */
 const struct at_desc_s aAtDescCmd[NB_UNS_CMD] =
 {
 	GROUP0( CMD_AT     , "AT"     , Exec_AT_Cmd)
@@ -115,11 +129,8 @@ const struct at_desc_s aAtDescCmd[NB_UNS_CMD] =
 	DECLARE_AT( UNS_NULL      , "NULL"      , NULL)
 };
 
-/*!
- * @}
- * @endcond
- */
-
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

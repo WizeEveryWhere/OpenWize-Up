@@ -1,6 +1,6 @@
 /**
   * @file at_key_cmd.h
-  * @brief // TODO This file ...
+  * @brief This file group some AT command.
   * 
   * @details
   *
@@ -32,8 +32,8 @@
  *  @{
  */
 
-#ifndef AT_KEY_CMD_H_
-#define AT_KEY_CMD_H_
+#ifndef _AT_KEY_CMD_H_
+#define _AT_KEY_CMD_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,8 +42,20 @@ extern "C" {
 #include <stdint.h>
 #include "atci.h"
 
+/******************************************************************************/
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 #define ATKMAC_KEY_LEN			16
 #define ATKENC_KEY_LEN			16
+/*!
+ * @}
+ * @endcond
+ */
+
+/******************************************************************************/
 
 /*!
  * @brief		Execute ATKEY command (Modify the value of one key)
@@ -69,6 +81,6 @@ atci_error_e Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
 }
 #endif
 
-#endif /* AT_KEY_CMD_H_ */
+#endif /* _AT_KEY_CMD_H_ */
 
 /*! @} */

@@ -1,6 +1,7 @@
 /**
   * @file: update_area.c
-  * @brief: // TODO This file ...
+  * @brief: This file implement the functions to treat the partition header
+  *         and/or the image FW.
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -26,6 +27,13 @@
   *
   *
   */
+
+/*!
+ * @addtogroup update
+ * @ingroup app
+ * @{
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,40 +42,70 @@ extern "C" {
 #include "img_storage.h"
 #include "bsp.h"
 
+/******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
 #ifdef BUILD_STANDALONE_APP
 	#define MAGIC_WORD_0 0xDEADC0DEUL // Dead Code
 	#define MAGIC_WORD_8 0x0DAC0DACUL // o dec o dac
 #endif
 
-/******************************************************************************/
 /*!
- * @brief This
+ * @brief This internal structure hold information on update partition
  */
 struct update_area_s
 {
-	uint32_t u32MagicHeader;  /**<   */
-	uint32_t u32MagicTrailer; /**<   */
-	uint32_t u32ImgAdd;       /**<   */
-	uint32_t u32ImgMaxSz;     /**<   */
-	uint32_t u32HeaderSz;     /**<   */
-	uint32_t bIsInit;         /**<   */
+	uint32_t u32MagicHeader;  /**< The magic header word to set */
+	uint32_t u32MagicTrailer; /**< The magic footer word to set   */
+	uint32_t u32ImgAdd;       /**< The image address */
+	uint32_t u32ImgMaxSz;     /**< The maximum size allowed */
+	uint32_t u32HeaderSz;     /**< The header size (512 bytes) */
+	uint32_t bIsInit;         /**< Set if update_area_s is initialized */
 };
 
 /******************************************************************************/
 extern unsigned int __header_size__;
 
+/*!
+ * @brief Pointer on exchange info area (update FW)
+ */
 struct __exch_info_s * const p = (struct __exch_info_s * const)&(__exchange_area_org__);
 
+/*!
+ * @brief Pointer on partition info area (current running FW)
+ */
+struct __img_info_s * p_part_info;
+
+/*!
+ * @brief This hold information on update partition
+ */
 struct update_area_s sUpdateArea;
-/******************************************************************************/
-static int32_t _update_area_erase_header_(void);
+
+/*!
+ * @}
+ * @endcond
+ */
+
+
 /******************************************************************************/
 
+static int32_t _update_area_erase_header_(void);
+
+/******************************************************************************/
+
+/*!
+ * @brief This function setup the update area
+ *
+ * @return see the update_status_e enum
+ */
 update_status_e UpdateArea_Setup(void)
 {
-#ifndef BUILD_STANDALONE_APP
 	uint32_t crc;
 	crc = p->crc + 1;
+	sUpdateArea.bIsInit = 0;
 	// check the CRC
 	BSP_CRC_Init();
 	crc = BSP_CRC_Compute( (uint32_t*)p, (uint32_t)(sizeof(struct __exch_info_s) - 4) / 4);
@@ -79,16 +117,18 @@ update_status_e UpdateArea_Setup(void)
 		sUpdateArea.u32MagicHeader  = p->magic;
 		sUpdateArea.u32ImgAdd       = p->dest + p->header_sz;
 		sUpdateArea.u32ImgMaxSz     = p->dest_sz - p->header_sz;
+		p_part_info = (struct __img_info_s * const)(p->src);
 	}
 	else
-#endif
 	{
 		sUpdateArea.u32HeaderSz     = (uint32_t)&(__header_size__);
 		sUpdateArea.u32MagicHeader  = MAGIC_WORD_8;
 		//sUpdateArea.u32ImgAdd       = 0x0802C200 + (uint32_t)&(__header_size__);
 		sUpdateArea.u32ImgAdd       = 0x0802C000 + (uint32_t)&(__header_size__);
 		sUpdateArea.u32ImgMaxSz     = 0x2A000 - (uint32_t)&(__header_size__);
+		p_part_info = NULL;
 	}
+
 	sUpdateArea.u32MagicTrailer = MAGIC_WORD_0;
 
 	if( ImgStore_Setup(
@@ -104,6 +144,14 @@ update_status_e UpdateArea_Setup(void)
 	return UPD_STATUS_READY;
 }
 
+/*!
+ * @brief This function initialize the update area
+ *
+ * @param [in] eType     The type of update (see update_type_e)
+ * @param [in] u16BlkCnt The expected number of update block
+ *
+ * @return see the update_status_e enum
+ */
 update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt)
 {
 	if (eType < UPD_TYPE_NB)
@@ -127,6 +175,15 @@ update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt)
 	return UPD_STATUS_STORE_FAILED;
 }
 
+/*!
+ * @brief This function store an update FW block
+ *
+ * @param [in] eType The type of update (see update_type_e)
+ * @param [in] u16Id The update block id
+ * @param [in] pData The update block data to store
+ *
+ * @return see the update_status_e enum
+ */
 update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t *pData)
 {
 	if (eType < UPD_TYPE_NB)
@@ -140,6 +197,15 @@ update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t 
 	return UPD_STATUS_STORE_FAILED;
 }
 
+/*!
+ * @brief This function finalize the update area
+ *
+ * @param [in] eType     The type of update (see update_type_e)
+ * @param [in] u32HashSW The hash number to validate the FW image
+ * @param [in] img_sz    The size of FW image
+ *
+ * @return see the update_status_e enum
+ */
 update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz)
 {
 	update_status_e status = UPD_STATUS_UNK;
@@ -176,6 +242,15 @@ update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t 
 	return status;
 }
 
+/*!
+ * @brief This function validate the FW image
+ *
+ * @param [in] u32HashSW The hash number to validate the FW image
+ *
+ * @retval update_status_e::UPD_STATUS_VALID If image is valid
+ *         update_status_e::UPD_STATUS_INPROGRESS If a FW block is missing
+ *         update_status_e::UPD_STATUS_CORRUPTED If image validation failed
+ */
 update_status_e UpdateArea_CheckImg(uint32_t u32HashSW)
 {
 	if ( ImgStore_IsComplete() )
@@ -197,8 +272,15 @@ update_status_e UpdateArea_CheckImg(uint32_t u32HashSW)
 	}
 }
 
+/*!
+ * @brief This function write the partition header
+ *
+ * @param [in] p_img_info Pointer on internal partition image info
+ *
+ * @retval update_status_e::UPD_STATUS_READY If success
+ *         update_status_e::UPD_STATUS_STORE_FAILED If fail to write header
+ */
 update_status_e UpdateArea_WriteHeader(struct __img_info_s *p_img_info)
-//update_status_e UpdateArea_WriteHeader(uint32_t img_sz)
 {
 	// Finalize with Header
 	uint32_t temp[2];
@@ -223,64 +305,44 @@ update_status_e UpdateArea_WriteHeader(struct __img_info_s *p_img_info)
 	{
 		return UPD_STATUS_STORE_FAILED;
 	}
-
-	/*
-	uint32_t u32FinaleSize;
-	// Finalize with Header
-	uint32_t temp[2];
-
-	// size to write = image size + header size + trailer size + flash 8 byte write padding alignment if any
-	u32FinaleSize = img_sz + sUpdateArea.u32HeaderSz + 4;
-	if (u32FinaleSize % 8)
-	{
-		u32FinaleSize += 8 - (u32FinaleSize % 8);
-	}
-
-	if ( (u32FinaleSize > sUpdateArea.u32ImgMaxSz) || (sUpdateArea.bIsInit != MAGIC_WORD_8))
-	{
-		return UPD_STATUS_STORE_FAILED;
-	}
-
-	uint32_t u32TgtAdd = sUpdateArea.u32ImgAdd + u32FinaleSize - sUpdateArea.u32HeaderSz - 8;
-
-
-	// magic_dead
-	temp[0] = *(uint32_t*)u32TgtAdd;
-	temp[1] = sUpdateArea.u32MagicTrailer;
-
-	//if ( *(uint32_t*)u32TgtAdd != temp[0] )
-	{
-		if ( BSP_Flash_Write(u32TgtAdd, (uint64_t*)temp, 1) != DEV_SUCCESS )
-		{
-			return UPD_STATUS_STORE_FAILED;
-		}
-	}
-
-	// magic_header , img_sz
-	temp[0] = sUpdateArea.u32MagicHeader;
-	temp[1] = u32FinaleSize;
-
-	if ( BSP_Flash_Write(
-		(sUpdateArea.u32ImgAdd - sUpdateArea.u32HeaderSz), (uint64_t*)temp, 1)
-			!= DEV_SUCCESS)
-	{
-		return UPD_STATUS_STORE_FAILED;
-	}
-	*/
-	UpdateArea_SetBootReq(BOOT_REQ_UPDATE);
+	UpdateArea_SetBootUpdate();
 	return UPD_STATUS_READY;
 }
 
-inline void UpdateArea_SetBootReq(uint32_t boot_req)
+/*!
+ * @brief This function set the boot request for an Update
+ *
+ */
+inline void UpdateArea_SetBootUpdate(void)
 {
-	p->request = (boot_request_e)boot_req;
+	p->request = BOOT_REQ_UPDATE;
 }
 
+/*!
+ * @brief This function set the boot request for an Roll-Back
+ *
+ */
+inline void UpdateArea_SetBootBack(void)
+{
+	p->request = BOOT_REQ_BACK;
+}
+
+/*!
+ * @brief This function set the application as "bootable"
+ *
+ */
 inline void UpdateArea_SetBootable(void)
 {
 	p->bootable = 0x1;
 }
 /******************************************************************************/
+/*!
+ * @static
+ * @brief This function erase the image partition header
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
 static int32_t _update_area_erase_header_(void)
 {
 	int32_t ret = -1;
@@ -304,3 +366,5 @@ static int32_t _update_area_erase_header_(void)
 #ifdef __cplusplus
 }
 #endif
+
+/*! @} */

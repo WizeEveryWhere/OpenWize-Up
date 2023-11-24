@@ -53,11 +53,9 @@ void App_Init(void);
   */
 void app_entry(void)
 {
-#ifndef NOT_BOOTABLE
   	Sys_Init();
   	App_Init();
   	Sys_Start();
-#endif
 }
 
 /******************************************************************************/
@@ -118,12 +116,12 @@ extern struct update_ctx_s sUpdateCtx;
 /*
  * EXTEND_FLAGS :
 Get or Set the extend flags.
-b[0] if 1: Disable ATCI +DBG;
+b[0] if 1: Enable ATCI +DBG;
 b[1] : Reserved;
-b[2] : Reserved;
+b[2] if 1: Activate the immediate update when image is ready;
 b[3] : Reserved;
-b[4] if 1: Activate the immediat update when image is ready;
-b[5] if 1: Activate the WDT (bootcount for roll-back FW);
+b[4] : Reserved;
+b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
 b[6] if 1: Activate the device id writing in NVM;
 b[7] if 1: Activate the keys writing in NVM;
 */
@@ -142,37 +140,23 @@ void Monitor_Task(void const * argument)
 	uint8_t boot_count_max = 0;
 	uint8_t boot_count_current = gBootInfo.unstab_cnt;
 
+	UNS_NotifyAtci(BOOT_NOTIFY);
+
+	// ---
 #ifdef HAS_EXTEND_PARAMETER
-/*
-Get or Set the extend flags.
-b[0] if 1: Enable ATCI +DBG;
-b[1] : Reserved;
-b[2] if 1: Activate the immediate update when image is ready;
-b[3] : Reserved;
-b[4] : Reserved;
-b[5] if 1: Activate the phy calibration (rssi, power, internal) writing in NVM;
-b[6] if 1: Activate the device id writing in NVM;
-b[7] if 1: Activate the keys writing in NVM;
-*/
-	Param_Access(EXTEND_FLAGS, &extend_flags, 0);
 	// Write the current boot count
 	Param_Access(BOOT_COUNT, &(boot_count_current), 1);
 	// Get the boot count max
 	Param_Access(BOOT_COUNT_MAX, &boot_count_max, 0);
 #endif
-
-	UNS_NotifyAtci(BOOT_NOTIFY);
-	//
 	LOG_DBG("Monitor Boot Count %d\n", gBootInfo.unstab_cnt);
 	if (boot_count_current > boot_count_max)
 	{
 		LOG_WRN("Instability detected...Roll-Back\n");
-#ifndef BUILD_STANDALONE_APP
 		//swap to the previous sw slot (if any)
-		UpdateArea_SetBootReq(BOOT_REQ_BACK);
+		UpdateArea_SetBootBack();
 		//(option) reboot
 		BSP_Boot_Reboot(0);
-#endif
 	}
 	else
 	{
@@ -180,20 +164,28 @@ b[7] if 1: Activate the keys writing in NVM;
 	}
 	while(1)
 	{
+		BSP_Iwdg_Refresh();
+#ifdef HAS_EXTEND_PARAMETER
+		Param_Access(EXTEND_FLAGS, &extend_flags, 0);
+#endif
 		if ( sys_flag_wait(&ulEvent, ulPeriod) )
 		{
 			// Day passed occurs
 			if (ulEvent & TIME_FLG_DAY_PASSED)
 			{
 				ret = WizeApp_Time();
+				// Clear boot count every new day pass
+				BSP_UpdateInfo();
 
 				// Periodic Install
 				if (ret & WIZEAPP_INFO_PERIO_INST)
 				{
+					/*
 					if ( WizeApp_Install() == WIZE_API_SUCCESS)
 					{
 						WizeApp_WaitSesComplete(SES_INST);
 					}
+					*/
 					UNS_NotifyTime((uint32_t)WIZEAPP_INFO_PERIO_INST);
 				}
 				// Back Full Power
@@ -213,8 +205,6 @@ b[7] if 1: Activate the keys writing in NVM;
 					// Param_Access(VERS_FW_TRX, tmp, 1);
 					BSP_Boot_Reboot(0);
 				}
-				// Clear boot count
-				BSP_UpdateInfo();
 			}
 			if (ulEvent & TIME_FLG_TIME_ADJ)
 			{
@@ -230,9 +220,6 @@ b[7] if 1: Activate the keys writing in NVM;
 		*/
 		else
 		{
-#ifndef BUILD_STANDALONE_APP
-			BSP_Iwdg_Refresh();
-#endif
 			if(extend_flags & EXT_FLAGS_UPD_IMM)
 			{
 				if( Update_IsReady() )
@@ -266,18 +253,6 @@ b[7] if 1: Activate the keys writing in NVM;
 }
 
 /******************************************************************************/
-/*
- * task notification
- * queue
- * event_group
- *
- * semaphore
- * bin_semaphore
- * mutex
- *
- *
- */
-
 /*
 // Determine whether we are in thread mode or handler mode.
 static int inHandlerMode (void)

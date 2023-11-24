@@ -42,30 +42,13 @@ extern "C" {
 #include "rtos_macro.h"
 #include "update.h"
 
-#include "phy_layer_private.h"
+//#include "phy_layer_private.h"
 
 /******************************************************************************/
-static void _adm_ann_to_fw_info_(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_anndownload_t *pAnn);
-
-/******************************************************************************/
-#ifdef HAS_CUSTOM_ADM_CMD
-void AdmInt_Custom(net_msg_t *pReqMsg, net_msg_t * pRspMsg)
-{
-
-}
-void AdmInt_PostCustom(net_msg_t *pReqMsg, net_msg_t *pRspMsg)
-{
-
-}
-#endif
-
-/*
-void AdmInt_PostAnndownload(net_msg_t *pReqMsg, net_msg_t *pRspMsg)
-{
-	(void)pReqMsg;
-	(void)pRspMsg;
-}
-*/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 #ifdef HAS_HIRES_TIME_MEAS
 	extern int32_t BSP_HiResTmr_EnDis(uint8_t bEnable);
@@ -79,6 +62,41 @@ void AdmInt_PostAnndownload(net_msg_t *pReqMsg, net_msg_t *pRspMsg)
 #endif
 
 extern admin_ann_fw_info_t sFwAnnInfo;
+
+static void _adm_ann_to_fw_info_(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_anndownload_t *pAnn);
+
+/******************************************************************************/
+
+#ifdef HAS_CUSTOM_ADM_CMD
+void AdmInt_Custom(net_msg_t *pReqMsg, net_msg_t * pRspMsg)
+{
+
+}
+void AdmInt_PostCustom(net_msg_t *pReqMsg, net_msg_t *pRspMsg)
+{
+
+}
+#endif
+
+/*!
+ * @}
+ * @endcond
+ */
+
+/******************************************************************************/
+/******************************************************************************/
+
+/*!
+ * @brief This is a "weak" function intend to implement the treatment of one
+ *        FW block. It will be called by "WizeApp_Common" when a download block
+ *        will be received. Its content is user defined.
+ *
+ * @param [in] u16Id Identify the block number
+ * @param [in] pData Pointer on the data block of fixed 210 bytes size.
+ *
+ * @return 0
+ *
+ */
 uint8_t WizeApp_OnDwnBlkRecv(uint16_t u16Id, const uint8_t *pData)
 {
 	/*
@@ -96,23 +114,6 @@ uint8_t WizeApp_OnDwnBlkRecv(uint16_t u16Id, const uint8_t *pData)
 	}
 	return 0;
 }
-
-/*
-uint8_t WizeApp_AnnCheckFwInfo(admin_cmd_anndownload_t *pAnn)
-{
-	admin_ann_fw_info_t sFwAnnInfo;
-	if ( (pAnn->L7DayRepeat & 0xF0) == 0x00)
-	{
-		register uint8_t eErrCode;
-		uint8_t eErrParam;
-		_adm_ann_to_fw_info_(&sFwAnnInfo, pAnn);
-		sFwAnnInfo.u32Type = (uint32_t)UPD_TYPE_INTERNAL;
-		eErrCode = AdmInt_AnnCheckIntFW(&sFwAnnInfo, &eErrParam);
-		WizeApp_AnnReady(eErrCode, eErrParam);
-	}
-	return 0;
-}
-*/
 
 /******************************************************************************/
 /*!
@@ -218,57 +219,6 @@ int32_t WizeApp_GetFwInfoType(void)
 }
 
 /******************************************************************************/
-
-static const uint32_t session_mask[SES_NB] =
-{
-	[SES_INST] = SES_FLG_INST_MSK,
-	[SES_ADM]  = SES_FLG_ADM_MSK,
-	[SES_DWN]  = SES_FLG_DWN_MSK
-};
-
-int32_t WizeApp_WaitSesComplete(ses_type_t eSesId)
-{
-	uint32_t ret;
-	uint32_t ulEvent;
-	uint32_t mask;
-
-	if( eSesId < SES_NB)
-	{
-		mask = session_mask[eSesId];
-		do
-		{
-			if ( sys_flag_wait(&ulEvent, WIZE_APP_ITF_TMO_EVT) == 0 )
-			{
-				// Timeout
-				return -1;
-			}
-
-			ret = WizeApp_Common(ulEvent);
-			ulEvent &= mask & SES_FLG_SES_COMPLETE_MSK;
-		} while ( !(ulEvent) );
-
-		ulEvent &= mask & SES_FLG_SES_ERROR_MSK;
-		if ( !(ulEvent) )
-		{
-			if(eSesId == SES_ADM)
-			{
-				if (ret == ADM_WRITE_PARAM)
-				{
-					return 1;
-				}
-				else if ( ret == ADM_ANNDOWNLOAD)
-				{
-					return 2;
-				}
-			}
-			return 0;
-		}
-	}
-	return -1;
-}
-
-
-/******************************************************************************/
 /******************************************************************************/
 /*!
  * @static
@@ -295,182 +245,6 @@ static void _adm_ann_to_fw_info_(admin_ann_fw_info_t *pFwAnnInfo, admin_cmd_annd
 }
 
 /******************************************************************************/
-
-/*
-static admin_ann_fw_info_t _fw_info_;
-uint8_t WizeApp_AnnCheckFwInfo(admin_cmd_anndownload_t *pAnn)
-{
-	uint8_t eErrCode;
-	uint8_t eErrParam;
-	_adm_ann_to_fw_info(&_fw_info_, pAnn);
-	if ( (pAnn->L7DayRepeat & 0xF0) == 0x80)
-	{
-		_fw_info_.u32Type = (uint32_t)UPD_TYPE_EXTERNAL;
-	}
-	else
-	{
-		_fw_info_.u32Type = (uint32_t)UPD_TYPE_INTERNAL;
-		eErrCode = AdmInt_AnnCheckIntFW(&sFwAnnInfo, &eErrParam);
-		WizeApp_AnnReady(eErrCode, eErrParam);
-	}
-	return 0;
-}
-
-void AdmInt_PostAnndownload(net_msg_t *pReqMsg)
-{
-	// if this function is called, it means that ANN is valid (no error)
-	(void)pReqMsg;
-
-	// start the update session
-	if (Update_Open(_fw_info_))
-	{
-		// Error
-		return LO_DWN_ERR_UNK;
-	}
-	//
-
-}
-*/
-/*
-void _xxx(void)
-{
-	time_evt_t sTimeEvt;
-	uint32_t ulEvent;
-	uint8_t bComIsStarted = 0;
-	uint8_t bTimeEvtIsStarted = 0;
-
-	uint32_t u32Tmo;
-	int16_t i16DeltaMs;
-
-	Param_Access(EXCH_RESPONSE_DELAY, (uint8_t*)&( u32Tmo ), 0);
-	if (u32Tmo)
-	{
-		u32Tmo--;
-		i16DeltaMs = TMO_RET;
-	}
-	else
-	{
-		i16DeltaMs = TMO_RET_MIN;
-	}
-
-
-	TimeEvt_TimerInit( &sTimeEvt, sys_get_pid(), TIMEEVT_CFG_ONESHOT);
-
-	BSP_Uart_Receive(UART_ID_COM, atciCmdData->pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN);
-	bComIsStarted = 1;
-
-	status = Exec_ATADMANN_Notify(atciCmdData);
-
-	TimeEvt_TimerStart(&sTimeEvt, u32Tmo, i16DeltaMs, (uint32_t)TMO_EVT);
-	bTimeEvtIsStarted = 1;
-	do
-	{
-		if ( sys_flag_wait(&ulEvent, WIZE_APP_ITF_TMO_EVT) == 0)
-		{
-			// timeout due to (seems) no activity on session
-			return ATCI_ERR_UNK;
-		}
-
-		if (ulEvent & COM_MSK)
-		{
-			Atci_Com(atciCmdData, ulEvent);
-			if (atciCmdData->cmdCode == UNS_ATADMANN )
-			{
-				TimeEvt_TimerStop( &sTimeEvt);
-				bTimeEvtIsStarted = 0;
-				bComIsStarted = 0;
-
-				Atci_Cmd_Param_Init(atciCmdData);
-				status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
-
-				ITF_OnDwnAnnRet(*(atciCmdData->params[0].data));
-
-				eErrCode = _get_adm_err_code_(u8Err, &eErrParam);
-				WizeApp_AnnReady(eErrCode, eErrParam);
-				break;
-			}
-			else
-			{
-				Atci_AckNack(ATCI_ERR_CMD_FORBIDDEN);
-				BSP_Uart_Receive(UART_ID_COM, atciCmdData->pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN);
-				bComIsStarted = 1;
-			}
-		}
-
-		if (ulEvent & TMO_EVT)
-		{
-			BSP_Uart_AbortReceive(UART_ID_COM);
-			break;
-		}
-
-	} while ( !(ulEvent) );
-
-}
-*/
-/*
-uint8_t WizeApp_AnnCheckFwInfo(admin_cmd_anndownload_t *pAnn)
-{
-	(void)pAnn;
-	admin_ann_fw_info_t sFwAnnInfo;
-	uint8_t eErrCode;
-	uint8_t eErrParam;
-
-	if (WizeApp_GetFwInfo(&sFwAnnInfo, NULL))
-	{
-		if (sFwAnnInfo.u32Type == (uint32_t)UPD_TYPE_INTERNAL)
-		{
-			eErrCode = AdmInt_AnnCheckIntFW(&sFwAnnInfo, &eErrParam);
-			WizeApp_AnnReady(eErrCode, eErrParam);
-		}
-	}
-
-	return 0;
-}
-*/
-/*
-void WizeApi_OnTimeFlag(uint32_t u32Flg)
-{
-	_uns_as_time_(u32Flg);
-}
-*/
-/*
-uint8_t WizeApp_OnTimeEvt(uint32_t u32Evt)
-{
-	uint32_t ret;
-	// Day passed occurs
-	if (u32Evt & TIME_FLG_DAY_PASSED)
-	{
-		ret = WizeApp_Time();
-
-		// Periodic Install
-		if (ret & WIZEAPP_INFO_PERIO_INST)
-		{
-			if ( WizeApp_Install() == WIZE_API_SUCCESS)
-			{
-				WizeApp_WaitSesComplete(SES_INST);
-			}
-		}
-		// Back Full Power
-		if (ret & WIZEAPP_INFO_FULL_POWER)
-		{
-			// go back in full power
-			uint8_t temp = PHY_PMAX_minus_0db;
-			Param_Access(TX_POWER, &temp, 1 );
-		}
-		// Current update ?
-		if( Update_IsReady() )
-		{
-			// Param_Access(DATEHOUR_LAST_UPDATE, tmp, 1);
-			// Param_Access(VERS_HW_TRX, tmp, 0);
-			// Param_Access(VERS_FW_TRX, tmp, 1);
-			BSP_Boot_Reboot(0);
-		}
-	}
-	return 0;
-}
-*/
-
-
 /******************************************************************************/
 
 #ifdef __cplusplus

@@ -1,6 +1,6 @@
 /**
   * @file at_extend_cmd.c
-  * @brief // TODO This file ...
+  * @brief This file group some AT command
   * 
   * @details
   *
@@ -48,34 +48,54 @@ extern "C" {
 #include "itf.h"
 
 /******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
 // FIXME :
 extern int32_t Calib_WaitDone(uint32_t *pulse_cnt);
 
 /******************************************************************************/
 
-/*
-#include <sys/time.h>
-#include <limits.h>
-#include <stdint.h>
-#include <string.h>
-*/
-/******************************************************************************/
-
 static void _format_stats_(uint8_t *pData, net_stats_t *pStats);
 
-static void _atci_sleep_(atci_cmd_t *atciCmdData);
-static void _atci_wakeup_(atci_cmd_t *atciCmdData);
+extern boot_info_t gBootInfo;
+
+/*!
+ * @}
+ * @endcond
+ */
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATQ command (Restore registers to their factory settings)
+ *
+ * @details		Command format: "ATQ".
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData)
 {
 	if (atciCmdData->bLpAllowed)
 	{
 		atciCmdData->bNeedAck = 0;
 		atciCmdData->eState = ATCI_SLEEP;
-		_atci_sleep_(atciCmdData);
-		_atci_wakeup_(atciCmdData);
+		//_atci_sleep_(atciCmdData);
+		Atci_Send_Sleep_Msg();
+
+		Console_Disable();
+		BSP_LowPower_Enter(LP_STOP2_MODE);
+		Console_Enable();
+
+		Atci_Send_Wakeup_Msg();
+		//_atci_wakeup_(atciCmdData);
 		atciCmdData->eState = ATCI_WAKEUP;
 		return ATCI_ERR_NONE;
 	}
@@ -87,6 +107,18 @@ atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData)
 
 /******************************************************************************/
 
+/*!
+ * @brief		Execute ATZn command (reboot the system)
+ *
+ * @details		Command format: "ATZn".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
@@ -132,8 +164,231 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 }
 
 /******************************************************************************/
-extern boot_info_t gBootInfo;
 
+/******************************************************************************/
+/*
+ * @brief		Execute AT&F command (Restore registers to their factory settings)
+ *
+ * @details		Command format: "AT&F".
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	Atci_Debug_Str("Restore to Factory settings");
+	Storage_SetDefault();
+	return ATCI_ERR_NONE;
+}
+
+/******************************************************************************/
+/*!
+ * @brief		Execute AT&W command (Store current registers values in flash)
+ *
+ * @details		Command format: "AT&W".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
+{
+	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+		return ATCI_ERR_PARAM_NB;
+
+	Atci_Debug_Str("Store current settings in NVM");
+	if ( Storage_Store() == 1)
+	{
+		// error
+		Atci_Debug_Str("NVM : Failed to store ");
+		return ATCI_ERR_UNK;
+	}
+	return ATCI_ERR_NONE;
+}
+
+
+/******************************************************************************/
+/*!
+ * @brief		Execute AT%CCLK command (get the current clock as unix epoch)
+ *
+ * @details		Command format: "AT%CCLK".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
+{
+	if (
+		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
+		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
+		)
+	{
+		Atci_Cmd_Param_Init(atciCmdData);
+
+		// Add param of size 4
+		atciCmdData->params[0].size = 4;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		// Add param of size 2
+		atciCmdData->params[1].size = 2;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		struct timeval tm;
+		gettimeofday(&tm, NULL);
+
+		// Get the EPOCH (second part)
+		*(uint32_t*)(atciCmdData->params[0].data) = __htonl(tm.tv_sec);
+		// Get the EPOCH (millisecond part)
+		*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
+
+		Atci_Resp(atciCmdData);
+		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		return ATCI_ERR_NONE;
+	}
+	else
+	{
+		return ATCI_ERR_PARAM_NB;
+	}
+}
+
+/******************************************************************************/
+/*!
+ * @brief		Execute AT%UID command (get the unique identifier)
+ *
+ * @details		Command format: "AT%UID".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
+{
+	if (
+		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
+		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
+		)
+	{
+		Atci_Cmd_Param_Init(atciCmdData);
+
+		// Add param of size 8
+		atciCmdData->params[0].size = 8;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+		// Get the UID
+		uint64_t uuid = BSP_GetUid();
+		((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
+		((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
+
+		Atci_Resp(atciCmdData);
+		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+		return ATCI_ERR_NONE;
+	}
+	else
+	{
+		return ATCI_ERR_PARAM_NB;
+	}
+}
+
+/******************************************************************************/
+/*!
+ * @brief		Execute AT%STAT command (get the wize statistics)
+ *
+ * @details		Command format: "AT%STAT".
+ *
+ * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE if succeed
+ * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
+{
+	atci_error_e status = ATCI_ERR_NONE;
+	net_stats_t sStats;
+
+	Atci_Cmd_Param_Init(atciCmdData);
+
+	if ( atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM )
+	{
+		// Add param of size sizeof(net_stats_t)
+		atciCmdData->params[0].size = sizeof(net_stats_t);
+		status = Atci_Add_Cmd_Param_Resp(atciCmdData);
+		if (status == ATCI_ERR_NONE)
+		{
+			NetMgr_Open(NULL);
+			if (NetMgr_Ioctl(NETDEV_CTL_GET_STATS, (uint32_t)(&sStats)) == NET_STATUS_OK)
+			{
+				_format_stats_( atciCmdData->params[0].data, &sStats);
+
+				Atci_Resp(atciCmdData);
+				//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+			}
+			else
+			{
+				status = ATCI_ERR_UNK;
+			}
+			NetMgr_Close();
+		}
+	}
+	else if (atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
+	{
+		status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
+		if (status == ATCI_ERR_NONE)
+		{
+			if (atciCmdData->cmdType != AT_CMD_WITH_PARAM)
+			{
+				status = ATCI_ERR_PARAM_NB;
+			}
+			else
+			{
+				NetMgr_Open(NULL);
+				//if ( *(atciCmdData->params[0].val8 == 0)
+				if (NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, (uint32_t)(&sStats)))
+				{
+					// error
+					status = ATCI_ERR_UNK;
+				}
+				NetMgr_Close();
+			}
+		}
+	}
+	else
+	{
+		status = ATCI_ERR_PARAM_NB;
+	}
+
+	return status;
+}
+/******************************************************************************/
+
+/*!
+ * @brief
+ *
+ * @param[in,out] atciCmdData  Pointer on "atci_cmd_t" structure
+ * @param[in]	  ulEvent
+ *
+ * @retval atci_error_e::ATCI_ERR_NONE If success
+ *         atci_error_e::ATCI_ERR_INTERNAL If code/event is unknown
+ *
+ */
 atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
 {
 	uint8_t info = 0xFF;
@@ -216,169 +471,20 @@ atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
 	return ATCI_ERR_NONE;
 }
 
+/*!
+ * @brief Build and send ATCI notification
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE
+ */
 atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData)
 {
 	Atci_Resp(atciCmdData);
 	return ATCI_ERR_NONE;
 }
 
-/******************************************************************************/
-
-atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
-{
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
-		return ATCI_ERR_PARAM_NB;
-
-	Atci_Debug_Str("Restore to Factory settings");
-	Storage_SetDefault();
-	return ATCI_ERR_NONE;
-}
-
-/******************************************************************************/
-
-atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
-{
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
-		return ATCI_ERR_PARAM_NB;
-
-	Atci_Debug_Str("Store current settings in NVM");
-	if ( Storage_Store() == 1)
-	{
-		// error
-		Atci_Debug_Str("NVM : Failed to store ");
-		return ATCI_ERR_UNK;
-	}
-	return ATCI_ERR_NONE;
-}
-
-
-/******************************************************************************/
-
-atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
-{
-	if (
-		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
-		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
-		)
-	{
-		Atci_Cmd_Param_Init(atciCmdData);
-
-		// Add param of size 4
-		atciCmdData->params[0].size = 4;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		// Add param of size 2
-		atciCmdData->params[1].size = 2;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		struct timeval tm;
-		gettimeofday(&tm, NULL);
-
-		// Get the EPOCH (second part)
-		*(uint32_t*)(atciCmdData->params[0].data) = __htonl(tm.tv_sec);
-		// Get the EPOCH (millisecond part)
-		*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
-
-		Atci_Resp(atciCmdData);
-		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-		return ATCI_ERR_NONE;
-	}
-	else
-	{
-		return ATCI_ERR_PARAM_NB;
-	}
-}
-
-/******************************************************************************/
-
-atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
-{
-	if (
-		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
-		(atciCmdData->cmdType == AT_CMD_WITHOUT_PARAM)
-		)
-	{
-		Atci_Cmd_Param_Init(atciCmdData);
-
-		// Add param of size 8
-		atciCmdData->params[0].size = 8;
-		Atci_Add_Cmd_Param_Resp(atciCmdData);
-
-		// Get the UID
-		uint64_t uuid = BSP_GetUid();
-		((uint32_t*)(atciCmdData->params[0].data))[0] = __htonl(((uint32_t*)&uuid)[1]);
-		((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
-
-		Atci_Resp(atciCmdData);
-		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-		return ATCI_ERR_NONE;
-	}
-	else
-	{
-		return ATCI_ERR_PARAM_NB;
-	}
-}
-
-/******************************************************************************/
-
-atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
-{
-	atci_error_e status = ATCI_ERR_NONE;
-	net_stats_t sStats;
-
-	Atci_Cmd_Param_Init(atciCmdData);
-
-	if ( atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM )
-	{
-		// Add param of size sizeof(net_stats_t)
-		atciCmdData->params[0].size = sizeof(net_stats_t);
-		status = Atci_Add_Cmd_Param_Resp(atciCmdData);
-		if (status == ATCI_ERR_NONE)
-		{
-			NetMgr_Open(NULL);
-			if (NetMgr_Ioctl(NETDEV_CTL_GET_STATS, (uint32_t)(&sStats)) == NET_STATUS_OK)
-			{
-				_format_stats_( atciCmdData->params[0].data, &sStats);
-
-				Atci_Resp(atciCmdData);
-				//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
-			}
-			else
-			{
-				status = ATCI_ERR_UNK;
-			}
-			NetMgr_Close();
-		}
-	}
-	else if (atciCmdData->cmdType == AT_CMD_WITH_PARAM_TO_GET)
-	{
-		status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
-		if (status == ATCI_ERR_NONE)
-		{
-			if (atciCmdData->cmdType != AT_CMD_WITH_PARAM)
-			{
-				status = ATCI_ERR_PARAM_NB;
-			}
-			else
-			{
-				NetMgr_Open(NULL);
-				//if ( *(atciCmdData->params[0].val8 == 0)
-				if (NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, (uint32_t)(&sStats)))
-				{
-					// error
-					status = ATCI_ERR_UNK;
-				}
-				NetMgr_Close();
-			}
-		}
-	}
-	else
-	{
-		status = ATCI_ERR_PARAM_NB;
-	}
-
-	return status;
-}
 /******************************************************************************/
 
 #define Calib_TMO 60000
@@ -401,8 +507,6 @@ static void __disable_clk__(void)
 		_bClkOut_ = 0;
 	}
 }
-
-/******************************************************************************/
 
 atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData)
 {
@@ -632,41 +736,6 @@ atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData)
 }
 
 /******************************************************************************/
-
-/*!
- * @static
- * @brief		Entering in sleep mode.
- *
- * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
- *
- */
-static
-void _atci_sleep_(atci_cmd_t *atciCmdData)
-{
-	Atci_Send_Sleep_Msg();
-	Console_Disable();
-
-	//atciCmdData->bPaState = EX_PHY_GetPa();
-	//EX_PHY_SetPa(0);
-
-	BSP_LowPower_Enter(LP_STOP2_MODE);
-}
-
-/*!
- * @static
- * @brief		Exiting from sleep mode
- *
- * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
- *
- */
-static
-void _atci_wakeup_(atci_cmd_t *atciCmdData)
-{
-	Console_Enable();
-	Atci_Send_Wakeup_Msg();
-
-	//EX_PHY_SetPa(atciCmdData->bPaState);
-}
 
 /*!
  * @static

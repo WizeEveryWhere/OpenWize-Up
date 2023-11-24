@@ -1,6 +1,6 @@
 /**
   * @file: at_wize_cmd.h
-  * @brief: // TODO This file ...
+  * @brief: This file group some AT command.
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -33,8 +33,8 @@
  *  @{
  */
 
-#ifndef AT_WIZE_CMD_H_
-#define AT_WIZE_CMD_H_
+#ifndef _AT_WIZE_CMD_H_
+#define _AT_WIZE_CMD_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,10 +69,40 @@ extern "C" {
  */
 atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData);
 
-atci_error_e Exec_ATSEND_Rsp(atci_cmd_t *atciCmdData, int32_t ret);
-
+/*!
+ * @brief		Execute ATADMWRITE notify
+ *
+ * @details
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute ATADMANN notify
+ *
+ * @details
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATADMANN_Notify(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief		Execute ATADMDATA notify
+ *
+ * @details
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
 atci_error_e Exec_ATADMDATA_Notify(atci_cmd_t *atciCmdData);
 
 /*!
@@ -118,6 +148,6 @@ atci_error_e Exec_ATPING_Cmd(atci_cmd_t *atciCmdData);
 }
 #endif
 
-#endif /* AT_WIZE_CMD_H_ */
+#endif /* _AT_WIZE_CMD_H_ */
 
 /*! @} */

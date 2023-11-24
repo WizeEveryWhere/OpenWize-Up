@@ -1,6 +1,6 @@
 /**
   * @file: at_command.h
-  * @brief: // TODO This file ...
+  * @brief: This file define the AT command global table
   * 
   *****************************************************************************
   * @Copyright 2019, GRDF, Inc.  All rights reserved.
@@ -93,12 +93,15 @@ typedef enum
 	NB_UNS_CMD,
 } at_cmd_code_e;
 
-extern const struct at_desc_s aAtDescCmd[];
-
 /*!
  * @}
  * @endcond
  */
+
+/*!
+ * @brief This table describe all AT command
+ */
+extern const struct at_desc_s aAtDescCmd[];
 
 #ifdef __cplusplus
 }

@@ -33,8 +33,8 @@
  *  @{
  */
 
-#ifndef _ITF_WIZE_APP_H_
-#define _ITF_WIZE_APP_H_
+#ifndef _WIZE_APP_ITF_H_
+#define _WIZE_APP_ITF_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,25 +42,70 @@ extern "C" {
 #include <stdint.h>
 #include "app_layer.h"
 #include "ses_common.h"
-
+/******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 #ifndef WIZE_APP_ITF_TMO_EVT
 	#define WIZE_APP_ITF_TMO_EVT 0xFFFFFFFF
 #endif
+/*!
+ * @}
+ * @endcond
+ */
 
-uint8_t WizeApp_AnnCheckFwInfo(admin_cmd_anndownload_t *pAnn);
+/******************************************************************************/
+
+/*!
+ * @brief This is a "weak" function intend to implement the treatment of one
+ *        FW block. It will be called by "WizeApp_Common" when a download block
+ *        will be received. Its content is user defined.
+ *
+ * @param [in] u16Id Identify the block number
+ * @param [in] pData Pointer on the data block of fixed 210 bytes size.
+ *
+ * @return 0
+ *
+ */
 uint8_t WizeApp_OnDwnBlkRecv(uint16_t u16Id, const uint8_t *pData);
 
-
-int32_t WizeApp_WaitSesComplete(ses_type_t eSesId);
+/*!
+ * @brief This function get the last ADM command.
+ *
+ * @param [out] pData Pointer on output buffer
+ * @param [out] rssi  Pointer on output RSSI
+ *
+ * @retval the size of ADM command message or 0 if an error RSP was already or
+ *         if the given pointer is NULL,
+ */
 uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi);
+
+/*!
+ * @brief This function get the last FW info
+ *
+ * @param [out] pData Pointer on output buffer
+ * @param [out] rssi  Pointer on output RSSI
+ *
+ * @retval the size of FW info or 0 if an error RSP was already or
+ *         if the given pointer is NULL,
+ */
 uint8_t WizeApp_GetFwInfo(admin_ann_fw_info_t *pFwAnnInfo, uint8_t *rssi);
+
+/*!
+ * @brief This function get the FW info type
+ *
+ * @retval return update_type_e::UPD_TYPE_INTERNAL
+ *         return update_type_e::UPD_TYPE_EXTERNAL
+ *         return -1 otherwise
+ */
 int32_t WizeApp_GetFwInfoType(void);
 
-//uint8_t WizeApp_OnTimeEvt(uint32_t u32Evt);
+/******************************************************************************/
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* _ITF_WIZE_APP_H_ */
+#endif /* _WIZE_APP_ITF_H_ */
 
 /*! @} */

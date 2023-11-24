@@ -1,6 +1,7 @@
 /**
   * @file local_frm.c
-  * @brief // TODO This file ...
+  * @brief This file implement functions to build and extract download frames
+  *        to/from the local interface.
   * 
   * @details
   *
@@ -59,13 +60,15 @@ static inline void _ctr_next_(uint8_t *pCtr, uint8_t BlockId[BLK_ID_SZ]);
 
 /******************************************************************************/
 /*!
-  * @brief  This
+  * @brief  This function extract a download frame intended from local interface.
   *
-  * @param [out] pData
-  * @param [in]  pFrame
-  * @param [in]  u8KeyId
+  * @param [out] pData   Pointer on output data
+  * @param [in]  pFrame  Pointer on input frame
+  * @param [in]  u8KeyId Id of the key used to encrypt and authenticate.
   *
-  * @retval  (see local_dwn_err_code_e)
+  * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If the extract success.
+  *          local_dwn_err_code_e::LO_DWN_ERR_AUTH If authenticate failed
+  *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
   *
   */
 uint8_t LocalFrm_Extract(uint8_t *pData, local_cmd_writeblock_t *pFrame, uint8_t u8KeyId)
@@ -107,13 +110,17 @@ uint8_t LocalFrm_Extract(uint8_t *pData, local_cmd_writeblock_t *pFrame, uint8_t
 }
 
 /*!
-  * @brief  This
+  * @brief  This function build a download frame intended to be send on local interface.
   *
-  * @param [out] pFrame
-  * @param [in]  pData
-  * @param [in]  u8KeyId
+  * @details The resulting frame is encrypted and authenticated with AES128. See
+  *          local_cmd_writeblock_t for frame structure.
   *
-  * @retval  (see local_dwn_err_code_e)
+  * @param [out] pFrame  Pointer on output frame
+  * @param [in]  pData   Pointer on input data
+  * @param [in]  u8KeyId Id of the key used to encrypt and authenticate.
+  *
+  * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If the build success.
+  *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
   *
   */
 uint8_t LocalFrm_Build(local_cmd_writeblock_t *pFrame, uint8_t *pData, uint8_t u8KeyId)
@@ -161,9 +168,9 @@ uint8_t LocalFrm_Build(local_cmd_writeblock_t *pFrame, uint8_t *pData, uint8_t u
 
 /*!
  * @static
- * @brief  This
+ * @brief  This function compute the initial CTR
  *
- * @param [in,out] pCtr
+ * @param [in,out] pCtr Pointer on CTR output
  *
  */
 static
@@ -177,10 +184,10 @@ void _ctr_preset_(uint8_t *pCtr)
 
 /*!
  * @static
- * @brief  This
+ * @brief  This function compute the final CTR
  *
- * @param [in,out] pCtr
- * @param [in,out] BlockId
+ * @param [in,out] pCtr    Pointer on CTR output
+ * @param [in]     BlockId The block id to add
  *
  */
 static inline

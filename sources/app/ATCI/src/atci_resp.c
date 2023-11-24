@@ -34,10 +34,6 @@
  *  @{
  */
 
-/*==============================================================================
- * INCLUDES
- *============================================================================*/
-
 #include <stdint.h>
 #include <string.h>
 
@@ -47,18 +43,17 @@
 #include "console.h"
 #include "common.h"
 
-/*==============================================================================
- * GLOBAL VARIABLES
- *============================================================================*/
-/*! @internal */
-
-/*! @endinternal */
-
-/*==============================================================================
- * LOCAL FUNCTIONS PROTOTYPES
- *============================================================================*/
-static uint8_t _bDbgEn_;
+/******************************************************************************/
 static void _atci_send_(atci_cmd_t *atciCmdData);
+
+/******************************************************************************/
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
+static uint8_t _bDbgEn_;
 
 typedef struct
 {
@@ -82,69 +77,20 @@ const atci_dbg_str_t atci_dbg_err_tab[] =
 	{ATCI_ERR_UNK,           "Command execution error!!!"},
 };
 
-//Atci_Resp_Data("ATIDENT", atciCmdData);
-//Atci_Resp_Data("ATPARAM", atciCmdData);
-//Atci_Resp_Data("ATI", atciCmdData);
-//Atci_Resp_Data("ATFC", atciCmdData);
-/*
-Atci_Debug_Str("Restore to Factory settings");
-Atci_Debug_Str("Store current registers values in non volatile memory");
-Atci_Debug_Str("Flash : Failed to store ");
-Atci_Debug_Str("Cold Reboot");
-Atci_Debug_Str("Warm Reboot");
-Atci_Debug_Str("Send PING");/////////
+/*!
+ * @}
+ * @endcond
+ */
 
-Atci_Debug_Param_Data("Write IDENT", atciCmdData);
-Atci_Debug_Param_Data("Write register", atciCmdData);
-Atci_Debug_Param_Data("Compilation date", atciCmdData);
-Atci_Debug_Param_Data("Write KEY", atciCmdData);
+/******************************************************************************/
 
-Atci_Debug_Param_Data("Set Fact Cfg. (TX PWR)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (PA EN)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (CAL RSSI)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (CAL ADF7030)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (DIS TEST MODE)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (TX TEST MODE)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (RX TEST MODE)", atciCmdData);/////////
-Atci_Debug_Param_Data("Set Fact Cfg. (RX TEST MODE)", atciCmdData);/////////
-Atci_Debug_Param_Data("Send Frame.", atciCmdData);/////////
-
-Atci_Debug_Param_Data("Nb Pong", atciCmdData);
-Atci_Debug_Param_Data("INSTPONG", atciCmdData);
-*/
-/*
-const atci_dbg_str_t atci_dbg_sta_tab[] =
-{
-	{ATCI_STA_, "Cold Reboot"},
-	{ATCI_STA_, "Warm Reboot"},
-	{ATCI_STA_, "Restore to Factory settings"},
-	{ATCI_STA_, "Store current settings in NVM"},
-	{ATCI_STA_, "NVM : Failed to store "},
-	{ATCI_STA_, "Send PING"},
-	{ATCI_STA_, "Send Frame"},
-
-	{ATCI_STA_, "Write IDENT"},
-	{ATCI_STA_, "Write register"},
-	{ATCI_STA_, "Compilation date"},
-	{ATCI_STA_, "Write KEY"},
-
-
-	{ATCI_STA_, "Nb Pong"},
-	{ATCI_STA_, "INSTPONG"},
-
-	{ATCI_STA_, "Set Fact Cfg."},
-	{ATCI_STA_, "(RX TEST MODE)"},
-	{ATCI_STA_, "(TX TEST MODE)"},
-	{ATCI_STA_, "(DIS TEST MODE)"},
-	{ATCI_STA_, "(CAL ADF7030)"},
-	{ATCI_STA_, "(CAL RSSI)"},
-	{ATCI_STA_, "(PA EN)"},
-	{ATCI_STA_, "(TX PWR)"},
-
-	{ATCI_STA_UNK,  "No message"},
-};
-*/
-
+/*!
+ * @brief		Get the debug error message
+ *
+ * @param[in] error Error code
+ *
+ * @return	Pointer on the debug error message
+ */
 const char* Atci_Get_Dbg_Str(atci_error_e error)
 {
 	uint32_t i;
@@ -163,43 +109,24 @@ const char* Atci_Get_Dbg_Str(atci_error_e error)
 	return atci_dbg_err_tab[i].str;
 }
 
-/*==============================================================================
- * FUNCTIONS - AT responses
- *============================================================================*/
-
-const char *str_format[] =
-{
-	"+WAKEUP",
-	"+SLEEP",
-	"ERROR"":%02X",
-	"OK",
-	"+DBG",
-	"NOTIFY",
-	"",
-	"",
-
-
-};
-
-
-
-
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Enable / Disable the debug messages
  *
+ * @param[in] bFlag Enable : 1; Disable : 0
+ *
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 
 void Atci_Send_Dbg_Enable(uint8_t bFlag)
 {
 	_bDbgEn_ = bFlag;
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send wakeup message
@@ -207,13 +134,13 @@ void Atci_Send_Dbg_Enable(uint8_t bFlag)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Send_Wakeup_Msg(void)
 {
 	Console_Send_Str("\r\n+WAKEUP\r\n");
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send sleep message
@@ -221,14 +148,14 @@ void Atci_Send_Wakeup_Msg(void)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Send_Sleep_Msg(void)
 {
 	Console_Send_Str("\r\n+SLEEP\r\n");
 }
 
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send AT response status (OK or error)
@@ -238,13 +165,13 @@ void Atci_Send_Sleep_Msg(void)
  * @return		None
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Atci_AckNack(atci_error_e errCode)
 {
 	if(errCode)
 	{
 		Console_Printf("\r\nERROR:%02X\r\n", errCode);
-		_Atci_Debug_Param_Data(Atci_Get_Dbg_Str(errCode), NULL);
+		Atci_Debug_Param_Data(Atci_Get_Dbg_Str(errCode), NULL);
 	}
 	else
 	{
@@ -252,7 +179,7 @@ void Atci_AckNack(atci_error_e errCode)
 	}
 }
 
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send AT response data
@@ -263,7 +190,7 @@ void Atci_AckNack(atci_error_e errCode)
  * 					- params: parameters list (with size and data)
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 {
 	Console_Send_Str("\r\n+"); //new line + prefix (beginning)
@@ -272,16 +199,18 @@ void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 	Console_Send_Str("\r\n"); //new line (end)
 }
 
+/*!
+ * @brief		Send AT response data
+ *
+ * @param[in]	atciCmdData Pointer on atci_cmd_t command structure
+ *
+ */
 void Atci_Resp(atci_cmd_t *atciCmdData)
 {
 	Atci_Resp_Data(atciCmdData->pCmdDesc[atciCmdData->cmdCode].str, atciCmdData);
 }
 
-/*==============================================================================
- * FUNCTIONS - AT debug messages
- *============================================================================*/
-
-/*!-----------------------------------------------------------------------------
+/*!
  * @internal
  *
  * @brief		Send debug data: command/response parameters (with Atci_Resp_Data format)
@@ -292,8 +221,8 @@ void Atci_Resp(atci_cmd_t *atciCmdData)
  * 					- params: parameters list (with size and data)
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
-void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
+ */
+void Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 {
 	if( _bDbgEn_ )
 	{
@@ -307,9 +236,12 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
 	}
 }
 
-/*!-----------------------------------------------------------------------------
+/******************************************************************************/
+
+/*!
  * @internal
  *
+ * @static
  * @brief		Send AT response data or Debug
  *
  * @param[in]	cmdCodeStr Command code as string
@@ -318,7 +250,7 @@ void _Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData)
  * 					- params: parameters list (with size and data)
  *
  * @endinternal
- *----------------------------------------------------------------------------*/
+ */
 
 static void _atci_send_(atci_cmd_t *atciCmdData)
 {
@@ -355,6 +287,6 @@ static void _atci_send_(atci_cmd_t *atciCmdData)
 	}
 }
 
-/*********************************** EOF **************************************/
+/******************************************************************************/
 
 /*! @} */
