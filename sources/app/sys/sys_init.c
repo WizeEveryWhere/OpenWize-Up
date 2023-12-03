@@ -78,7 +78,7 @@ static adf7030_1_device_t adf7030_1_ctx;
 phydev_t sPhyDev;
 
 /*!
- * @brief This function initialize the "system part"
+ * @brief This function initialize the system"
  */
 void Sys_Init(void)
 {

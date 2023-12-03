@@ -2,8 +2,9 @@
   * @file: wize_app_itf.c
   * @brief: // TODO This file ...
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
+  *
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
   *
   * Redistribution and use in source and binary forms, with or without 
   * modification, are permitted (subject to the limitations in the disclaimer
@@ -17,11 +18,11 @@
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
+  *
+  * @par Revision history
   * ----------------
-  * 1.0.0 : 2023/08/27[GBI]
+  * @par 1.0.0 : 2023/08/28[GBI]
   * Initial version
   *
   *
@@ -122,8 +123,8 @@ uint8_t WizeApp_OnDwnBlkRecv(uint16_t u16Id, const uint8_t *pData)
  * @param [out] pData Pointer on output buffer
  * @param [out] rssi  Pointer on output RSSI
  *
- * @retval the size of ADM command message or 0 if an error RSP was already or
- *         if the given pointer is NULL,
+ * @retval size of ADM command message
+ * @retval 0 if an error RSP was already or if the given pointer is NULL
  */
 uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi)
 {
@@ -154,11 +155,11 @@ uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi)
 /*!
  * @brief This function get the last FW info
  *
- * @param [out] pData Pointer on output buffer
- * @param [out] rssi  Pointer on output RSSI
+ * @param [out] pFwAnnInfo Pointer on output buffer
+ * @param [out] rssi       Pointer on output RSSI
  *
- * @retval the size of FW info or 0 if an error RSP was already or
- *         if the given pointer is NULL,
+ * @retval size of FW info
+ * @retval 0 if an error RSP was already sent or if the given pointer is NULL,
  */
 uint8_t WizeApp_GetFwInfo(admin_ann_fw_info_t *pFwAnnInfo, uint8_t *rssi)
 {
@@ -197,9 +198,9 @@ uint8_t WizeApp_GetFwInfo(admin_ann_fw_info_t *pFwAnnInfo, uint8_t *rssi)
 /*!
  * @brief This function get the FW info type
  *
- * @retval return update_type_e::UPD_TYPE_INTERNAL
- *         return update_type_e::UPD_TYPE_EXTERNAL
- *         return -1 otherwise
+ * @retval update_type_e::UPD_TYPE_INTERNAL
+ * @retval update_type_e::UPD_TYPE_EXTERNAL
+ * @retval -1 otherwise
  */
 int32_t WizeApp_GetFwInfoType(void)
 {

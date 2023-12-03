@@ -222,8 +222,7 @@ test_mode_info_t EX_PHY_TestInit(void)
 /*!
   * @brief Initialize the PHY test
   *
-  * @param [in] eMode PHY test mode (see  phy_test_mode_e)
-  * @param [in] eType IO type is 0 : copy mode or 1 : preamble and sync detect
+  * @param [in] eTestModeInfo PHY test mode info(see  test_mode_info_t)
   *
   * @return the current test mode
   *
@@ -354,8 +353,6 @@ inline int32_t EX_PHY_GetPa(void)
 
 /*!
  * @brief  This function launch the RSSI offset calibration sequence.
- *
- * @param [in]  i8RssiRefLevel RSSI reference input level (dbm) during calibration.
  *
  * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
  * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)

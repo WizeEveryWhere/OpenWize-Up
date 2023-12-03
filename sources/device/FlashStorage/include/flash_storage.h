@@ -42,10 +42,12 @@ extern "C" {
 #include <stdint.h>
 #include "bsp.h"
 
+/******************************************************************************/
 /*!
  * @cond INTERNAL
  * @{
  */
+
 #ifndef FLASH_PAGE_SIZE
 #define FLASH_PAGE_SIZE 2048
 #endif
@@ -57,6 +59,7 @@ extern "C" {
  * @}
  * @endcond
  */
+/******************************************************************************/
 
 /*!
  * @brief Structure defining the storage area header in flash memory
@@ -90,10 +93,53 @@ struct storage_area_s
 	const struct flash_store_s* pFlashArea; /*!< Pointer on flash area*/
 };
 
+/******************************************************************************/
+
+/*!
+ * @brief This function initialize (erase) the storage area in flash memory
+ *
+ * @param [in] pStoreArea Pointer on structure defining the flash area
+ *
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
+ */
 uint8_t FlashStorage_StoreInit(struct storage_area_s* pStoreArea);
+
+/*!
+ * @brief This function finalize (store header) the storage area in flash memory
+ *
+ * @param [in] pStoreArea Pointer on structure defining what to store
+ *
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
+ */
 uint8_t FlashStorage_StoreFini(struct storage_area_s* pStoreArea);
+
+/*!
+ * @brief This function write the storage area into flash memory
+ *
+ * @param [in] pStoreArea Pointer on structure defining what to store
+ *
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
+ */
 uint8_t FlashStorage_StoreWrite(struct storage_area_s* pStoreArea);
+
+/*!
+ * @brief This function read the storage area from flash memory
+ *
+ * @param [in] pStoreArea Pointer on structure defining the storage
+ *
+ * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
+ * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
+ *
+ */
 uint8_t FlashStorage_StoreRead(struct storage_area_s* pStoreArea);
+
+/******************************************************************************/
 
 #ifdef __cplusplus
 }

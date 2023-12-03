@@ -38,6 +38,7 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/sys
         ${CMAKE_CURRENT_SOURCE_DIR}/update
+        ${CMAKE_CURRENT_SOURCE_DIR}/nvm
         ../../${CFG_GEN_DIR}/gen
     )
 
@@ -81,7 +82,7 @@ target_sources(
 # Add include dir    
 target_include_directories(
     ${MODULE_NAME} PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/nvm
         ../../${CFG_GEN_DIR}/gen
     )
 

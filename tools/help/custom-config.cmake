@@ -18,7 +18,7 @@
 # Redefine HW info (Given from ATI command)
 #set(HW_NAME "NAME")
 #set(HW_VENDOR "VENDOR")
-#set(HW_MODEL "DODEL")
+#set(HW_MODEL "MODEL")
 #set(HW_VER_MAJ 0)
 #set(HW_VER_MIN 1)
 #set(HW_VER_REV 0)

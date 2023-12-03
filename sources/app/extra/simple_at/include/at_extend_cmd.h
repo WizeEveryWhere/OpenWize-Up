@@ -151,7 +151,7 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
 atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
 
 /*!
- * @brief
+ * @brief Set the code for a generic notification (from ulEvent)
  *
  * @param[in,out] atciCmdData  Pointer on "atci_cmd_t" structure
  * @param[in]	  ulEvent
@@ -160,7 +160,7 @@ atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
  *         atci_error_e::ATCI_ERR_INTERNAL If code/event is unknown
  *
  */
-atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent);
+atci_error_e Generic_Notify_SetCode(atci_cmd_t *atciCmdData, uint32_t ulEvent);
 
 
 

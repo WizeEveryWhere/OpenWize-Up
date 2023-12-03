@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup app
+ * @addtogroup default
+ * @ingroup storage
  * @{
  */
 
@@ -58,10 +59,16 @@ extern "C" {
  * @endcond
  */
 /******************************************************************************/
-
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 PERM_SECTION(".roinfo.fw") DECLARE_FWINFO();
 PERM_SECTION(".roinfo.hw") DECLARE_HWINFO();
-
+/*!
+ * @}
+ * @endcond
+ */
 /******************************************************************************/
 #include "phy_layer_private.h"
 
@@ -82,15 +89,15 @@ const uint8_t bDefaultPaState = 1;
  */
 const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
 {
-		/*
-		[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, //   0 dBm
-		[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, //  -6 dBm
-		[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
-		*/
-		// Correction values from Alciom measurement (2023/07/25)
-		[PHY_PMAX_minus_0db]  = {.coarse = 1, .fine = 0x25, .micro = 1}, //   0 dBm
-		[PHY_PMAX_minus_6db]  = {.coarse = 1, .fine = 0x11, .micro = 1}, //  -6 dBm
-		[PHY_PMAX_minus_12db] = {.coarse = 1, .fine = 0x09, .micro = 1}, // -12 dBm
+
+	//[PHY_PMAX_minus_0db]  = {.coarse = 6, .fine = 20, .micro = 0}, /*!<   0 dBm */
+	//[PHY_PMAX_minus_6db]  = {.coarse = 6, .fine =  6, .micro = 0}, /*!<  -6 dBm */
+	//[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, /*!< -12 dBm */
+
+	// Correction values from Alciom measurement (2023/07/25)
+	[PHY_PMAX_minus_0db]  = {.coarse = 1, .fine = 0x25, .micro = 1}, /*!   0 dBm */
+	[PHY_PMAX_minus_6db]  = {.coarse = 1, .fine = 0x11, .micro = 1}, /*!  -6 dBm */
+	[PHY_PMAX_minus_12db] = {.coarse = 1, .fine = 0x09, .micro = 1}, /*! -12 dBm */
 };
 
 /*!
@@ -98,22 +105,24 @@ const phy_power_t aDefaultPhyPower[PHY_NB_PWR] =
  */
 const int16_t i16DefaultRssiOffsetCal = 0x3C7;
 
-//extern
+/*! @cond INTERNAL @{ */
 PERM_SECTION(".noinit") uint8_t bPaState;
 #ifdef PHY_USE_POWER_RAMP
-	//extern
 	PERM_SECTION(".noinit") pa_ramp_rate_e ePaRampRate;
 #endif
-//extern
 PERM_SECTION(".noinit") int16_t i16RssiOffsetCal;
-
-//extern
 PERM_SECTION(".noinit") phy_power_t aPhyPower[PHY_NB_PWR];
-
+/*! @} @endcond */
 /******************************************************************************/
 #include "parameters_cfg.h"
 #include "parameters.h"
 
+extern const uint8_t a_ParamDefault[];
+
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 /*!
   * @brief The parameters values table size
   */
@@ -129,14 +138,14 @@ const uint8_t u8_ParamAccessCfgSz = PARAM_ACCESS_CFG_SZ;
   */
 const uint8_t u8_ParamRestrCfgSz = PARAM_RESTR_CFG_SZ;
 
-
-extern const uint8_t a_ParamDefault[];
-
 /*!
   * @brief Table of parameters values
   */
 PERM_SECTION(".noinit") uint8_t a_ParamValue[PARAM_DEFAULT_SZ];
-
+/*!
+ * @}
+ * @endcond
+ */
 /******************************************************************************/
 #include "crypto.h"
 #include "key_priv.h"
@@ -177,11 +186,18 @@ const key_s sDefaultKey[KEY_MAX_NB] =
 };
 
 /*!
+ * @cond INTERNAL
+ * @{
+ */
+/*!
   * @brief Table of keys
   */
 //KEY_SECTION(".data.keys") key_s _a_Key_[KEY_MAX_NB];
 KEY_SECTION(".noinit") key_s _a_Key_[KEY_MAX_NB];
-
+/*!
+ * @}
+ * @endcond
+ */
 /******************************************************************************/
 #include "wize_api.h"
 /*!
@@ -228,62 +244,33 @@ const device_id_t sDefaultDevId =
 #include "platform.h"
 #include "bsp_boot.h"
 
-/*!
-  * @brief Variable to hold the number of reboot on "crash"
-  */
-//PERM_SECTION(".param") uint8_t boot_count;
 
 /******************************************************************************/
 #include "flash_storage.h"
+#include "nvm_area.h"
 
 /*!
-  * @brief Define the hard-coded flash address for the storage area
-  */
-extern unsigned int __nvm_org__;
-extern unsigned int _nvm_size;
-#define STORAGE_FLASH_ADDRESS (&__nvm_org__)
+ * @cond INTERNAL
+ * @{
+ */
 
 /*!
-  * @brief Pointer on the storage area n flash
+  * @brief Pointer in flash to the NVM area
   */
-const struct flash_store_s * pStorage_FlashArea;
+const struct flash_store_s * pNvmArea;
 
 /******************************************************************************/
-/******************************************************************************/
-struct _store_special_s
-{
-	device_id_t sDeviceInfo;
-	uint8_t     bPaState;
-#ifdef PHY_USE_POWER_RAMP
-	uint8_t     ePaRampRate;
-#else
-	uint8_t     ND1;
-#endif
-	int16_t     i16PhyRssiOffset;
-	phy_power_t aPhyPower[PHY_NB_PWR];
-	uint8_t     ND2[3];
-	uint8_t     aPhyCalRes[CAL_RES_SZ] __attribute__ ((aligned(8)));
-	uint8_t     ND3[4];
-};
 
-/*!
-  * @brief  This initialize the storage area
-  *
-  * @param [in] bForce Force to defaults.
-  *
-  * @retval  None
-  *
-  */
 void Storage_Init(uint8_t bForce)
 {
-	pStorage_FlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
-	if(bForce || pStorage_FlashArea->sHeader.u16Status == 0xFFFF)
+	pNvmArea = (const struct flash_store_s *) NVM_ORG;
+	if(bForce || pNvmArea->sHeader.u16Status == 0xFFFF)
 	{
-		Storage_SetDefault();
+		Storage_SetDefault(ALL_AREA_ID);
 	}
 	else
 	{
-		if ( Storage_Get() == 1)
+		if ( Storage_Get(ALL_AREA_ID) == 1)
 		{
 			// error
 			printf("NVM : Failed to read ");
@@ -297,33 +284,33 @@ void Storage_Init(uint8_t bForce)
 	memcpy(&a_ParamValue[2], &sFwInfo.version[1], 2);
 }
 
-/*!
-  * @brief  Set to defaults device id, all parameters and all keys
-  *
-  * @retval  None
-  *
-  */
-void Storage_SetDefault(void)
+/******************************************************************************/
+
+void Storage_SetDefault(uint8_t eArea)
 {
-	WizeApi_SetDeviceId(&sDefaultDevId);
-	memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	bPaState = bDefaultPaState;
-#ifdef PHY_USE_POWER_RAMP
-	ePaRampRate = eDefaultPaRampRate;
-#endif
-	i16RssiOffsetCal = i16DefaultRssiOffsetCal;
-	Phy_ClrCal();
-	Param_Init(a_ParamDefault);
-	memcpy(_a_Key_, sDefaultKey, sizeof(_a_Key_));
+	if (eArea & KEY_AREA_ID)
+	{
+		memcpy(_a_Key_, sDefaultKey, sizeof(_a_Key_));
+	}
+	if (eArea & SPE_AREA_ID)
+	{
+		WizeApi_SetDeviceId(&sDefaultDevId);
+		memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
+		bPaState = bDefaultPaState;
+	#ifdef PHY_USE_POWER_RAMP
+		ePaRampRate = eDefaultPaRampRate;
+	#endif
+		i16RssiOffsetCal = i16DefaultRssiOffsetCal;
+		Phy_ClrCal();
+	}
+	if (eArea & PAR_AREA_ID)
+	{
+		Param_Init(a_ParamDefault);
+	}
 }
 
-/*!
-  * @brief  Store current into the flash memory
-  *
-  * @retval  0 Success
-  * @retval  1 Failed
-  *
-  */
+/******************************************************************************/
+
 uint8_t Storage_Store(void)
 {
 	struct _store_special_s store_special;
@@ -331,10 +318,10 @@ uint8_t Storage_Store(void)
 
 	uint8_t u8ExtFlags = EXT_FLAGS_PHYCAL_WRITE_EN_MSK | EXT_FLAGS_IDENT_WRITE_EN_MSK | EXT_FLAGS_KEYS_WRITE_EN_MSK;
 
-	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;
+	sStorageArea.pFlashArea = (const struct flash_store_s *) NVM_ORG;
 
 	// Prepare first part with device ID, phy power and rssi cal. values
-	if(pStorage_FlashArea->sHeader.u16Status != 0xFFFF)
+	if(pNvmArea->sHeader.u16Status != 0xFFFF)
 	{
 #ifdef HAS_EXTEND_PARAMETER
 		Param_Access(EXTEND_FLAGS, &u8ExtFlags, 0);
@@ -391,43 +378,62 @@ uint8_t Storage_Store(void)
 	return 0;
 }
 
-/*!
-  * @brief  Get from flash memory o current
-  *
-  * @retval  0 Success
-  * @retval  1 Failed
-  *
-  */
-uint8_t Storage_Get(void)
+/******************************************************************************/
+
+uint8_t Storage_Get(uint8_t eArea)
 {
 	struct _store_special_s store_special;
 	struct storage_area_s sStorageArea;
 
-	sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
-	sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
-	sStorageArea.u32SrcAddr[2] = (uint32_t)(a_ParamValue);
+	uint8_t i;
+	for (i = 0; i < NB_STORE_PART; i++)
+	{
+		sStorageArea.u32SrcAddr[i] = 0;
+		sStorageArea.u32Size[i] = 0;
+	}
 
-	sStorageArea.u32Size[0] = sizeof(_a_Key_);
-	sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
-	sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
+	if (eArea & KEY_AREA_ID)
+	{
+		sStorageArea.u32SrcAddr[0] = (uint32_t)(_a_Key_);
+		sStorageArea.u32Size[0] = sizeof(_a_Key_);
+	}
+	if (eArea & SPE_AREA_ID)
+	{
+		sStorageArea.u32SrcAddr[1] = (uint32_t)(&store_special);
+		sStorageArea.u32Size[1] = sizeof(struct _store_special_s);
+	}
+	if (eArea & PAR_AREA_ID)
+	{
+		sStorageArea.u32SrcAddr[2] = (uint32_t)(a_ParamValue);
+		sStorageArea.u32Size[2] = PARAM_DEFAULT_SZ;
+	}
 
-	sStorageArea.pFlashArea = (const struct flash_store_s *) STORAGE_FLASH_ADDRESS;;
+	sStorageArea.pFlashArea = (const struct flash_store_s *) NVM_ORG;;
 	if ( FlashStorage_StoreRead(&sStorageArea) != DEV_SUCCESS)
 	{
 		return 1;
 	}
 
-	// Init special
-	WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
-	memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
-	bPaState = store_special.bPaState;
-#ifdef PHY_USE_POWER_RAMP
-	ePaRampRate = (pa_ramp_rate_e)store_special.ePaRampRate;
-#endif
-	i16RssiOffsetCal = store_special.i16PhyRssiOffset;
-	Phy_SetCal(store_special.aPhyCalRes);
+	if (eArea & SPE_AREA_ID)
+	{
+		// Init special
+		WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
+		memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
+		bPaState = store_special.bPaState;
+	#ifdef PHY_USE_POWER_RAMP
+		ePaRampRate = (pa_ramp_rate_e)store_special.ePaRampRate;
+	#endif
+		i16RssiOffsetCal = store_special.i16PhyRssiOffset;
+		Phy_SetCal(store_special.aPhyCalRes);
+	}
 	return 0;
 }
+
+/*!
+ * @}
+ * @endcond
+ */
+/******************************************************************************/
 
 #ifdef __cplusplus
 }

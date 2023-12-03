@@ -616,6 +616,7 @@ void WizeApi_OnTimeFlag(uint32_t u32Flg)
  * @static
  * @brief This function push a notification to the ATCI
  *
+ * @param [in] src Source of the event
  * @param [in] evt Event or id of the notification
  *
  * @return 0 if success, -1 otherwise (queue is full)

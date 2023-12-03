@@ -3,26 +3,26 @@
   * @brief: This file implement the functions to treat the partition header
   *         and/or the image FW.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
   *
-  * Redistribution and use in source and binary forms, with or without 
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
   * below) provided that the following conditions are met:
   *    - Redistributions of source code must retain the above copyright notice,
   *      this list of conditions and the following disclaimer.
-  *    - Redistributions in binary form must reproduce the above copyright 
-  *      notice, this list of conditions and the following disclaimer in the 
+  *    - Redistributions in binary form must reproduce the above copyright
+  *      notice, this list of conditions and the following disclaimer in the
   *      documentation and/or other materials provided with the distribution.
   *    - Neither the name of GRDF, Inc. nor the names of its contributors
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2023/07/11[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2023/07/11[GBI]
   * Initial version
   *
   *
@@ -99,7 +99,7 @@ static int32_t _update_area_erase_header_(void);
 /*!
  * @brief This function setup the update area
  *
- * @return see the update_status_e enum
+ * @return see the @link update_status_e @endlink
  */
 update_status_e UpdateArea_Setup(void)
 {
@@ -150,7 +150,7 @@ update_status_e UpdateArea_Setup(void)
  * @param [in] eType     The type of update (see update_type_e)
  * @param [in] u16BlkCnt The expected number of update block
  *
- * @return see the update_status_e enum
+ * @return see the @link update_status_e @endlink
  */
 update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt)
 {
@@ -182,7 +182,7 @@ update_status_e UpdateArea_Initialize(uint8_t eType, uint16_t u16BlkCnt)
  * @param [in] u16Id The update block id
  * @param [in] pData The update block data to store
  *
- * @return see the update_status_e enum
+ * @return see the @link update_status_e @endlink
  */
 update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t *pData)
 {
@@ -204,7 +204,7 @@ update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t 
  * @param [in] u32HashSW The hash number to validate the FW image
  * @param [in] img_sz    The size of FW image
  *
- * @return see the update_status_e enum
+ * @return see the @link update_status_e @endlink
  */
 update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t img_sz)
 {
@@ -247,9 +247,9 @@ update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t 
  *
  * @param [in] u32HashSW The hash number to validate the FW image
  *
- * @retval update_status_e::UPD_STATUS_VALID If image is valid
- *         update_status_e::UPD_STATUS_INPROGRESS If a FW block is missing
- *         update_status_e::UPD_STATUS_CORRUPTED If image validation failed
+ * @retval @link update_status_e::UPD_STATUS_VALID @endlink If image is valid
+ * @retval @link update_status_e::UPD_STATUS_INPROGRESS @endlink If a FW block is missing
+ * @retval @link update_status_e::UPD_STATUS_CORRUPTED @endlink If image validation failed
  */
 update_status_e UpdateArea_CheckImg(uint32_t u32HashSW)
 {
@@ -277,8 +277,8 @@ update_status_e UpdateArea_CheckImg(uint32_t u32HashSW)
  *
  * @param [in] p_img_info Pointer on internal partition image info
  *
- * @retval update_status_e::UPD_STATUS_READY If success
- *         update_status_e::UPD_STATUS_STORE_FAILED If fail to write header
+ * @retval @link update_status_e::UPD_STATUS_READY @endlink If success
+ * @retval @link update_status_e::UPD_STATUS_STORE_FAILED @endlink If fail to write header
  */
 update_status_e UpdateArea_WriteHeader(struct __img_info_s *p_img_info)
 {

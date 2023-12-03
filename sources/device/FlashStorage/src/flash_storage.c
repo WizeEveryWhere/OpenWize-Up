@@ -42,15 +42,8 @@ extern "C" {
 
 #include "flash_storage.h"
 
-/*!
- * @brief This function initialize (erase) the storage area in flash memory
- *
- * @param [in] pStoreArea Pointer on structure defining the flash area
- *
- * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
- * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
- *
- */
+/******************************************************************************/
+
 uint8_t FlashStorage_StoreInit(struct storage_area_s* pStoreArea)
 {
 	const struct flash_store_s* pFlashArea = pStoreArea->pFlashArea;
@@ -89,15 +82,8 @@ uint8_t FlashStorage_StoreInit(struct storage_area_s* pStoreArea)
 	return eRet;
 }
 
-/*!
- * @brief This function finalize (store header) the storage area in flash memory
- *
- * @param [in] pStoreArea Pointer on structure defining what to store
- *
- * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
- * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
- *
- */
+/******************************************************************************/
+
 uint8_t FlashStorage_StoreFini(struct storage_area_s* pStoreArea)
 {
 	const struct flash_store_s* pFlashArea = pStoreArea->pFlashArea;
@@ -131,15 +117,8 @@ uint8_t FlashStorage_StoreFini(struct storage_area_s* pStoreArea)
 	return eRet;
 }
 
-/*!
- * @brief This function write the storage area into flash memory
- *
- * @param [in] pStoreArea Pointer on structure defining what to store
- *
- * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
- * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
- *
- */
+/******************************************************************************/
+
 uint8_t FlashStorage_StoreWrite(struct storage_area_s* pStoreArea)
 {
 	uint32_t next_dest_addr;
@@ -166,29 +145,31 @@ uint8_t FlashStorage_StoreWrite(struct storage_area_s* pStoreArea)
 	return eRet;
 }
 
-/*!
- * @brief This function read the storage area from flash memory
- *
- * @param [in] pStoreArea Pointer on structure defining the storage
- *
- * @retval DEV_SUCCESS if success (see @link dev_res_e::DEV_SUCCESS @endlink)
- * @retval DEV_FAILURE if fail (see @link dev_res_e::DEV_FAILURE @endlink)
- *
- */
+/******************************************************************************/
+
 uint8_t FlashStorage_StoreRead(struct storage_area_s* pStoreArea)
 {
 	const struct flash_store_s* pFlashArea = pStoreArea->pFlashArea;
 	dev_res_e eRet = DEV_FAILURE;
 	// check if destination is page and double word aligned
-	if ( pFlashArea )
+	if ( pFlashArea &&
+			!( ((uint32_t)pFlashArea)%FLASH_PAGE_SIZE ) &&
+			!( ((uint32_t)pFlashArea)%sizeof(uint64_t) ) )
 	{
-		memcpy( (void*)(pStoreArea->u32SrcAddr[0]), (void*)(pFlashArea->sHeader.u32PartAddr[0]), pStoreArea->u32Size[0]);
-		memcpy( (void*)(pStoreArea->u32SrcAddr[1]), (void*)(pFlashArea->sHeader.u32PartAddr[1]), pStoreArea->u32Size[1]);
-		memcpy( (void*)(pStoreArea->u32SrcAddr[2]), (void*)(pFlashArea->sHeader.u32PartAddr[2]), pStoreArea->u32Size[2]);
+		uint8_t i;
+		for (i = 0; i < NB_STORE_PART; i++)
+		{
+			if (pStoreArea->u32SrcAddr[i] != 0x0)
+			{
+				memcpy( (void*)(pStoreArea->u32SrcAddr[i]), (void*)(pFlashArea->sHeader.u32PartAddr[i]), pStoreArea->u32Size[i]);
+			}
+		}
 		eRet = DEV_SUCCESS;
 	}
 	return eRet;
 }
+
+/******************************************************************************/
 
 #ifdef __cplusplus
 }

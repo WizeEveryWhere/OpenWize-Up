@@ -152,7 +152,7 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 	if(eRebootMode)
 	{
 		Atci_Debug_Str("Cold Reboot");
-		Storage_SetDefault();
+		Storage_SetDefault(ALL_AREA_ID);
 	}
 	else
 	{
@@ -184,7 +184,7 @@ atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_PARAM_NB;
 
 	Atci_Debug_Str("Restore to Factory settings");
-	Storage_SetDefault();
+	Storage_SetDefault(ALL_AREA_ID);
 	return ATCI_ERR_NONE;
 }
 
@@ -380,7 +380,7 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 /******************************************************************************/
 
 /*!
- * @brief
+ * @brief Set the code for a generic notification (from ulEvent)
  *
  * @param[in,out] atciCmdData  Pointer on "atci_cmd_t" structure
  * @param[in]	  ulEvent
@@ -389,11 +389,11 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
  *         atci_error_e::ATCI_ERR_INTERNAL If code/event is unknown
  *
  */
-atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
+atci_error_e Generic_Notify_SetCode(atci_cmd_t *atciCmdData, uint32_t ulEvent)
 {
 	uint8_t info = 0xFF;
 
-	pAtciCtx->bNeedAck = 0;
+	atciCmdData->bNeedAck = 0;
 
 	// "NOTIFY" unsolicited command case
 	if (ulEvent >= NB_AT_UNS)
@@ -449,18 +449,18 @@ atci_error_e Generic_Notify_SetCode(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
 				break;
 		}
 
-		Atci_Cmd_Param_Init(pAtciCtx);
+		Atci_Cmd_Param_Init(atciCmdData);
 		// Add param of size 1
-		pAtciCtx->params[0].size = 1;
-		Atci_Add_Cmd_Param_Resp(pAtciCtx);
+		atciCmdData->params[0].size = 1;
+		Atci_Add_Cmd_Param_Resp(atciCmdData);
 		// Add param value
-		*(pAtciCtx->params[0].data) = info;
-		pAtciCtx->cmdCode = UNS_NOTIFY;
+		*(atciCmdData->params[0].data) = info;
+		atciCmdData->cmdCode = UNS_NOTIFY;
 	}
 	// "standard" unsolicited command
 	else if (ulEvent > NB_AT_CMD)
 	{
-		pAtciCtx->cmdCode = (at_cmd_code_e)ulEvent;
+		atciCmdData->cmdCode = (at_cmd_code_e)ulEvent;
 	}
 	// unsolicited command is not known
 	else
