@@ -50,20 +50,32 @@ declare -A paramsId=(
 
 declare -A atCmd=(
     # Read / Write
+    [ATSTAT]='?|=$v|Get/Clr network statistics'
     [ATIDENT]='?|=$MField,$AField|Get/Set device identification'
     [ATPARAM]='=$id?|=$id,$value|Get/Set device parameter'
     [ATFC]='=$id?|=$id,$v1 [,$v2] [,$v3]|Get/Set Radio module configuration'
+    [ATTEST]='?|=$v|Get/Set the test mode'
+    # Read only
+    [ATUID]='?||Get CPU unique identifier'
+    [ATCCLK]='?||Get the current EPOCH with milisecond extend'
     # Write only
-    [ATKMAC]='|=$kmac|Set the KMAC (as big endian, only the first 16 bytes)'
-    [ATKENC]='|=$kid,$kenc|Set the KENC (as big endian, only the first 16 bytes) (kid in 1 to 14)'
-    [ATSEND]='|=$l6app,$message|Send a DATA message'
+    [ATKEY]='|=$kid,$key|Set the KEY (as big endian, 16 or 32 bytes) (kid in 1 to 19)'
     # Exec only
-    [ATPING]='||Launch a PING/PONG session'
-    [AT\&W]='||Write to flash'
-    [AT\&F]='||Restore to Factory'
-    [ATQ]='||Go to sleep'
-    [ATZ]='||Reboot'
+    [AT]='||Attention'
     [ATI]='||Get manufacturer info'
+    [ATZ0]='||Reset all register, calibration, clock and Reboot'
+    [ATZ1]='||Reboot'
+    [ATQ]='||Go to sleep'
+    [AT\&F]='||Restore to Factory'
+    [AT\&W]='||Write to flash'
+    # Session
+    [ATSEND]='|=$l6app,$message|Send a DATA message'
+    #[ATADMANN]='|=$Err|Response to an ADM ANN_DOWNLOAD'
+    [ATPING]='||Launch a PING/PONG session'
+    # Local update
+    #[ATANN]='|=$SesId,$KeyId,$Announce|Request for local update'
+    #[ATBLK]='|=$SesId,$BlkId,$Blk|Tranfert a FW block'
+    #[ATUPD]='|=$SesId|Apply the update FW'
 );
 
 function _HelpAT_usage_ {
@@ -97,11 +109,15 @@ function _HelpAT_display_()
         mkeys=(${!atCmd[@]});
         echo "*** Available AT command ***"
     fi
-   
+    
+    sorted_keys=($(echo ${mkeys[@]} | tr ' ' '\n' | sort | tr '\n' ' '));
+    
     #echo "${mkeys[@]}";
-
+    #echo "${sorted_keys[@]}";
+    
     IFS=$'|';
-    for k in ${mkeys[@]}
+    #for k in ${mkeys[@]}
+    for k in ${sorted_keys[@]}
     do
         read -r rHelp wHelp sHelp <<< "${atCmd[${k}]}"
         printf "%-7s : %s\n" ${k} ${sHelp};
@@ -168,26 +184,16 @@ function SendCommissioning()
     # echo "${mDev} ${MField} ${AField} ${elogger}";
     # return;
 
-    local mKenc='0F0E0D0C0B0A09080706050403020100';
-    local mKmac='596B25B5574F288CB0AB986407201770';
-    local mKencId=1; # decimal
-    local mNetwId=9; # decimal
-
-    SendAt "ATI" "...for wake-up";
+    SendAt "AT"                              "...for wake-up";
+    SendAt "ATI"                             "Show HW info";
     SendAt "ATIDENT=\$${MField},\$${AField}" "IDENT";
-    SendAt "ATKENC=${mKencId},\$${mKenc}"    "KENC";
-    SendAt "ATPARAM=\$28,${mKencId}"         "CIPH_CURRENT_KEY";
-    SendAt "ATKMAC=\$${mKmac}"               "KMAC";
-    SendAt "ATPARAM=\$2A,${mNetwId}"         "NetwId";
+    
     SendAt 'ATPARAM=$30,1'                   "PING_RX_DELAY";
     SendAt 'ATPARAM=$31,3'                   "PING_RX_LENGTH";
     SendAt 'ATPARAM=$18,1'                   "EXCH_RX_DELAY";
     SendAt 'ATPARAM=$19,8'                   "EXCH_RX_LENGTH" ;
     SendAt 'ATPARAM=$1A,1'                   "EXCH_RESPONSE_DELAY";
-    SendAt 'ATPARAM=$08,100'                 "RF_UPLINK_CHANNEL";
-    SendAt 'ATPARAM=$09,120'                 "RF_DOWNLINK_CHANNEL";
-    SendAt 'ATPARAM=$0A,0'                   "RF_UPLINK_MOD";
-    SendAt 'ATPARAM=$0B,0'                   "RF_DOWNLINK_MOD";
+    SendAt 'ATPARAM=$D0,$FF'                 "EXTEND_FLAGS";
 
     if [[ ${elogger} == 1 ]]
     then
@@ -200,26 +206,28 @@ function SendCommissioning()
         SendAt 'ATPARAM=$FE,$00' "LOGGER_LEVEL";
     fi
 
-    SendAt 'AT&W' "Store to NVM";
+    #SendAt 'AT&W' "Store to NVM";
     sleep 0.1;
-    SendAt 'ATZ' "Reboot";
+    #SendAt 'ATZ' "Reboot";
 }
 
 #*******************************************************************************
 function GetCommissioning()
 {
+    SendAt "AT"           "...for wake-up";
     SendAt 'ATIDENT?'     "IDENT";
-    SendAt 'ATPARAM=$28?' "CIPH_CURRENT_KEY";
-    SendAt 'ATPARAM=$2A?' "NetwId";
+    SendAt 'ATPARAM=$28?' "CIPH_CURRENT_KEY"; # Default setting in FW
+    SendAt 'ATPARAM=$2A?' "NetwId"; # Default setting in FW
     SendAt 'ATPARAM=$30?' "PING_RX_DELAY";
     SendAt 'ATPARAM=$31?' "PING_RX_LENGTH";
     SendAt 'ATPARAM=$18?' "EXCH_RX_DELAY";
     SendAt 'ATPARAM=$19?' "EXCH_RX_LENGTH" ;
     SendAt 'ATPARAM=$1A?' "EXCH_RESPONSE_DELAY";
-    SendAt 'ATPARAM=$08?' "RF_UPLINK_CHANNEL";
-    SendAt 'ATPARAM=$09?' "RF_DOWNLINK_CHANNEL";
-    SendAt 'ATPARAM=$0A?' "RF_UPLINK_MOD";
-    SendAt 'ATPARAM=$0B?' "RF_DOWNLINK_MOD";
+    SendAt 'ATPARAM=$08?' "RF_UPLINK_CHANNEL"; # Default setting in FW
+    SendAt 'ATPARAM=$09?' "RF_DOWNLINK_CHANNEL"; # Default setting in FW
+    SendAt 'ATPARAM=$0A?' "RF_UPLINK_MOD"; # Default setting in FW
+    SendAt 'ATPARAM=$0B?' "RF_DOWNLINK_MOD"; # Default setting in FW
+    SendAt 'ATPARAM=$D0?' "EXTEND_FLAGS";
     SendAt 'ATPARAM=$FD?' "LOGGER_TIME_OPT";
     SendAt 'ATPARAM=$FE?' "LOGGER_LEVEL";
 }

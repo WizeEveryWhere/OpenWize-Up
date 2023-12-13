@@ -79,8 +79,8 @@ const struct _store_special_s sCalibration =
 		.u8Ver = 0x00,
 		.u8Type = 0x00
 	},
-	.bPaState = 0,
-	.i16PhyRssiOffset = 0,
+	.bPaState = 1,
+	.i16PhyRssiOffset = 0x3C7,
 	.aPhyPower =
 	{
 		/*

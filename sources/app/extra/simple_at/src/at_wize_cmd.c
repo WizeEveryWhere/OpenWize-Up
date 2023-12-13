@@ -57,8 +57,6 @@ extern "C" {
  * @{
  */
 
-extern uint8_t bTestMode;
-
 /*!
  * @}
  * @endcond
@@ -125,7 +123,7 @@ atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 	}
 
 	// if is currently in test mode
-	if(bTestMode)
+	if(atciCmdData->bTestMode)
 	{
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}
@@ -383,7 +381,7 @@ atci_error_e Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_PARAM_NB;
 
 	// if is currently in test mode
-	if(bTestMode)
+	if(atciCmdData->bTestMode)
 	{
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}

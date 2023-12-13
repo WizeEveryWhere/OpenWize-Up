@@ -4,6 +4,19 @@ Application
 .. doxygengroup:: app
    :content-only:
 
+Storage
+-------
+
+.. doxygengroup:: storage
+   :content-only:
+
+Default
+^^^^^^^
+
+.. doxygengroup:: default
+   :content-only:
+
+
 Atci
 ----
 
@@ -22,6 +35,11 @@ System
 .. doxygengroup:: sys
    :content-only:
 
+Update
+------
+
+.. doxygengroup:: update
+   :content-only:
 
 Board Support Package
 =====================

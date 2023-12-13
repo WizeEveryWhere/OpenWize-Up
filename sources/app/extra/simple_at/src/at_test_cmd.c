@@ -51,8 +51,6 @@ extern "C" {
  * @{
  */
 
-uint8_t bTestMode;
-
 /*!
  * @}
  * @endcond
@@ -308,7 +306,7 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 			return ATCI_ERR_PARAM_NB;
 
 		test_mode_info_t eTestModeInfo = EX_PHY_TestInit();
-		bTestMode = 1;
+		atciCmdData->bTestMode = 1;
 
 		if (*(atciCmdData->params[0].val8) == TEST_MODE_DIS) //also TMODE_TX_NONE witch correspond to the same thing (see test_modes_tx_e)
 		{
@@ -316,7 +314,7 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 
 			eTestModeInfo.eTestMode = PHY_TST_MODE_NONE;
 			eTestModeInfo.eTxMode = 0;
-			bTestMode = 0;
+			atciCmdData->bTestMode = 0;
 		}
 		else if (*(atciCmdData->params[0].val8) < TMODE_TX_NB) // (see test_modes_tx_e)
 		{
@@ -355,7 +353,7 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 
 		if (eRet != ATCI_ERR_NONE)
 		{
-			bTestMode = 0;
+			atciCmdData->bTestMode = 0;
 		}
 	}
 	else

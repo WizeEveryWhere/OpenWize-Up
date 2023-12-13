@@ -83,7 +83,7 @@ extern boot_info_t gBootInfo;
  */
 atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData)
 {
-	if (atciCmdData->bLpAllowed)
+	if (atciCmdData->bLpAllowed && !(atciCmdData->bTestMode))
 	{
 		atciCmdData->bNeedAck = 0;
 		atciCmdData->eState = ATCI_SLEEP;

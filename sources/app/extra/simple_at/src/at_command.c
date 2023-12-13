@@ -118,7 +118,7 @@ const struct at_desc_s aAtDescCmd[NB_UNS_CMD] =
 	GROUP3( CMD_ATCCLK , "AT%CCLK", Exec_ATCCLK_Cmd)
 	GROUP3( CMD_ATUID  , "AT%UID" , Exec_ATUID_Cmd)
 	// ---
-	GROUP3( CMD_NULL   , "NULL"   , NULL)
+	DECLARE_AT( CMD_NULL      , "NULL"      , NULL)
 
 	// ---
 	DECLARE_AT( UNS_ATBLK     , "ATBLK"     , Exec_ATBLK_Notify)

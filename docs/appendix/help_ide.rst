@@ -42,7 +42,7 @@ Build the OpenWize'Up
 ---------------------
 
 .. warning:: 
-   **Prerequitsite** : The OpenWize'Up Project has already been imported (see :ref:`Import OpenWize-Up project`).
+   **Prerequisite** : The OpenWize'Up Project has already been imported (see :ref:`Import OpenWize-Up project`).
 
 On left panel, in "*Project Explorer*" several "*Build Targets*" are provided :
 
@@ -52,12 +52,11 @@ On left panel, in "*Project Explorer*" several "*Build Targets*" are provided :
 
    Available *Build Targets*
 
-- WizeUp : Setup the Wize'Up board.
+- WizeUp : Setup for Wize'Up board.
 - CMake Debug : Launch the cmake with '*-DCMAKE_BUILD_TYPE=Debug*' option.
-- CMake Release : Launch the cmake with '*-DCMAKE_BUILD_TYPE=Release*' option.
 - Build : Build the application
 - Clean : Clean the previous build
-- Distclean : Remove all build and install content 
+- Distclean : Remove all build content 
 - Install : Install the binary files.
 
 .. note:: 
@@ -75,7 +74,7 @@ The build workflow is the following :
       Result from '*WizeUp*' target
 
 #. Next, generate the build system by double-click on '*CMake Debug*' target. 
-   The console gives you the generation prcess result : 
+   The console gives you the generation process result : 
 
    .. figure:: ../pics/IDE_BuildTargetsConsole_2.png
       :width: 85 %
@@ -93,9 +92,9 @@ The build workflow is the following :
    
       Result from '*Build*' target 
 
-#. Finally, install thes binaries files. The goal here, is mainly to be able to 
+#. Finally, install the binaries files. The goal here, is mainly to be able to 
    get the executable file to debug or run it. Double-click on '*Install*' target
-   and check in '*Project Explorer*' panal that files are available (refresh 
+   and check in '*Project Explorer*' panel that files are available (refresh 
    with F5 if required). 
 
    .. figure:: ../pics/IDE_BuildTargetsResult.png
@@ -112,7 +111,7 @@ Create a Debug Configuration
 ----------------------------
 
 .. warning:: 
-   **Prerequitsite** : The OpenWize'Up Project has already been imported (see :ref:`Import OpenWize-Up project`).
+   **Prerequisite** : The OpenWize'Up Project has already been imported (see :ref:`Import OpenWize-Up project`).
 
 - Ensure that active "Build Configuration" is set to "Debug"
 

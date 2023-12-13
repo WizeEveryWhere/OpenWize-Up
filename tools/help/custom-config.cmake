@@ -1,7 +1,7 @@
 ################################################################################
 # Customization :
 # On command line add custom directory with -DCUSTOM_DIR=my_custom
-# 1. From the "my_custom/cfg" directory all known xml file name will used in 
+# 1. From the "my_custom/cfg" directory all known xml file name will be used in 
 #    place of the default ones (located in sources/app/cfg). 
 # 2. Add "BusinessParams.xml" file if exist in "my_custom/cfg"
 # 3. Include the file "custom-config.cmake" (as cmake package) if it exist in 
@@ -45,7 +45,7 @@
 # $> mkdir ../my_custom
 # $> mkdir ../my_custom/cfg
 # $> cp ./sources/cfg/LoggerParams.xml ../my_custom/cfg/.
-# $> cp ./tools/help/cutom-config.cmake ../my_custom/.
+# $> cp ./tools/help/custom-config.cmake ../my_custom/.
 #
 # $> mkdir _build_custom
 # $> cd _build_custom

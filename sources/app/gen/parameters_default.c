@@ -1,6 +1,6 @@
 /*!
   * @file parameters_default.c
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-22 11:09:10.235494651 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-12-13 09:10:45.947396839 +0100).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 22/11/2023 11:09 [neo]
+  * @par x.x.x : 13/12/2023 09:10 [neo]
   *
   */
 
@@ -36,7 +36,7 @@ const uint8_t a_ParamDefault[] = {
    0x1,0x0, /*!< Hardware version number of the device (or transceiver for a remote module)*/
    0x1,0x0, /*!< Software version number run by the device (or transceiver for a remote module)*/
    0x0,0x0,0x0,0x0, /*!< Date/time of the last successful firmware download*/
-   0x0, /*!< Version of the application layer*/
+   0xfe, /*!< Version of the application layer*/
    0x64, /*!< Frequency channel to be used for all uplink message transmissions*/
    0x78, /*!< Frequency channel to be used for all message receptions (except firmware download)*/
    0x0, /*!< Modulation to be used for all uplink message transmissions*/
@@ -50,15 +50,15 @@ const uint8_t a_ParamDefault[] = {
    0x0, /*!< Minimum value accepted for the EXCH_RESPONSE_DELAY parameter (defined by the device MANUFACTURER)*/
    0x50, /*!< Maximum length of application messages that can be sent by the device*/
    0x64, /*!< Maximum length of application messages that can be received by the device*/
-   0x50,0xe2,0x27,0x0, /*!< Current time of device*/
+   0x0,0x0,0x0,0x0, /*!< Current time of device*/
    0x0,0x0, /*!< Relative correction (time delta) to be applied to the device clock once only to correct its absolute drift*/
    0x0,0x1, /*!< Correction of device clock frequency*/
-   0x2, /*!< Current key number*/
+   0x1, /*!< Current key number*/
    0xe, /*!< Number of encryption keys available in the device*/
-   0x1, /*!< Kmac key index*/
+   0x0, /*!< Kmac key index*/
    0xa, /*!< Fixed waiting time after transmission of an INSTPING message by the device and before opening the INSTPONG message listening window*/
    0x5, /*!< Duration of the INSTPONG message listening window by the device*/
-   0x0, /*!< Minimum value of the PING_RX_DELAY parameter*/
+   0x1, /*!< Minimum value of the PING_RX_DELAY parameter*/
    0x14, /*!< Maximum value of the PING_RX_LENGTH parameter*/
    0x0,0x0,0x0,0x0, /*!< Execution time of the last connectivity test (INSTPING/INSTPONG)*/
    0x0, /*!< Number of different INSTPONG messages received in response to the last connectivity test*/
