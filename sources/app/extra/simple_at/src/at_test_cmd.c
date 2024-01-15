@@ -118,7 +118,7 @@ extern "C" {
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATFC(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
 	uint8_t i;
@@ -289,7 +289,7 @@ atci_error_e Exec_ATFC_Cmd(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATTEST(atci_cmd_t *atciCmdData)
 {
 	uint8_t eRet = ATCI_ERR_NONE;
 	atci_error_e status;

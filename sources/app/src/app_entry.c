@@ -238,7 +238,7 @@ void Monitor_Task(void const * argument)
 			int32_t state;
 			for (uint8_t i = 0; i < SES_NB; i++)
 			{
-				state = WizeApi_GetState(i);
+				state = WizeApi_SesGetState(i);
 			}
 
 			state = NetMgr_IsBusy(); // priority 5

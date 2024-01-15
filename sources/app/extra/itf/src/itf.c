@@ -59,17 +59,37 @@ extern "C" {
  * @{
  */
 
+static void _itf_tsk_(void const * argument);
 static void _fw_buffer_init_(fw_buffer_t *pFwBuffer);
 static void* _fw_buffer_get_rptr_(fw_buffer_t *pFwBuffer);
 static void* _fw_buffer_get_wptr_(fw_buffer_t *pFwBuffer);
+
+
+static struct itf_ctx_s sItfCtx;
+
+/******************************************************************************/
+
+#define ITF_TASK_NAME itf
+#define ITF_TASK_FCT _itf_tsk_
+
+#ifndef ITF_STACK_SIZE
+	#define ITF_STACK_SIZE 200
+#endif
+
+#ifndef ITF_PRIORITY
+	#define ITF_PRIORITY (UBaseType_t)(tskIDLE_PRIORITY+2)
+#endif
+
+#ifndef ITF_EVT_TMO
+	#define ITF_EVT_TMO 0xFFFFFFFF
+#endif
 
 #ifndef ITF_LOCK_TMO
 	#define ITF_LOCK_TMO 100 // in rtos cycles
 #endif
 
+SYS_TASK_CREATE_DEF(itf, ITF_STACK_SIZE, ITF_PRIORITY);
 SYS_MUTEX_CREATE_DEF(itf);
-
-struct itf_ctx_s sItfCtx;
 
 /*!
  * @}
@@ -107,38 +127,80 @@ void ITF_AdmAnnToLocalAnn(local_cmd_anndownload_t *pLocalAnn, admin_cmd_anndownl
 void ITF_Setup(void)
 {
 	sItfCtx.hLock = SYS_MUTEX_CREATE_CALL(itf);
+	sItfCtx.hTask = SYS_TASK_CREATE_CALL(itf, ITF_TASK_FCT, NULL);
 }
 
 /*!
- * @brief This function initialize interface for a FW download to local interface .
+ * @brief Convenient function that call "WizeApi_Session" for Ping frame.
  *
- * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If success or there is no pending FW download.
- *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
+ * @return 0 if success, -1 otherwise
  *
  */
-uint8_t ITF_On(void)
+int32_t ITF_Ping(uint8_t *pData, uint8_t u8Size)
 {
-	admin_ann_fw_info_t sFwAnnInfo;
-	if (WizeApp_GetFwInfo(&sFwAnnInfo, NULL) != 0)
+	// Start Install session
+	if ( WIZE_API_SUCCESS != WizeApi_SesOpen(pData, u8Size, WIZE_API_INST, sItfCtx.hTask))
 	{
-		// set the Itf local key id
-		Param_Access(LOCAL_KEY_ID, &(sItfCtx.u8KeyId), 0);
-
-		// set the Itf down id
-		sItfCtx.u32DwnId = sFwAnnInfo.u32DwnId;
-
-		// init theItf FW buffer
-		_fw_buffer_init_(&sItfCtx.sFwBuffer);
-
-		// Try to start the update process
-		if (Update_Open(sFwAnnInfo))
-		{
-			// Error
-			return LO_DWN_ERR_UNK;
-		}
+		return -1;
 	}
-	return LO_DWN_ERR_NONE;
+	return 0;
 }
+
+/*!
+ * @brief Convenient function that call "WizeApi_Session" for standard frame.
+ *
+ * @param [in] pData  Pointer on raw data to send
+ * @param [in] u8Size Number of byte to send
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
+int32_t ITF_Send(uint8_t *pData, uint8_t u8Size)
+{
+	// Start ADM Data session
+	if ( WIZE_API_SUCCESS != WizeApi_SesOpen(pData, u8Size, WIZE_API_DATA, sItfCtx.hTask))
+	{
+		return -1;
+	}
+	return 0;
+}
+
+/*!
+ * @brief Convenient function that call "WizeApi_Session" for priority frame.
+ *
+ * @param [in] pData  Pointer on raw data to send
+ * @param [in] u8Size Number of byte to send
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
+int32_t ITF_Alarm(uint8_t *pData, uint8_t u8Size)
+{
+	// Start ADM Data Prio session
+	if ( WIZE_API_SUCCESS != WizeApi_SesOpen(pData, u8Size, WIZE_API_ALARM, sItfCtx.hTask))
+	{
+		return -1;
+	}
+	return 0;
+}
+
+/*!
+ * @brief Convenient function that call "WizeApp_AnnReady"
+ *
+ * @param [in] u8ErrCode  Error code of the current announcement
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
+int32_t ITF_AnnReady(uint8_t u8ErrCode)
+{
+	uint8_t eErrParam;
+	sItfCtx.u8Err = ITF_GetAdmErrCode(u8ErrCode, &eErrParam);
+	WizeApp_AnnReady(sItfCtx.u8Err, eErrParam);
+	return 0;
+}
+
+/******************************************************************************/
 
 /*!
  * @brief This function store fw block into local buffer
@@ -490,6 +552,124 @@ uint8_t ITF_GetLocalErrCode(uint8_t eErrCode, uint8_t u8ErrorParam)
  * @cond INTERNAL
  * @{
  */
+
+/*!
+ * @static
+ * @brief The itf task function
+ *
+ */
+static void _itf_tsk_(void const * argument)
+{
+	(void)argument;
+
+	/*
+	 * TODO :
+	 * argument : could be interface or callback to call
+	 *
+	 */
+
+	uint32_t ulEvent;
+	uint32_t ret;
+	int32_t i32Type = -1;
+	uint8_t eErrParam;
+	admin_ann_fw_info_t sFwAnnInfo;
+
+	do
+	{
+		if ( sys_flag_wait(&ulEvent, ITF_EVT_TMO))
+		{
+			ret = WizeApp_Common(ulEvent);
+			// COMMAND is received
+			if (ulEvent & SES_FLG_CMD_RECV)
+			{
+				// COMMAND is ANNDOWNLOAD
+				if (ret == WIZEAPP_INFO_CMD_ANN)
+				{
+					i32Type = WizeApp_GetFwInfoType();
+					// Is for external FW
+					if ( i32Type == UPD_TYPE_EXTERNAL )
+					{
+						sItfCtx.u8Err = ADM_UNK_CMD;
+						UNS_Notify(UNS_ATADMANN);
+					}
+					// could be done in "WizeApp_AnnCheckFwInfo"
+					else if (i32Type == UPD_TYPE_INTERNAL)
+					{
+						if (WizeApp_GetFwInfo(&sFwAnnInfo, NULL) != 0)
+						{
+							sItfCtx.u8Err = AdmInt_AnnCheckIntFW(&sFwAnnInfo, &eErrParam);
+							WizeApp_AnnReady(sItfCtx.u8Err, eErrParam);
+						}
+						// else { // bypass }
+					}
+					// else { // bypass }
+				}
+			}
+			// Session is completed
+			else if (ulEvent & SES_FLG_SES_COMPLETE_MSK)
+			{
+				// ...with error
+				if (ulEvent & SES_FLG_SES_ERROR_MSK)
+				{
+					UNS_NotifySession(ulEvent);
+				}
+				else
+				{
+					// If received COMMAND was WRITE
+					if ( ret == WIZEAPP_INFO_CMD_WRITE)
+					{
+						// Send ATADWRITE to notify (just info)
+						UNS_Notify(UNS_ATADMWRITE);
+					}
+					// If received COMMAND was ANNDOWNLOAD
+					else if ( ret == WIZEAPP_INFO_CMD_ANN)
+					{
+						// If is for internal FW
+						if (i32Type == UPD_TYPE_INTERNAL)
+						{
+							// Send ATADMANN to notify (just info)
+							UNS_Notify(UNS_ATADMANN);
+						}
+
+						// If no error
+						if (sItfCtx.u8Err == ADM_NONE)
+						{
+							//status = ITF_On();
+							if (WizeApp_GetFwInfo(&sFwAnnInfo, NULL) != 0)
+							{
+								// set the Itf local key id
+								Param_Access(LOCAL_KEY_ID, &(sItfCtx.u8KeyId), 0);
+								// set the Itf down id
+								sItfCtx.u32DwnId = sFwAnnInfo.u32DwnId;
+
+								// init theItf FW buffer
+								_fw_buffer_init_(&sItfCtx.sFwBuffer);
+
+								// Try to start the update process
+								if (Update_Open(sFwAnnInfo))
+								{
+									// Error
+									UNS_NotifySession(SES_FLG_DWN_ERROR);
+								}
+							}
+						}
+					}
+					else if (ulEvent & SES_FLG_INST_COMPLETE)
+					{
+						// Send ATPING notify (just info)
+						UNS_Notify(UNS_ATPING);
+					}
+					//else { // nothing }
+				}
+				UNS_Notify(UNS_ACK);
+			}
+		}
+		else
+		{
+			// timeout due to (seems) no activity on session
+		}
+	} while (1);
+}
 
 /*!
  * @static

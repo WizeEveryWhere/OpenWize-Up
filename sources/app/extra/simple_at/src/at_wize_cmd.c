@@ -61,21 +61,6 @@ extern "C" {
  * @}
  * @endcond
  */
-/******************************************************************************/
-/*!
- * @cond INTERNAL
- * @{
- */
-
-static atci_error_e _at_wize_cmd_WaitSesComplete_(atci_cmd_t *pAtciCtx);
-static int32_t _at_wize_WaitSesComplete_(ses_type_t eSesId);
-
-static atci_error_e _exec_ATPING_Rsp_(atci_cmd_t *atciCmdData);
-
-/*!
- * @}
- * @endcond
- */
 
 /******************************************************************************/
 
@@ -101,7 +86,7 @@ static atci_error_e _exec_ATPING_Rsp_(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATSEND(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
 	uint8_t i;
@@ -123,7 +108,7 @@ atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 	}
 
 	// if is currently in test mode
-	if(atciCmdData->bTestMode)
+	if (atciCmdData->bTestMode)
 	{
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}
@@ -145,16 +130,50 @@ atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
 	// -------------------------------------------------------------------------
 	Atci_Debug_Param_Data("Send Frame.", atciCmdData);/////////
 
-	//send frame and...
-	if( WIZE_API_SUCCESS != WizeApp_Send(atciCmdData->paramsMem, atciCmdData->params[1].size+1) )
+	if ( ITF_Send(atciCmdData->paramsMem, atciCmdData->params[1].size+1) )
 	{
 		// Failure
 		return ATCI_ERR_UNK;
 	}
 
-	// ...wait until session is complete :
-	status = _at_wize_cmd_WaitSesComplete_(atciCmdData);
+	atciCmdData->bNeedAck = 0;
+
 	return ATCI_ERR_NONE;
+}
+
+/*!
+ * @brief		Execute ATADMANN command
+ *
+ * @details     Command format: "ATADMANN=\<ErrCode\>"
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_CMD_ATADMANN(atci_cmd_t *atciCmdData)
+{
+	atci_error_e status;
+
+	// if is currently in test mode
+	if (atciCmdData->bTestMode)
+	{
+		return ATCI_ERR_CMD_FORBIDDEN;
+	}
+
+	if (atciCmdData->cmdType != AT_CMD_WITH_PARAM_TO_GET)
+	{
+		return ATCI_ERR_PARAM_NB;
+	}
+
+	Atci_Cmd_Param_Init(atciCmdData);
+
+	status = Atci_Buf_Get_Cmd_Param(atciCmdData, PARAM_INT8);
+	if (status != ATCI_ERR_NONE) { return status; }
+
+	ITF_AnnReady((*(atciCmdData->params[0].data)));
+
+	return status;
 }
 
 /******************************************************************************/
@@ -168,7 +187,7 @@ atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData)
+atci_error_e Exec_UNS_ATADMWRITE(atci_cmd_t *atciCmdData)
 {
 	uint8_t size;
 
@@ -186,7 +205,7 @@ atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData)
 
 	// write RX message in params memory
 	// write RSSI in ???
-	size = WizeApp_GetAdmCmd(atciCmdData->paramsMem, atciCmdData->params[2].val8);
+	size = WizeApp_GetAdmReq(atciCmdData->paramsMem, atciCmdData->params[2].val8);
 
 	if (size > 1)
 	{
@@ -203,13 +222,11 @@ atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData)
 			i += atciCmdData->params[1].size;
 			// send received APP-ADMIN WRITE command
 			Atci_Resp(atciCmdData);
-			//Atci_Resp_Data(atciCmdData->uns_code_str[atciCmdData->cmdCode], atciCmdData);
 		}
 	}
 	return ATCI_ERR_NONE;
 }
 
-/******************************************************************************/
 /*!
  * @brief		Execute ATADMANN notify
  *
@@ -220,7 +237,7 @@ atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATADMANN_Notify(atci_cmd_t *atciCmdData)
+atci_error_e Exec_UNS_ATADMANN(atci_cmd_t *atciCmdData)
 {
 	admin_ann_fw_info_t sFwAnnInfo;
 	atci_error_e status = ATCI_ERR_NONE;
@@ -253,14 +270,11 @@ atci_error_e Exec_ATADMANN_Notify(atci_cmd_t *atciCmdData)
 			//*(atciCmdData->params[3].data) = rssi;
 			ITF_FwInfoToLocalAnn((local_cmd_anndownload_t*)atciCmdData->params[1].data, &sFwAnnInfo);
 			Atci_Resp(atciCmdData);
-			//Atci_Resp_Data(atciCmdData->uns_code_str[atciCmdData->cmdCode], atciCmdData);
 		}
 	}
 	// else {// error, bypass }
 	return status;
 }
-
-/******************************************************************************/
 
 /*!
  * @brief		Execute ATADMDATA notify
@@ -272,7 +286,7 @@ atci_error_e Exec_ATADMANN_Notify(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATADMDATA_Notify(atci_cmd_t *atciCmdData)
+atci_error_e Exec_UNS_ATADMDATA(atci_cmd_t *atciCmdData)
 {
 #if 0
 		// FIXME : The following is not Wize 1.0 compliant
@@ -304,8 +318,6 @@ atci_error_e Exec_ATADMDATA_Notify(atci_cmd_t *atciCmdData)
 	return ATCI_ERR_NONE;
 }
 
-/******************************************************************************/
-
 /*!
  * @brief		Execute ATBLK notify
  *
@@ -326,7 +338,7 @@ atci_error_e Exec_ATADMDATA_Notify(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATBLK_Notify(atci_cmd_t *atciCmdData)
+atci_error_e Exec_UNS_ATBLK(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
 
@@ -353,7 +365,6 @@ atci_error_e Exec_ATBLK_Notify(atci_cmd_t *atciCmdData)
 	}
 
 	Atci_Resp(atciCmdData);
-	//Atci_Resp_Data(atciCmdData->uns_code_str[atciCmdData->cmdCode], atciCmdData);
 	return ATCI_ERR_NONE;
 }
 
@@ -373,15 +384,15 @@ atci_error_e Exec_ATBLK_Notify(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATPING(atci_cmd_t *atciCmdData)
 {
 	uint8_t nbPong;
 
-	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
+	if (atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
 		return ATCI_ERR_PARAM_NB;
 
 	// if is currently in test mode
-	if(atciCmdData->bTestMode)
+	if (atciCmdData->bTestMode)
 	{
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}
@@ -392,46 +403,54 @@ atci_error_e Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 	nbPong = 0;
 	Param_Access(PING_NBFOUND, &nbPong, 1);
 
-	int32_t ret;
-	// start install session and...
-	if( WIZE_API_SUCCESS != WizeApp_Install() )
+	uint8_t size;
+	size = WizeApp_GetInstReq(atciCmdData->paramsMem, NULL);
+	if ( ITF_Ping(atciCmdData->paramsMem, size) )
 	{
 		// Failure
 		return ATCI_ERR_UNK;
 	}
-	// ...wait for complete
-	ret = _at_wize_WaitSesComplete_(SES_INST);
-	if ( ret < 0 )
-	{
-		return ATCI_ERR_UNK;
-	}
 
-	_exec_ATPING_Rsp_(atciCmdData);
+	atciCmdData->bNeedAck = 0;
 
 	return ATCI_ERR_NONE;
 }
 
 /******************************************************************************/
-/******************************************************************************/
-static atci_error_e _exec_ATPING_Rsp_(atci_cmd_t *atciCmdData)
+/*!
+ * @brief		Execute ATPING notify
+ *
+ * @details
+ *
+ * @return
+ * - ATCI_ERR_NONE if succeed
+ * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
+ *
+ */
+atci_error_e Exec_UNS_ATPING(atci_cmd_t *atciCmdData)
 {
 	uint8_t nbPong, i;
 
+	atciCmdData->cmdCode = UNS_ATPING;
+
+	Atci_Cmd_Param_Init(atciCmdData);
+	atciCmdData->params[0].size = PARAM_INT8;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+
 	Param_Access(PING_NBFOUND, &nbPong, 0);
-	if(nbPong > 8)
-		nbPong = 8;
-
-	Atci_Cmd_Param_Init(atciCmdData);
-	atciCmdData->params[0].size = PARAM_INT8;
 	*(atciCmdData->params[0].val8) = nbPong;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
-	Atci_Debug_Param_Data("Nb Pong", atciCmdData);
+	//Atci_Debug_Param_Data("Nb Pong", atciCmdData);
+	Atci_Resp(atciCmdData);
 
-	Atci_Cmd_Param_Init(atciCmdData);
-	atciCmdData->params[0].size = PARAM_INT8;
-	Atci_Add_Cmd_Param_Resp(atciCmdData);
+	// -------
+	//Atci_Cmd_Param_Init(atciCmdData);
+	//atciCmdData->params[0].size = PARAM_INT8;
+	//Atci_Add_Cmd_Param_Resp(atciCmdData);
 	atciCmdData->params[1].size = 9;
 	Atci_Add_Cmd_Param_Resp(atciCmdData);
+
+	if(nbPong > 8) { nbPong = 8; }
 
 	for(i = 0; i < nbPong; i++)
 	{
@@ -441,150 +460,8 @@ static atci_error_e _exec_ATPING_Rsp_(atci_cmd_t *atciCmdData)
 	}
 	return ATCI_ERR_NONE;
 }
-/******************************************************************************/
-
-static atci_error_e _at_wize_cmd_WaitSesComplete_(atci_cmd_t *pAtciCtx)
-{
-	uint32_t ulEvent;
-	atci_error_e status = ATCI_ERR_NONE;
-
-	uint32_t ret;
-	int32_t i32Type = -1;
-
-	uint8_t eErrCode = 0xFF;
-	uint8_t eErrParam;
-	admin_ann_fw_info_t sFwAnnInfo;
-
-	do
-	{
-		if ( sys_flag_wait(&ulEvent, WIZE_APP_ITF_TMO_EVT) == 0)
-		{
-			// timeout due to (seems) no activity on session
-			return ATCI_ERR_UNK;
-		}
-
-		ret = WizeApp_Common(ulEvent);
-
-		// COMMAND is received
-		if (ulEvent & SES_FLG_CMD_RECV)
-		{
-			// COMMAND is ANNDOWNLOAD
-			if (ret == WIZEAPP_INFO_CMD_ANN)
-			{
-				i32Type = WizeApp_GetFwInfoType();
-				// Is for external FW
-				if ( i32Type == UPD_TYPE_EXTERNAL )
-				{
-					// if inner loop exist
-					if (pAtciCtx->pf_inner_loop)
-					{
-						// call inner loop to wait incoming AT cmd
-						register int32_t t = pAtciCtx->pf_inner_loop(pAtciCtx);
-						// if no error occurs
-						if (t >= 0)
-						{
-							//ITF_OnDwnAnnRet(*(atciCmdData->params[0].data));
-							eErrCode = ITF_GetAdmErrCode((uint8_t)t, &eErrParam);
-							WizeApp_AnnReady(eErrCode, eErrParam);
-						}
-					}
-				}
-				// could be done in "WizeApp_AnnCheckFwInfo"
-				else if (i32Type == UPD_TYPE_INTERNAL)
-				{
-					if (WizeApp_GetFwInfo(&sFwAnnInfo, NULL) != 0)
-					{
-						eErrCode = AdmInt_AnnCheckIntFW(&sFwAnnInfo, &eErrParam);
-						WizeApp_AnnReady(eErrCode, eErrParam);
-					}
-					// else { // bypass }
-				}
-				// else { // bypass }
-			}
-		}
-		// mask to get only ADM session flags
-		ulEvent &= SES_FLG_ADM_MSK & SES_FLG_SES_COMPLETE_MSK;
-	} while ( !(ulEvent) );
-
-	// From here, the admin session is complete
-
-	// If received COMMAND was WRITE
-	if ( ret == WIZEAPP_INFO_CMD_WRITE)
-	{
-		// Send ATADWRITE to notify (just info)
-		status = Exec_ATADMWRITE_Notify(pAtciCtx);
-	}
-	// If received COMMAND was ANNDOWNLOAD
-	else if ( ret == WIZEAPP_INFO_CMD_ANN)
-	{
-		// If is for internal FW
-		if (i32Type == UPD_TYPE_INTERNAL)
-		{
-			// Send ATADMANN to notify (just info)
-			status = Exec_ATADMANN_Notify(pAtciCtx);
-		}
-
-		// If no error
-		if (eErrCode == ADM_NONE)
-		{
-			status = ITF_On();
-		}
-	}
-	//else { // nothing }
-
-	return status;
-}
 
 /******************************************************************************/
-
-static const uint32_t session_mask[SES_NB] =
-{
-	[SES_INST] = SES_FLG_INST_MSK,
-	[SES_ADM]  = SES_FLG_ADM_MSK,
-	[SES_DWN]  = SES_FLG_DWN_MSK
-};
-
-static int32_t _at_wize_WaitSesComplete_(ses_type_t eSesId)
-{
-	uint32_t ret;
-	uint32_t ulEvent;
-	uint32_t mask;
-
-	if( eSesId < SES_NB)
-	{
-		mask = session_mask[eSesId];
-		do
-		{
-			if ( sys_flag_wait(&ulEvent, WIZE_APP_ITF_TMO_EVT) == 0 )
-			{
-				// Timeout
-				return -1;
-			}
-
-			ret = WizeApp_Common(ulEvent);
-			ulEvent &= mask & SES_FLG_SES_COMPLETE_MSK;
-		} while ( !(ulEvent) );
-
-		ulEvent &= mask & SES_FLG_SES_ERROR_MSK;
-		if ( !(ulEvent) )
-		{
-			if(eSesId == SES_ADM)
-			{
-				if (ret == ADM_WRITE_PARAM)
-				{
-					return 1;
-				}
-				else if ( ret == ADM_ANNDOWNLOAD)
-				{
-					return 2;
-				}
-			}
-			return 0;
-		}
-	}
-	return -1;
-}
-
 /******************************************************************************/
 
 #ifdef __cplusplus

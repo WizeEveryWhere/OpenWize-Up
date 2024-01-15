@@ -81,13 +81,13 @@ extern boot_info_t gBootInfo;
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATQ(atci_cmd_t *atciCmdData)
 {
 	if (atciCmdData->bLpAllowed && !(atciCmdData->bTestMode))
 	{
 		atciCmdData->bNeedAck = 0;
 		atciCmdData->eState = ATCI_SLEEP;
-		//_atci_sleep_(atciCmdData);
+
 		Atci_Send_Sleep_Msg();
 
 		Console_Disable();
@@ -95,7 +95,7 @@ atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData)
 		Console_Enable();
 
 		Atci_Send_Wakeup_Msg();
-		//_atci_wakeup_(atciCmdData);
+
 		atciCmdData->eState = ATCI_WAKEUP;
 		return ATCI_ERR_NONE;
 	}
@@ -119,7 +119,7 @@ atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData)
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATZn(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
 		return ATCI_ERR_PARAM_NB;
@@ -178,7 +178,7 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATF(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
 		return ATCI_ERR_PARAM_NB;
@@ -201,7 +201,7 @@ atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData)
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATW(atci_cmd_t *atciCmdData)
 {
 	if(atciCmdData->cmdType != AT_CMD_WITHOUT_PARAM)
 		return ATCI_ERR_PARAM_NB;
@@ -230,7 +230,7 @@ atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData)
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATCCLK(atci_cmd_t *atciCmdData)
 {
 	if (
 		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
@@ -256,7 +256,7 @@ atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
 		*(uint16_t*)(atciCmdData->params[1].data) = __htons(tm.tv_usec/1000);
 
 		Atci_Resp(atciCmdData);
-		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+
 		return ATCI_ERR_NONE;
 	}
 	else
@@ -278,7 +278,7 @@ atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData)
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATUID(atci_cmd_t *atciCmdData)
 {
 	if (
 		(atciCmdData->cmdType == AT_CMD_READ_WITHOUT_PARAM) ||
@@ -297,7 +297,7 @@ atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
 		((uint32_t*)(atciCmdData->params[0].data))[1] = __htonl(((uint32_t*)&uuid)[0]);
 
 		Atci_Resp(atciCmdData);
-		//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+
 		return ATCI_ERR_NONE;
 	}
 	else
@@ -319,7 +319,7 @@ atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData)
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATSTAT(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status = ATCI_ERR_NONE;
 	net_stats_t sStats;
@@ -339,7 +339,6 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 				_format_stats_( atciCmdData->params[0].data, &sStats);
 
 				Atci_Resp(atciCmdData);
-				//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
 			}
 			else
 			{
@@ -360,7 +359,6 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 			else
 			{
 				NetMgr_Open(NULL);
-				//if ( *(atciCmdData->params[0].val8 == 0)
 				if (NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, (uint32_t)(&sStats)))
 				{
 					// error
@@ -472,6 +470,21 @@ atci_error_e Generic_Notify_SetCode(atci_cmd_t *atciCmdData, uint32_t ulEvent)
 }
 
 /*!
+ * @brief Build and send ATCI ACK
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE
+ */
+atci_error_e Exec_UNS_ACK(atci_cmd_t *atciCmdData)
+{
+	Atci_AckNack(atciCmdData->eErr);
+	//Atci_AckNack(ATCI_ERR_NONE);
+	return ATCI_ERR_NONE;
+}
+
+/*!
  * @brief Build and send ATCI notification
  *
  * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
@@ -479,7 +492,7 @@ atci_error_e Generic_Notify_SetCode(atci_cmd_t *atciCmdData, uint32_t ulEvent)
  * @return
  * 	- ATCI_ERR_NONE
  */
-atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData)
+atci_error_e Exec_UNS_NOTIFY(atci_cmd_t *atciCmdData)
 {
 	Atci_Resp(atciCmdData);
 	return ATCI_ERR_NONE;
@@ -508,7 +521,7 @@ static void __disable_clk__(void)
 	}
 }
 
-atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATCAL(atci_cmd_t *atciCmdData)
 {
 	enum
 	{

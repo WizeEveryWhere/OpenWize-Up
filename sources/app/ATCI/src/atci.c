@@ -62,7 +62,6 @@ extern "C" {
 
 static void _atci_init_(atci_cmd_t *pAtciCtx);
 static void _atci_tsk_(void const * argument);
-static int32_t _inner_loop_(atci_cmd_t *pAtciCtx);
 
 static void _uns_tsk_(void const *argument);
 static int32_t _uns_notify_(uint32_t src, uint32_t evt);
@@ -172,7 +171,6 @@ void Atci_Setup(void)
 	sAtciCtx.pComRxBuf = &consoleRxBuf;
 	sAtciCtx.pCmdDesc = aAtDescCmd;
 	sAtciCtx.cmd_code_nb = NB_AT_CMD; //sizeof(aAtDescCmd);
-	sAtciCtx.pf_inner_loop = _inner_loop_;
 }
 
 /*!
@@ -245,11 +243,12 @@ int32_t Atci_Run(atci_cmd_t *pAtciCtx, uint32_t ulEvent)
 			}
 		}
 		// Send ACK/NACK
-		if (pAtciCtx->bNeedAck)
+		if (pAtciCtx->bNeedAck || (eErr != ATCI_ERR_NONE ))
 		{
 			Atci_AckNack(eErr);
 		}
-		else
+
+		if (pAtciCtx->bNeedAck == 0)
 		{
 			pAtciCtx->bNeedAck = 1;
 		}
@@ -318,10 +317,21 @@ void ready_to_sleep()
  * @cond INTERNAL
  * @{
  */
+/*
+#define REQ_MSK ( SES_FLG_AVAILABLE_MSK ) // 0x000FFF00
 
-#define COM_MSK 0x0F
+#define COM_REQ_OFFSET 8
+#define TMO_EVT_OFFSET 12
 
+#define COM_REQ(com_req) ( (com_req <<  COM_REQ_OFFSET) & REQ_MSK )
+#define TMO_EVT(tmo_evt) ( (tmo_evt <<  TMO_EVT_OFFSET) & REQ_MSK )
+#define COM_MSK 0x00000F00
+#define TMO_EVT 0x00001000
+*/
+
+#define COM_MSK 0x0000000F
 #define TMO_EVT 0x00010000
+
 #ifndef TMO_RET
 	#define TMO_RET 800 // in ms
 #endif
@@ -374,8 +384,6 @@ static void _atci_tsk_(void const *argument)
 	pAtciCtx = (atci_cmd_t *)argument;
 
 	uint32_t ulEvent;
-	uint32_t ulNotify;
-
 	uint8_t bTmo;
 	uint8_t bComIsStarted;
 
@@ -445,110 +453,6 @@ static void _atci_tsk_(void const *argument)
 			}
 		}
 	}
-}
-
-/*!
- * @static
- * @brief Inner loop called when remote external update is requested
- *
- * @param [in] pAtciCtx Pointer on the ATCI context
- *
- * @return The ATADMANN return error code 0 if success, negative value otherwise
- */
-static int32_t _inner_loop_(atci_cmd_t *pAtciCtx)
-{
-	time_evt_t sTimeEvt;
-	int32_t ret;
-	uint32_t ulEvent;
-	uint32_t u32Tmo;
-	int16_t i16DeltaMs;
-	atci_error_e status;
-	uint8_t bComIsStarted;
-	uint8_t bTimeEvtIsStarted;
-
-	ret = -1;
-	status = ATCI_ERR_NONE;
-	bComIsStarted = 0;
-	bTimeEvtIsStarted = 0;
-
-	u32Tmo = 0;
-	Param_Access(EXCH_RESPONSE_DELAY, (uint8_t*)&( u32Tmo ), 0);
-	if (u32Tmo)
-	{
-		u32Tmo--;
-		i16DeltaMs = TMO_RET;
-	}
-	else
-	{
-		i16DeltaMs = TMO_RET_MIN;
-	}
-	TimeEvt_TimerInit( &sTimeEvt, sys_get_pid(), TIMEEVT_CFG_ONESHOT);
-
-	if ( Exec_ATADMANN_Notify(pAtciCtx) != ATCI_ERR_NONE )
-	{
-		return ret;
-	}
-
-	TimeEvt_TimerStart(&sTimeEvt, u32Tmo, i16DeltaMs, (uint32_t)TMO_EVT);
-	bTimeEvtIsStarted = 1;
-
-	do
-	{
-		if (!bComIsStarted)
-		{
-			if ( BSP_Uart_Receive(UART_ID_COM, pAtciCtx->pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN) != DEV_SUCCESS)
-			{
-				ret = -2;
-				break;
-			}
-			bComIsStarted = 1;
-		}
-
-		if ( sys_flag_wait(&ulEvent, WIZE_APP_ITF_TMO_EVT) == 0)
-		{
-			// timeout
-			break;
-		}
-
-		if (ulEvent & COM_MSK)
-		{
-			bComIsStarted = 0;
-
-			status = ATCI_ERR_CMD_FORBIDDEN;
-			Atci_Com(pAtciCtx, ulEvent);
-			pAtciCtx->eErr = ATCI_ERR_NONE;
-			if (strcmp(pAtciCtx->cmdCodeStr, pAtciCtx->pCmdDesc[UNS_ATADMANN].str) == 0)
-			{
-				pAtciCtx->cmdCode = UNS_ATADMANN;
-				Atci_Cmd_Param_Init(pAtciCtx);
-				status = Atci_Buf_Get_Cmd_Param(pAtciCtx, PARAM_INT8);
-				if (status == ATCI_ERR_NONE)
-				{
-					ret = *(pAtciCtx->params[0].data);
-					break;
-				}
-			}
-			Atci_AckNack(status);
-		}
-
-		if (ulEvent & TMO_EVT)
-		{
-			break;
-		}
-
-	} while (1);
-
-	if (bTimeEvtIsStarted)
-	{
-		TimeEvt_TimerStop( &sTimeEvt);
-	}
-
-	if (bComIsStarted)
-	{
-		BSP_Uart_AbortReceive(UART_ID_COM);
-	}
-
-	return ret;
 }
 
 /******************************************************************************/

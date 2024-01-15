@@ -118,8 +118,7 @@ void Atci_Resp(atci_cmd_t *atciCmdData);
  * 					- params: parameters list (with size and data)
  *
  */
-void Atci_Debug_Param_Data(dbgMsd, atciCmdData);
-
+void Atci_Debug_Param_Data(char *dbgMsd, atci_cmd_t *atciCmdData);
 /******************************************************************************/
 /*
  * MACRO - AT info messages

@@ -67,7 +67,10 @@ extern "C" {
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATSEND(atci_cmd_t *atciCmdData);
+
+
+atci_error_e Exec_CMD_ATADMANN(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATADMWRITE notify
@@ -79,7 +82,7 @@ atci_error_e Exec_ATSEND_Cmd(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData);
+atci_error_e Exec_UNS_ATADMWRITE(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATADMANN notify
@@ -91,7 +94,7 @@ atci_error_e Exec_ATADMWRITE_Notify(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATADMANN_Notify(atci_cmd_t *atciCmdData);
+atci_error_e Exec_UNS_ATADMANN(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATADMDATA notify
@@ -103,7 +106,7 @@ atci_error_e Exec_ATADMANN_Notify(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATADMDATA_Notify(atci_cmd_t *atciCmdData);
+atci_error_e Exec_UNS_ATADMDATA(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATBLK notify
@@ -125,7 +128,7 @@ atci_error_e Exec_ATADMDATA_Notify(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATBLK_Notify(atci_cmd_t *atciCmdData);
+atci_error_e Exec_UNS_ATBLK(atci_cmd_t *atciCmdData);
 
 /******************************************************************************/
 
@@ -142,7 +145,10 @@ atci_error_e Exec_ATBLK_Notify(atci_cmd_t *atciCmdData);
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATPING_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATPING(atci_cmd_t *atciCmdData);
+
+
+atci_error_e Exec_UNS_ATPING(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }

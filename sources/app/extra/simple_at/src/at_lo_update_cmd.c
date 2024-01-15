@@ -66,7 +66,7 @@ extern "C" {
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATANN_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATANN(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status;
 
@@ -132,7 +132,7 @@ atci_error_e Exec_ATANN_Cmd(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATBLK_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATBLK(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status = ATCI_ERR_NONE;
 
@@ -185,7 +185,7 @@ atci_error_e Exec_ATBLK_Cmd(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATUPD_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATUPD(atci_cmd_t *atciCmdData)
 {
 	atci_error_e status = ATCI_ERR_PARAM_NB;
 
@@ -222,7 +222,7 @@ atci_error_e Exec_ATUPD_Cmd(atci_cmd_t *atciCmdData)
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATBMAP_Cmd(atci_cmd_t *atciCmdData)
+atci_error_e Exec_CMD_ATBMAP(atci_cmd_t *atciCmdData)
 {
 	return ATCI_ERR_NONE;
 }

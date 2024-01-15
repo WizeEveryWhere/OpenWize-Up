@@ -159,7 +159,6 @@ void Update_Setup(void)
  */
 int32_t Update_Open(admin_ann_fw_info_t sFwInfo)
 {
-	update_status_e eStatus;
 	uint8_t eType = (uint8_t)sFwInfo.u32Type;
 
 	if (sUpdateCtx.ePendUpdate == UPD_PEND_NONE)
@@ -338,7 +337,7 @@ static void _update_fsm_internal_(uint32_t ulEvent)
 				break;
 			}
 			// Start the download session
-			if ( WizeApp_Download() != WIZE_API_SUCCESS )
+			if ( WizeApp_DownOpen() != WIZE_API_SUCCESS )
 			{
 				// failed
 				sUpdateCtx.eUpdateStatus = UPD_STATUS_SES_FAILED;
@@ -352,7 +351,8 @@ static void _update_fsm_internal_(uint32_t ulEvent)
 		}
 		else if (ulUpdateReq == UPDATE_REQ_STOP)
 		{
-			WizeApp_Download_Cancel();
+			WizeApp_DownCancel();
+
 			sUpdateCtx.eUpdateStatus = UPD_STATUS_UNK;
 			sUpdateCtx.ePendUpdate = UPD_PEND_NONE;
 			sys_evtg_set(sUpdateCtx.hLock, UPDATE_REQ_STOP);
@@ -415,7 +415,7 @@ static void _update_fsm_external_(uint32_t ulEvent)
 			//_fw_buffer_init_(fw_buffer_t *pFwBuffer);
 
 			// Start the download session
-			if ( WizeApp_Download() != WIZE_API_SUCCESS )
+			if ( WizeApp_DownOpen() != WIZE_API_SUCCESS )
 			{
 				// failed
 				sUpdateCtx.eUpdateStatus = UPD_STATUS_SES_FAILED;
@@ -429,7 +429,7 @@ static void _update_fsm_external_(uint32_t ulEvent)
 		}
 		else if (ulUpdateReq == UPDATE_REQ_STOP)
 		{
-			WizeApp_Download_Cancel();
+			WizeApp_DownCancel();
 			sUpdateCtx.eUpdateStatus = UPD_STATUS_UNK;
 			sUpdateCtx.ePendUpdate = UPD_PEND_NONE;
 			sys_evtg_set(sUpdateCtx.hLock, UPDATE_REQ_STOP);

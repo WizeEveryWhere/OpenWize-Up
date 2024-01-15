@@ -75,7 +75,7 @@ extern "C" {
  * - Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATKEY_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATKEY(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }

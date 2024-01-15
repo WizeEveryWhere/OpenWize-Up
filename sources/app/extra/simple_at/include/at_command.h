@@ -52,40 +52,45 @@ extern "C" {
 typedef enum
 {
 	// ----------------
-	CMD_AT,      /*!<  */
-	CMD_ATI,     /*!<  */
-	CMD_ATZ,     /*!<  */
-	CMD_ATZ0,    /*!<  */
-	CMD_ATZ1,    /*!<  */
-	CMD_ATQ,     /*!<  */
-	CMD_ATF,     /*!<  */
-	CMD_ATW,     /*!<  */
-	CMD_ATPARAM, /*!<  */
-	CMD_ATSEND,  /*!<  */
-	CMD_ATPING,  /*!<  */
+	CMD_AT,
+	CMD_ATI,
+	CMD_ATZ,
+	CMD_ATZ0,
+	CMD_ATZ1,
+	CMD_ATQ,
+	CMD_ATF,
+	CMD_ATW,
+	CMD_ATPARAM,
+
+	CMD_ATSEND,
+	CMD_ATPING,
 	// ----
-	CMD_ATIDENT, /*!<  */
-	CMD_ATKEY,   /*!<  */
-	CMD_ATFC,    /*!<  */
-	CMD_ATTEST,  /*!<  */
-	CMD_ATCAL,   /*!<  */
+	CMD_ATIDENT,
+	CMD_ATKEY,
+	CMD_ATFC,
+	CMD_ATTEST,
+	CMD_ATCAL,
 	// ----
-	CMD_ATANN,   /*!<  */
-	CMD_ATBLK,   /*!<  */
-	CMD_ATUPD,   /*!<  */
-	CMD_ATBMAP,  /*!<  */
+	CMD_ATADMANN,
 	// ----
-	CMD_ATSTAT,  /*!<  */
-	CMD_ATCCLK,  /*!<  */
-	CMD_ATUID,   /*!<  */
+	CMD_ATANN,
+	CMD_ATBLK,
+	CMD_ATUPD,
+	CMD_ATBMAP,
+	// ----
+	CMD_ATSTAT,
+	CMD_ATCCLK,
+	CMD_ATUID,
 	// ----
 	NB_AT_CMD,
 	CMD_NULL = NB_AT_CMD,
 	// ----------------
-	UNS_ATBLK,      /*!<  */
-	UNS_ATADMWRITE, /*!<  */
-	UNS_ATADMANN,   /*!<  */
-	UNS_NOTIFY,     /*!<  */
+	UNS_ACK,
+	UNS_ATPING,
+	UNS_ATADMWRITE,
+	UNS_ATADMANN,
+	UNS_ATBLK,
+	UNS_NOTIFY,
 	NB_AT_UNS,
 	// ----
 	UNS_NULL = NB_AT_UNS,

@@ -80,6 +80,7 @@ struct itf_ctx_s
 	void *hLock;            /**< Handler on the lock */
 	uint32_t u32DwnId;      /**< Current session id  */
 	uint8_t u8Err;          /**< Last error  */
+	uint8_t bPending;       /**< Has pending request */
 	uint8_t u8KeyId;        /**< Key id to used for encryption and authentication */
 	uint8_t u8MissedBlkCnt; /**< Number of missed block due to a full buffer */
 	fw_buffer_t sFwBuffer;  /**< Temporary FW buffer */
@@ -129,13 +130,44 @@ enum
 void ITF_Setup(void);
 
 /*!
- * @brief This function initialize interface for a FW download to local interface .
+ * @brief Convenient function that call "WizeApi_Session" for Ping frame.
  *
- * @retval  local_dwn_err_code_e::LO_DWN_ERR_NONE If success or there is no pending FW download.
- *          local_dwn_err_code_e::LO_DWN_ERR_UNK  Otherwise
+ * @return 0 if success, -1 otherwise
  *
  */
-uint8_t ITF_On(void);
+int32_t ITF_Ping(uint8_t *pData, uint8_t u8Size);
+
+/*!
+ * @brief Convenient function that call "WizeApi_Session" for standard frame.
+ *
+ * @param [in] pData  Pointer on raw data to send
+ * @param [in] u8Size Number of byte to send
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
+int32_t ITF_Send(uint8_t *pData, uint8_t u8Size);
+
+/*!
+ * @brief Convenient function that call "WizeApi_Session" for priority frame.
+ *
+ * @param [in] pData  Pointer on raw data to send
+ * @param [in] u8Size Number of byte to send
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
+int32_t ITF_Alarm(uint8_t *pData, uint8_t u8Size);
+
+/*!
+ * @brief Convenient function that call "WizeApp_AnnReady"
+ *
+ * @param [in] u8ErrCode  Error code of the current announcement
+ *
+ * @return 0 if success, -1 otherwise
+ *
+ */
+int32_t ITF_AnnReady(uint8_t u8ErrCode);
 
 /*!
  * @brief This function store fw block into local buffer

@@ -105,46 +105,7 @@ static gpio_it_t aGpioCb[16] = {
  * @endcond
  */
 
-static uint32_t _bsp_gpioit_getport_(uint32_t u32Line);
 static gpio_port_e _bsp_gpioit_getnumport_(const uint32_t u32Port);
-
-/*!
-  * @static
-  * @brief Retrieve GPIO port address from exti line
-  *
-  * @param [in] u32Line EXTI line number
-  *
-  * @return the gpio port address
-  *
-  */
-static uint32_t _bsp_gpioit_getport_(uint32_t u32Line)
-{
-	uint32_t port;
-
-	uint32_t p = SYSCFG->EXTICR[u32Line >> 2u];
-	p = ( p >> ((u32Line & 0x03)*4) ) & 0x07;
-	switch (p) {
-	case 0 :
-		port = (uint32_t)GPIOA;
-		break;
-	case 1 :
-		port = (uint32_t)GPIOB;
-		break;
-	case 2 :
-		port = (uint32_t)GPIOC;
-		break;
-	case 3 :
-		port = (uint32_t)GPIOD;
-		break;
-	case 4 :
-		port = (uint32_t)GPIOE;
-		break;
-	default:
-		port = (uint32_t)(NULL);
-		break;
-	}
-	return port;
-}
 
 /*!
   * @static

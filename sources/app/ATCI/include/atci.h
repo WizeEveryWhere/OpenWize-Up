@@ -171,15 +171,27 @@ typedef struct
 typedef enum
 {
 	ATCI_WAKEUP,   /*!<  */
+
+	// ---
 	ATCI_WAIT,     /*!<  */
 	ATCI_EXEC_CMD, /*!<  */
+	// ---
+
 	ATCI_SLEEP,    /*!<  */
     ATCI_RESET,    /*!<  */
 	ATCI_EXEC_RSP, /*!<  */
 
+	//ATCI_SESSION,  /*!<  */
+	//ATCI_COMMAND,  /*!<  */
+} atci_state_e;
+
+typedef enum
+{
 	ATCI_SESSION,  /*!<  */
 	ATCI_COMMAND,  /*!<  */
-} atci_state_e;
+	ATCI_TEST,  /*!<  */
+} atci_mode_e;
+
 
 
 typedef struct at_desc_s at_desc_t;
@@ -215,8 +227,6 @@ typedef struct atci_cmd_s
 	uint8_t bTestMode;   /*!< Set if it is in test mode */
 	atci_state_e eState; /*!<  */
 	atci_error_e eErr;   /*!<  */
-
-	int32_t (*pf_inner_loop)(struct atci_cmd_s *pAtciCtx); /*!< Inner loop function pointer */
 
 } atci_cmd_t;
 

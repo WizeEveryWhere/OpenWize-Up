@@ -213,7 +213,7 @@ void LSEClock_Config(void)
   */
 static void MX_GPIO_Init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	//GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	//------------------------------------
 	// GPIO Reset values are :

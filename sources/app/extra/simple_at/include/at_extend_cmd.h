@@ -54,7 +54,7 @@ extern "C" {
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATQ(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute ATZn command (reboot the system)
@@ -68,7 +68,7 @@ atci_error_e Exec_ATQ_Cmd(atci_cmd_t *atciCmdData);
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATZn(atci_cmd_t *atciCmdData);
 
 /*
  * @brief		Execute AT&F command (Restore registers to their factory settings)
@@ -82,7 +82,7 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData);
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATF(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute AT&W command (Store current registers values in flash)
@@ -96,7 +96,7 @@ atci_error_e Exec_ATF_Cmd(atci_cmd_t *atciCmdData);
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATW(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute AT%CCLK command (get the current clock as unix epoch)
@@ -110,7 +110,7 @@ atci_error_e Exec_ATW_Cmd(atci_cmd_t *atciCmdData);
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATCCLK(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute AT%UID command (get the unique identifier)
@@ -124,7 +124,7 @@ atci_error_e Exec_ATCCLK_Cmd(atci_cmd_t *atciCmdData);
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATUID(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief		Execute AT%STAT command (get the wize statistics)
@@ -138,7 +138,17 @@ atci_error_e Exec_ATUID_Cmd(atci_cmd_t *atciCmdData);
  * 	- Else error code (ATCI_INV_NB_PARAM_ERR ... ATCI_INV_CMD_LEN_ERR or ATCI_ERR)
  *
  */
-atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATSTAT(atci_cmd_t *atciCmdData);
+
+/*!
+ * @brief Build and send ATCI ACK
+ *
+ * @param[in,out]	atciCmdData  Pointer on "atci_cmd_t" structure
+ *
+ * @return
+ * 	- ATCI_ERR_NONE
+ */
+atci_error_e Exec_UNS_ACK(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief Build and send ATCI notification
@@ -148,7 +158,7 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData);
  * @return
  * 	- ATCI_ERR_NONE
  */
-atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
+atci_error_e Exec_UNS_NOTIFY(atci_cmd_t *atciCmdData);
 
 /*!
  * @brief Set the code for a generic notification (from ulEvent)
@@ -164,7 +174,7 @@ atci_error_e Generic_Notify_SetCode(atci_cmd_t *atciCmdData, uint32_t ulEvent);
 
 
 
-atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData);
+atci_error_e Exec_CMD_ATCAL(atci_cmd_t *atciCmdData);
 
 #ifdef __cplusplus
 }

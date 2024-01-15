@@ -42,6 +42,8 @@ extern "C" {
 #include "wize_app.h"
 #include "rtos_macro.h"
 #include "update.h"
+#include "img_storage.h"
+#include "itf.h"
 
 //#include "phy_layer_private.h"
 
@@ -126,7 +128,7 @@ uint8_t WizeApp_OnDwnBlkRecv(uint16_t u16Id, const uint8_t *pData)
  * @retval size of ADM command message
  * @retval 0 if an error RSP was already or if the given pointer is NULL
  */
-uint8_t WizeApp_GetAdmCmd(uint8_t *pData, uint8_t *rssi)
+uint8_t WizeApp_GetAdmReq(uint8_t *pData, uint8_t *rssi)
 {
 	uint8_t size = 0;
 	if (pData)
