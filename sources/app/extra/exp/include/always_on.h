@@ -35,6 +35,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#include "atci.h"
 #include "ses_common.h"
 
 /******************************************************************************/
@@ -60,6 +61,18 @@ struct cust_mgr_ctx_s
 	net_msg_t sCmdMsg;                 /**< Command message content */
     uint8_t aRecvBuff[RECV_BUFFER_SZ]; /**< Buffer that hold the received command frame */
 };
+
+
+atci_error_e Exec_CMD_ATLSN(atci_cmd_t *atciCmdData);
+atci_error_e Exec_UNS_ATLSN(atci_cmd_t *atciCmdData);
+
+//API
+int32_t AlwaysOn_Start(void);
+void AlwaysOn_Setup(void); //TODO - Change int32 to void
+int32_t AlwaysOn_Rearm(void);
+int32_t AlwaysOn_Stop(void);
+
+
 
 #ifdef __cplusplus
 }

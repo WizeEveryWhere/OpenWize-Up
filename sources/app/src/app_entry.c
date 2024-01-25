@@ -41,6 +41,7 @@ extern "C" {
 #include "update.h"
 #include "wize_app.h"
 #include "itf.h"
+#include "always_on.h"
 
 /*!
  * @cond INTERNAL
@@ -90,6 +91,7 @@ void App_Init(void)
 {
 	Update_Setup();
 	Atci_Setup();
+	AlwaysOn_Setup();
 
 	hMonitorTask = SYS_TASK_CREATE_CALL(monitor, MONITOR_TASK_FCT, NULL);
 

@@ -64,6 +64,7 @@ typedef enum
 
 	CMD_ATSEND,
 	CMD_ATPING,
+	CMD_ATLSN,
 	// ----
 	CMD_ATIDENT,
 	CMD_ATKEY,
@@ -91,6 +92,7 @@ typedef enum
 	UNS_ATADMANN,
 	UNS_ATBLK,
 	UNS_NOTIFY,
+	UNS_ATLSN,
 	NB_AT_UNS,
 	// ----
 	UNS_NULL = NB_AT_UNS,

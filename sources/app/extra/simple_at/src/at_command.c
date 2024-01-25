@@ -45,6 +45,7 @@ extern "C" {
 #include "at_key_cmd.h"
 #include "at_extend_cmd.h"
 #include "at_lo_update_cmd.h"
+#include "always_on.h"
 
 /******************************************************************************/
 /*!
@@ -106,6 +107,7 @@ const struct at_desc_s aAtDescCmd[NB_UNS_CMD] =
 
 	GRP0( CMD_ATSEND  , "ATSEND"  , Exec_CMD_ATSEND)
 	GRP0( CMD_ATPING  , "ATPING"  , Exec_CMD_ATPING)
+	GRP0( CMD_ATLSN   , "ATLSN"   , Exec_CMD_ATLSN)
 
 	// --- Group 1 : Actions that could be processed at factory without impact
 	GRP1( CMD_ATIDENT , "ATIDENT" , Exec_CMD_ATIDENT)
@@ -137,6 +139,7 @@ const struct at_desc_s aAtDescCmd[NB_UNS_CMD] =
 	DECLARE_AT( UNS_ATADMANN  , "ATADMANN"  , Exec_UNS_ATADMANN)
 	DECLARE_AT( UNS_ATBLK     , "ATBLK"     , Exec_UNS_ATBLK)
 	DECLARE_AT( UNS_NOTIFY    , "NOTIFY"    , Exec_UNS_NOTIFY)
+	DECLARE_AT( UNS_ATLSN     , "ATLSN"     , Exec_UNS_ATLSN)
 	// ---
 	DECLARE_AT( UNS_NULL      , "NULL"      , NULL)
 };

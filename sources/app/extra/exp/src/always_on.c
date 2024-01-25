@@ -43,6 +43,10 @@ extern "C" {
 #include "wize_api.h"
 #include "rtos_macro.h"
 
+#include "at_command.h"
+#include "atci_get_cmd.h"
+#include "atci_resp.h"
+
 #include "net_api_private.h"
 #include "net_mgr.h"
 
@@ -92,18 +96,29 @@ atci_error_e Exec_CMD_ATLSN(atci_cmd_t *atciCmdData)
 		{
 			return status;
 		}
-		if (*(atciCmdData->params[0].val8) == 1)
+		if (*(atciCmdData->params[0].val8) != atciCmdData->bALSNMode)
 		{
-			if (AlwaysOn_Start())
+			if (*(atciCmdData->params[0].val8) == 1)
 			{
-				status = ATCI_ERR_UNK;
+				if (AlwaysOn_Start())
+				{
+					status = ATCI_ERR_UNK;
+				}
+				else
+				{
+					atciCmdData->bALSNMode = 1;
+				}
 			}
-		}
-		else
-		{
-			if (AlwaysOn_Stop())
+			else
 			{
-				status = ATCI_ERR_UNK;
+				if (AlwaysOn_Stop())
+				{
+					status = ATCI_ERR_UNK;
+				}
+				else
+				{
+					atciCmdData->bALSNMode = 0;
+				}
 			}
 		}
 	}
@@ -112,6 +127,7 @@ atci_error_e Exec_CMD_ATLSN(atci_cmd_t *atciCmdData)
 		status = ATCI_ERR_PARAM_NB;
 	}
 	return status;
+
 }
 
 /*!
@@ -121,18 +137,19 @@ atci_error_e Exec_CMD_ATLSN(atci_cmd_t *atciCmdData)
  */
 atci_error_e Exec_UNS_ATLSN(atci_cmd_t *atciCmdData)
 {
-	uint8_t size;
-
 	atciCmdData->cmdCode = UNS_ATLSN;
 	Atci_Cmd_Param_Init(atciCmdData);
 
-	atciCmdData->nbParams = 2;
-
 	atciCmdData->params[0].size = sCustCtx.sCmdMsg.u8Size;
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
 	memcpy(atciCmdData->params[0].data, sCustCtx.sCmdMsg.pData, sCustCtx.sCmdMsg.u8Size);
 
-	atciCmdData->params[1].size = 1;
+	// Add rssi
+	/*
+	atciCmdData->params[1].size = 1; //RSSI
+	Atci_Add_Cmd_Param_Resp(atciCmdData);
 	*(atciCmdData->params[1].data) = sCustCtx.sCmdMsg.u8Rssi;
+	*/
 
 	AlwaysOn_Rearm();
 
@@ -142,15 +159,16 @@ atci_error_e Exec_UNS_ATLSN(atci_cmd_t *atciCmdData)
 }
 
 /******************************************************************************/
-
 /*!
  * @brief This function TODO
  *
  * @return
  */
-int32_t AlwaysOn_Setup(void)
+void AlwaysOn_Setup(void)
 {
-	hLsnTask = SYS_TASK_CREATE_CALL(lsn, _lsn_tsk_, &sAtciCtx);
+	sCustCtx.sCmdMsg.pData = sCustCtx.aRecvBuff;
+	sCustCtx.sCmdMsg.u8Type = 0x01;
+	hLsnTask = SYS_TASK_CREATE_CALL(lsn, _lsn_tsk_, &sCustCtx);
 }
 
 /*!
@@ -168,6 +186,7 @@ int32_t AlwaysOn_Start(void)
             return -1;
         }
     }
+
     if ( NetMgr_Open(hLsnTask) )
     {
     	return -1;
@@ -182,6 +201,7 @@ int32_t AlwaysOn_Start(void)
         NetMgr_Close();
         return -1;
     }
+
     return 0;
 }
 
@@ -192,7 +212,10 @@ int32_t AlwaysOn_Start(void)
  */
 int32_t AlwaysOn_Stop(void)
 {
-	NetMgr_Close();
+	if ( NetMgr_ForceClose() )
+	{
+		return -1;
+	}
 	return 0;
 }
 
@@ -203,7 +226,7 @@ int32_t AlwaysOn_Stop(void)
  */
 int32_t AlwaysOn_Rearm(void)
 {
-	if ( NetMgr_ListenReady() )
+	if ( NetMgr_ForceListenReady() )
 	{
 		return -1;
 	}
@@ -218,6 +241,7 @@ int32_t AlwaysOn_Rearm(void)
  */
 static void _lsn_tsk_(void const *argument)
 {
+	LOG_INF("Task LSN Started\n");
 	uint32_t ulEvent;
 	do
 	{

@@ -9,6 +9,7 @@ add_library(${MODULE_NAME} INTERFACE)
 # Add sources to Build
 target_sources(${MODULE_NAME}
     INTERFACE
+    	${CMAKE_CURRENT_SOURCE_DIR}/exp/src/always_on.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_command.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_access_param.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_test_cmd.c
@@ -26,6 +27,7 @@ target_sources(${MODULE_NAME}
 target_include_directories(
     ${MODULE_NAME} 
     INTERFACE
+    	${CMAKE_CURRENT_SOURCE_DIR}/exp/include
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/include
         ${CMAKE_CURRENT_SOURCE_DIR}/itf/include
     )

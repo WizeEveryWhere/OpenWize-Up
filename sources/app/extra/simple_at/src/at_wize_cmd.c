@@ -112,6 +112,11 @@ atci_error_e Exec_CMD_ATSEND(atci_cmd_t *atciCmdData)
 	{
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}
+	// if is currently in ALSN mode
+	if (atciCmdData->bALSNMode)
+	{
+		return ATCI_ERR_CMD_FORBIDDEN;
+	}
 
 	// -------------------------------------------------------------------------
 	//get L7 message
@@ -393,6 +398,11 @@ atci_error_e Exec_CMD_ATPING(atci_cmd_t *atciCmdData)
 
 	// if is currently in test mode
 	if (atciCmdData->bTestMode)
+	{
+		return ATCI_ERR_CMD_FORBIDDEN;
+	}
+	// if is currently in ALSN mode
+	if (atciCmdData->bALSNMode)
 	{
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}
