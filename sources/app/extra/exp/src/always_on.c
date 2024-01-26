@@ -212,7 +212,7 @@ int32_t AlwaysOn_Start(void)
  */
 int32_t AlwaysOn_Stop(void)
 {
-	if ( NetMgr_ForceClose() )
+	if ( NetMgr_Close() )
 	{
 		return -1;
 	}
@@ -226,7 +226,7 @@ int32_t AlwaysOn_Stop(void)
  */
 int32_t AlwaysOn_Rearm(void)
 {
-	if ( NetMgr_ForceListenReady() )
+	if ( NetMgr_ListenReady() )
 	{
 		return -1;
 	}
