@@ -211,6 +211,11 @@ At this point some .c files have been generated in "my_custom/gen" :
    So, once the parameters ".c" files have been generated, the GENERATE_PARAM option is
    not longer required.
 
+.. warning:: 
+   The option "-DGENERATE_PARAM=ON" requires that the cmake command line is 
+   launch 2 times. This is due to a known bug and will be fixed in a future version.
+
+
 Add your own parameter file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
