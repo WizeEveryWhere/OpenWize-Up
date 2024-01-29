@@ -191,8 +191,8 @@ update_status_e UpdateArea_Proceed(uint8_t eType, uint16_t u16Id, const uint8_t 
 		if (eType != UPD_TYPE_EXTERNAL)
 		{
 			ImgStore_StoreBlock(u16Id - 1, (uint8_t *)pData);
+			return UPD_STATUS_UNK;
 		}
-		return UPD_STATUS_UNK;
 	}
 	return UPD_STATUS_STORE_FAILED;
 }
