@@ -223,7 +223,8 @@ update_status_e UpdateArea_Finalize(uint8_t eType, uint32_t u32HashSW, uint32_t 
 
 				s_img_info.magic = sUpdateArea.u32MagicHeader;
 				s_img_info.hash = u32HashSW;
-				s_img_info.size = img_sz + sUpdateArea.u32HeaderSz + 4;
+				//s_img_info.size = img_sz + sUpdateArea.u32HeaderSz + 4;
+				s_img_info.size = img_sz + sUpdateArea.u32HeaderSz + 8;
 				if (s_img_info.size % 8)
 				{
 					s_img_info.size += 8 - (s_img_info.size % 8);
@@ -292,7 +293,8 @@ update_status_e UpdateArea_WriteHeader(struct __img_info_s *p_img_info)
 	}
 
 	// magic_dead
-	temp[0] = *(uint32_t*)u32TgtAdd;
+	//temp[0] = *(uint32_t*)u32TgtAdd;
+	temp[0] = 0xFFFFFFFF;
 	temp[1] = sUpdateArea.u32MagicTrailer;
 	if ( BSP_Flash_Write(u32TgtAdd, (uint64_t*)temp, 1) != DEV_SUCCESS )
 	{
