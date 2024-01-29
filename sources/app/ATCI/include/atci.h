@@ -212,6 +212,7 @@ typedef struct atci_cmd_s
 	uint8_t bNeedAck;    /*!< Set if the last command required an acknowledge */
 	uint8_t bNeedReboot; /*!< Set if the last command required to reboot */
 	//uint8_t bSession;
+	uint8_t bTestMode;   /*!< Set if it is in test mode */
 	atci_state_e eState; /*!<  */
 	atci_error_e eErr;   /*!<  */
 

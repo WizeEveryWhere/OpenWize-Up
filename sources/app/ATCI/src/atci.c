@@ -357,6 +357,7 @@ static void _atci_init_(atci_cmd_t *pAtciCtx)
 	pAtciCtx->eState = ATCI_WAIT;
 	pAtciCtx->bNeedAck = 1;
 	pAtciCtx->bNeedReboot = 0;
+	pAtciCtx->bTestMode = 0;
 }
 
 /*!
@@ -433,7 +434,7 @@ static void _atci_tsk_(void const *argument)
 		{
 			// timeout
 			bTmo = 1;
-			if (bTmo && pAtciCtx->bLpAllowed)
+			if (bTmo && pAtciCtx->bLpAllowed && !(pAtciCtx->bTestMode))
 			{
 				BSP_Uart_AbortReceive(UART_ID_COM);
 				bComIsStarted = 0;
@@ -616,6 +617,7 @@ void WizeApi_OnTimeFlag(uint32_t u32Flg)
  * @static
  * @brief This function push a notification to the ATCI
  *
+ * @param [in] src Source of the event
  * @param [in] evt Event or id of the notification
  *
  * @return 0 if success, -1 otherwise (queue is full)
@@ -660,7 +662,7 @@ static uint8_t _is_lp_allowed_(void)
 
 	Atci_Send_Dbg_Enable( (u8Flags_0 & EXT_FLAGS_DBG_MSG_EN_MSK) );
 
-	return (_init_lp_var_() && ( !bTestMode ))?(1):(0);
+	return (_init_lp_var_()); // && ( !bTestMode ))?(1):(0);
 }
 
 

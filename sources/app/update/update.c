@@ -231,12 +231,17 @@ int32_t Update_Close(void)
  */
 int32_t Update_Store(uint16_t u16Id, const uint8_t *pData)
 {
-	if (sUpdateCtx.ePendUpdate != UPD_PEND_LOCAL)
+	if (sUpdateCtx.ePendUpdate == UPD_PEND_LOCAL)
 	{
-		return -1;
+		if (u16Id <= sFwAnnInfo.u16BlkCnt)
+		{
+			if ( UpdateArea_Proceed((uint8_t)sFwAnnInfo.u32Type, u16Id, pData) == 0)
+			{
+				return 0;
+			}
+		}
 	}
-	UpdateArea_Proceed((uint8_t)sFwAnnInfo.u32Type, u16Id, pData);
-	return 0;
+	return -1;
 }
 
 /*!

@@ -51,12 +51,12 @@ extern "C" {
  *
  * @details
  *
- * ATANN=$<key_id>,$<session_id>,$<announce>
+ * ATANN=$\<key_id\>,$\<session_id\>,$\<announce\>
  * @parblock
- * - <key_id> : The key id used to encrypt and authenticate the FW blocks (1 byte).
+ * - \<key_id\> : The key id used to encrypt and authenticate the FW blocks (1 byte).
  *              The key id 0 (unencrypted) is forbidden.
- * - <session_id> : The local update session identification (4 bytes)
- * - <announce> : The local update announcement information
+ * - \<session_id\> : The local update session identification (4 bytes)
+ * - \<announce\> : The local update announcement information
  * @endparblock
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
@@ -117,12 +117,12 @@ atci_error_e Exec_ATANN_Cmd(atci_cmd_t *atciCmdData)
  *
  * @details
  *
- * ATBLK=$<session_id>,$<block_id>,$<block>,$<auth>
+ * ATBLK=$\<session_id\>,$\<block_id\>,$\<block\>,$\<auth\>
  * @parblock
- * - <session_id> : A 4 bytes identifying the update session (8 digits)
- * - <block_id> : A 2 bytes identifying the block number (4 digits)
- * - <block> : A 210 bytes hexadecimal string ciphered (420 digits)
- * - <auth> : A 4 bytes hash cmac authenticate the block (8 digits)
+ * - \<session_id\> : A 4 bytes identifying the update session (8 digits)
+ * - \<block_id\> : A 2 bytes identifying the block number (4 digits)
+ * - \<block\> : A 210 bytes hexadecimal string ciphered (420 digits)
+ * - \<auth\> : A 4 bytes hash cmac authenticate the block (8 digits)
  * @endparblock
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure
@@ -173,9 +173,9 @@ atci_error_e Exec_ATBLK_Cmd(atci_cmd_t *atciCmdData)
  *
  * @details
  *
- * ATUPD=$<session_id>
+ * ATUPD=$\<session_id\>
  * @parblock
- * - <session_id> : A 4 bytes identifying the update session (8 digits)
+ * - \<session_id\> : A 4 bytes identifying the update session (8 digits)
  * @endparblock
  *
  * @param[in,out]	atciCmdData Pointer on "atci_cmd_t" structure

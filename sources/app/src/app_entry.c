@@ -42,10 +42,19 @@ extern "C" {
 #include "wize_app.h"
 #include "itf.h"
 
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 extern void Sys_Init(void);
 extern void Sys_Start(void);
 
 void App_Init(void);
+/*!
+ * @}
+ * @endcond
+ */
+/******************************************************************************/
 
 /**
   * @brief  The application entry point.
@@ -64,8 +73,6 @@ void app_entry(void)
  * @cond INTERNAL
  * @{
  */
-
-
 extern void Atci_Setup(void);
 
 void* hMonitorTask;
@@ -77,15 +84,8 @@ void Monitor_Task(void const * argument);
 SYS_TASK_CREATE_DEF(monitor, MONITOR_STACK_SIZE, MONITOR_PRIORITY);
 
 /*!
- * @}
- * @endcond
+ * @brief  Called to initialize application before starting the scheduler.
  */
-
-extern struct update_ctx_s sUpdateCtx;
-
-/**
-  * @brief  Called to initialize application before starting the scheduler.
-  */
 void App_Init(void)
 {
 	Update_Setup();
@@ -99,9 +99,10 @@ void App_Init(void)
 	NetMgr_Uninit();
 }
 /******************************************************************************/
+
 extern boot_info_t gBootInfo;
-extern admin_ann_fw_info_t sFwAnnInfo;
-extern struct update_ctx_s sUpdateCtx;
+//extern admin_ann_fw_info_t sFwAnnInfo;
+//extern struct update_ctx_s sUpdateCtx;
 
 #ifndef MONITOR_TMO_EVT
 #define MONITOR_TMO_EVT 0xFFFFFFFF
@@ -127,8 +128,14 @@ b[7] if 1: Activate the keys writing in NVM;
 */
 #define EXT_FLAGS_UPD_IMM 0b00010000
 
+/*!
+ * @brief  Monitor task.
+ *
+ * @param [in] argument Not used
+ */
 void Monitor_Task(void const * argument)
 {
+	(void)argument;
 	uint32_t ulEvent;
 	uint32_t ret;
 
@@ -252,6 +259,11 @@ void Monitor_Task(void const * argument)
 	}
 }
 
+/*!
+ * @}
+ * @endcond
+ */
+
 /******************************************************************************/
 /*
 // Determine whether we are in thread mode or handler mode.
@@ -261,6 +273,11 @@ static int inHandlerMode (void)
 }
 */
 /******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
+
 void WizeApp_CtxClear(void)
 {
 	// TODO :
@@ -281,6 +298,11 @@ void WizeApp_CtxSave(void)
 	BSP_Rtc_Backup_Write(0, ((uint32_t*)&sTimeUpdCtx)[0]);
 	BSP_Rtc_Backup_Write(1, ((uint32_t*)&sTimeUpdCtx)[1]);
 }
+
+/*!
+ * @}
+ * @endcond
+ */
 /******************************************************************************/
 
 #ifdef __cplusplus

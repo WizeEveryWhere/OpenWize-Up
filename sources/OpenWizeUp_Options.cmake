@@ -70,7 +70,7 @@ set(HW_MODEL   "WZ1000" CACHE STRING "Define the board model print when ATI comm
 set(HW_VER_MAJ 0 CACHE STRING "Define the board major version number.")
 set(HW_VER_MIN 1 CACHE STRING "Define the board minor version number.")
 set(HW_VER_REV 0 CACHE STRING "Define the board revision version number.")
-set(HW_DATE ${TODAY} CACHE STRING "Define the board date.")
+set(HW_DATE "2021-05-19 19:16:51" CACHE STRING "Define the board date.")
 
 # TODO :
 # add_compile_definitions(COM_SWAP_PINS=1)

@@ -1,5 +1,5 @@
 /**
-  * @file atci_extend.c
+  * @file at_key_cmd.c
   * @brief This file group some AT command.
   * 
   * @details

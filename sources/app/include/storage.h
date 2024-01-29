@@ -28,7 +28,8 @@
   */
 
 /*!
- * @addtogroup app
+ * @addtogroup storage
+ * @ingroup app
  * @{
  */
 #ifndef _STORAGE_H_
@@ -39,16 +40,76 @@ extern "C" {
 
 #include <stdint.h>
 #include "version.h"
+/******************************************************************************/
+/*!
+ * @cond INTERNAL
+ * @{
+ */
 
 #define EXT_FLAGS_DBG_MSG_EN_MSK      0x01
 #define EXT_FLAGS_PHYCAL_WRITE_EN_MSK 0x20
 #define EXT_FLAGS_IDENT_WRITE_EN_MSK  0x40
-#define EXT_FLAGS_KEYS_WRITE_EN_MSK  0x80
+#define EXT_FLAGS_KEYS_WRITE_EN_MSK   0x80
 
+/*!
+ * @}
+ * @endcond
+ */
+/******************************************************************************/
+
+/*!
+  * @brief Select area.
+  * @details This is used by Storage_SetDefault and Storage_Get functions to
+  * select which area is concern by the required action.
+  */
+typedef enum
+{
+	KEY_AREA_ID = 0x01, /*!< Key area only */
+	SPE_AREA_ID = 0x02, /*!< Special area (device id, calibration, ...) only */
+	PAR_AREA_ID = 0x04, /*!< Parameters area only */
+	// ---
+	ALL_AREA_ID = 0x07, /*!< All area */
+	// ---
+} area_id_e;
+
+
+/*!
+ * @brief  This initialize the storage area
+ *
+ * @param [in] bForce Force to defaults.
+ *
+ */
 void Storage_Init(uint8_t bForce);
-void Storage_SetDefault(void);
+
+/*!
+ * @brief  Set to defaults
+ *
+ * @param [in] eArea Select the concern area (ORed value from @link area_id_e @endlink).
+ *
+ */
+void Storage_SetDefault(uint8_t eArea);
+
+/*!
+ * @brief  Store current into the flash memory
+ *
+ * @retval  0 Success
+ * @retval  1 Failed
+ *
+ */
 uint8_t Storage_Store(void);
-uint8_t Storage_Get(void);
+
+/*!
+ * @brief  Get from flash memory the current
+ *
+ * @param [in] eArea Select the concern area (ORed value from @link area_id_e @endlink).
+ *
+ * @retval  0 Success
+ * @retval  1 Failed
+ *
+ */
+uint8_t Storage_Get(uint8_t eArea);
+
+/******************************************************************************/
 
 #ifdef __cplusplus
 }

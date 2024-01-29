@@ -179,7 +179,6 @@ uint8_t BSP_Uart_SetDefault(uint8_t u8DevId)
   * @param [in] u8DevId     Uart device id (see @link uart_id_e @endlink)
   * @param [in] u8CharMatch Character to match
   * @param [in] u8Mode      Uart detection mode (see @link uart_mode_e @endlink)
-  * @param [in] u32Tmo      Timeout (0 : timeout is not used)
   * 
   * @retval DEV_SUCCESS if everything is fine (see @link dev_res_e::DEV_SUCCESS @endlink)
   * @retval DEV_INVALID_PARAM if the given parameter is invalid (see @link dev_res_e::DEV_INVALID_PARAM @endlink)

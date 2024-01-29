@@ -1,35 +1,12 @@
 
-#include "flash_storage.h"
-#include "crypto.h"
-#include "key_priv.h"
-#include "phy_layer_private.h"
-#include "net_api.h"
-#include "parameters_cfg.h"
-
-struct _store_special_s
-{
-	device_id_t sDeviceInfo;
-	uint8_t     bPaState;
-	uint8_t     ND1;
-	int16_t     i16PhyRssiOffset;
-	phy_power_t aPhyPower[PHY_NB_PWR];
-	uint8_t     ND2[3];
-	uint8_t     aPhyCalRes[CAL_RES_SZ] __attribute__ ((aligned(8)));
-	uint8_t     ND3[4];
-};
+#include "nvm_area.h"
 
 /******************************************************************************/
-extern unsigned int __nvm_org__;
-#define NVM_ORG (unsigned int)(&(__nvm_org__))
+
 #define ATTR_SECTION(msection) __attribute__(( section(msection) ))
 #define ATTR_AREA() __attribute__((used)) __attribute__(( aligned (8) ))
 #define ATTR_PART() __attribute__(( aligned (2048) ))
 #define ATTR_PARAM_TABLE() ATTR_SECTION(".nvm") ATTR_AREA()
-
-#define HEADER_SZ          sizeof(struct flash_store_header_s)
-#define KEY_TABLE_SZ       KEY_MAX_NB * sizeof(key_s)
-#define CALIBRATION_SZ     sizeof(struct _store_special_s)
-#define PARAMETER_TABLE_SZ PARAM_DEFAULT_SZ
 
 #define START_ADDRESS_PART_1 (NVM_ORG + HEADER_SZ)
 #define START_ADDRESS_PART_2 (START_ADDRESS_PART_1 + KEY_TABLE_SZ)
@@ -102,8 +79,8 @@ const struct _store_special_s sCalibration =
 		.u8Ver = 0x00,
 		.u8Type = 0x00
 	},
-	.bPaState = 0,
-	.i16PhyRssiOffset = 0,
+	.bPaState = 1,
+	.i16PhyRssiOffset = 0x3C7,
 	.aPhyPower =
 	{
 		/*

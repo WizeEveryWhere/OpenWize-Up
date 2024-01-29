@@ -79,7 +79,7 @@ uint32_t BSP_Boot_GetInfo(void)
 /*!
   * @brief Set the boot info
   *
-  * @param [in] sBootInfo The boot info to set (see @link boot_info_t @endlink)
+  * @param [in] info The boot info to set (see @link boot_info_t @endlink)
   *
   */
 void BSP_Boot_SetInfo(uint32_t info)
@@ -102,7 +102,7 @@ uint32_t BSP_Boot_GetState(void)
 /*!
   * @brief Set the boot info
   *
-  * @param [in] sBootInfo The boot info to set (see @link boot_info_t @endlink)
+  * @param [in] state The boot state to set (see @link boot_info_t @endlink)
   *
   */
 void BSP_Boot_SetSate(uint32_t state)

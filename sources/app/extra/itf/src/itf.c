@@ -425,6 +425,10 @@ uint8_t ITF_LocalUpdateReq(local_cmd_update_t *pFrame)
 		{
 			sItfCtx.u8Err = LO_DWN_ERR_BLK_CNT;
 		}
+		else if (update_status == UPD_STATUS_INPROGRESS)
+		{
+			sItfCtx.u8Err = LO_DWN_ERR_BLK_CNT;
+		}
 		else if (update_status == UPD_STATUS_STORE_FAILED)
 		{
 			sItfCtx.u8Err = LO_DWN_ERR_WRITE;

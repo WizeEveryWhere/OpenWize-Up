@@ -2,26 +2,26 @@
   * @file: at_test_cmd.c
   * @brief: This file group some AT command.
   * 
-  *****************************************************************************
-  * @Copyright 2019, GRDF, Inc.  All rights reserved.
+  * @details
   *
-  * Redistribution and use in source and binary forms, with or without 
+  * @copyright 2019, GRDF, Inc.  All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
   * modification, are permitted (subject to the limitations in the disclaimer
   * below) provided that the following conditions are met:
   *    - Redistributions of source code must retain the above copyright notice,
   *      this list of conditions and the following disclaimer.
-  *    - Redistributions in binary form must reproduce the above copyright 
-  *      notice, this list of conditions and the following disclaimer in the 
+  *    - Redistributions in binary form must reproduce the above copyright
+  *      notice, this list of conditions and the following disclaimer in the
   *      documentation and/or other materials provided with the distribution.
   *    - Neither the name of GRDF, Inc. nor the names of its contributors
   *      may be used to endorse or promote products derived from this software
   *      without specific prior written permission.
   *
-  *****************************************************************************
   *
-  * Revision history
-  * ----------------
-  * 1.0.0 : 2023/07/10[GBI]
+  * @par Revision history
+  *
+  * @par 1.0.0 : 2023/07/10 [GBI]
   * Initial version
   *
   *
@@ -50,8 +50,6 @@ extern "C" {
  * @cond INTERNAL
  * @{
  */
-
-uint8_t bTestMode;
 
 /*!
  * @}
@@ -308,7 +306,7 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 			return ATCI_ERR_PARAM_NB;
 
 		test_mode_info_t eTestModeInfo = EX_PHY_TestInit();
-		bTestMode = 1;
+		atciCmdData->bTestMode = 1;
 
 		if (*(atciCmdData->params[0].val8) == TEST_MODE_DIS) //also TMODE_TX_NONE witch correspond to the same thing (see test_modes_tx_e)
 		{
@@ -316,7 +314,7 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 
 			eTestModeInfo.eTestMode = PHY_TST_MODE_NONE;
 			eTestModeInfo.eTxMode = 0;
-			bTestMode = 0;
+			atciCmdData->bTestMode = 0;
 		}
 		else if (*(atciCmdData->params[0].val8) < TMODE_TX_NB) // (see test_modes_tx_e)
 		{
@@ -355,7 +353,7 @@ atci_error_e Exec_ATTEST_Cmd(atci_cmd_t *atciCmdData)
 
 		if (eRet != ATCI_ERR_NONE)
 		{
-			bTestMode = 0;
+			atciCmdData->bTestMode = 0;
 		}
 	}
 	else

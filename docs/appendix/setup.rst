@@ -1,9 +1,9 @@
 .. ****************************************************************************
 
-.. _Setup the environement:
+.. _Setup the environment:
 
-Setup the environement
-======================
+Setup the environment
+=====================
 
 Environment variables :
 
@@ -49,5 +49,5 @@ At the end, answer yes
    Do you want to install in your environment variable (bashrc) (recommended)
    Answer (yes or no): yes
 
-Now, each new console will have these environement variables automatically set. 
+Now, each new console will have these environment variables automatically set. 
 

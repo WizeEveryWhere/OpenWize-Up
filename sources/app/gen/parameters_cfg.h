@@ -1,6 +1,6 @@
 /*!
   * @file parameters_cfg.h
-  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-11-22 11:09:10.235494651 +0100).
+  * @brief This file was generated from sources/app/gen/.MergedParam.xml(Modif. : 2023-12-13 09:10:45.947396839 +0100).
   * 
   * @details
   *
@@ -21,7 +21,7 @@
   *
   * @par Generation Date
   * 
-  * @par x.x.x : 22/11/2023 11:09 [neo]
+  * @par x.x.x : 13/12/2023 09:10 [neo]
   *
   */
 
