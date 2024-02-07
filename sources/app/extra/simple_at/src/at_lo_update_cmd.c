@@ -147,11 +147,7 @@ atci_error_e Exec_ATBLK_Cmd(atci_cmd_t *atciCmdData)
 
 		if (status == ATCI_ERR_NONE)
 		{
-			int8_t ret = ITF_LocalBlkRecv( (local_cmd_writeblock_t*)atciCmdData->params[0].data );
-			if (ret == -1)
-			{
-				status = ATCI_ERR_UNK;
-			}
+			status = ITF_LocalBlkRecv( (local_cmd_writeblock_t*)atciCmdData->params[0].data );
 		}
 		else
 		{
