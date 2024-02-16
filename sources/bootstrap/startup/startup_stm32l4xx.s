@@ -244,12 +244,6 @@ _part_size_ :
 _magic_tab_ : @ Magic tab address
     .word _magic_I0_
     .word _magic_I1_
-@    .org _no_vector_area_1_ + 0x90 @- (3*4) - (8 * 4)
-@	.word _no_vector_area_1_ + 0x90
-@_rtc_alarm_irq_handler_ :
-@	.word	0
-@_no_vector_area_2_ :
-@   .org _no_vector_area_2_ + 0xA0
 _end_vector_area_ :
     .word _end_vector_area_
 

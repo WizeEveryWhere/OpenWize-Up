@@ -19,6 +19,9 @@ extern "C"
 #define msg_req_1 "REQ_UPDATE\r\n"
 #define msg_req_2 "REQ_LOCAL\r\n"
 #define msg_req_x "REQ_?????\r\n"
+#define msg_RDP_0 "OB-RDP0\r\n"
+#define msg_RDP_1 "OB-RDP1\r\n"
+#define msg_RDP_2 "OB-RDP2\r\n"
 
 static const char * const trace_str[] =
 {
@@ -36,6 +39,12 @@ static const char * const trace_str[] =
 	[TRACE_MSG_REQ_UNK] = msg_req_x,
 	[TRACE_MSG_FAILURE] = msg_failure,
 	[TRACE_MSG_NOT_BOOTABLE] = msg_not_bootable,
+	// ---
+#ifdef HAS_RDP_TRACE
+	[TRACE_MSG_RDP0] = msg_RDP_0,
+	[TRACE_MSG_RDP1] = msg_RDP_1,
+	[TRACE_MSG_RDP2] = msg_RDP_2,
+#endif
 };
 
 static const uint8_t trace_len[TRACE_MSG_NB] =
@@ -54,49 +63,24 @@ static const uint8_t trace_len[TRACE_MSG_NB] =
 	[TRACE_MSG_REQ_UNK] = sizeof(msg_req_x),
 	[TRACE_MSG_FAILURE] = sizeof(msg_failure),
 	[TRACE_MSG_NOT_BOOTABLE] = sizeof(msg_not_bootable),
+	// ---
+#ifdef HAS_RDP_TRACE
+	[TRACE_MSG_RDP0] = sizeof(msg_RDP_0),
+	[TRACE_MSG_RDP1] = sizeof(msg_RDP_1),
+	[TRACE_MSG_RDP2] = sizeof(msg_RDP_2),
+#endif
 };
 
 uint8_t trace_enable;
 
 void RAMFUNCTION trace_init(void)
 {
-	// Assume we come from Reset
-	/* At reset
-	 * 	GPIOx_MODER
-	 * 	   0xABFF FFFF (for port A)
-	 * 	   0xFFFF FEBF (for port B)
-	 * GPIOx_OSPEEDR
-	 *     0x0C00 0000 (for port A)
-	 *     0x0000 0000 (for the other ports)
-	 * GPIOx_PUPDR
-	 *     0x6400 0000 (for port A)
-	 *     0x0000 0100 (for port B)
-	 * GPIOx_AFRL
-	 *     0x0000 0000
-	 * GPIOx_AFRH
-	 *     0x0000 0000
-	 *
-	*/
-	/*
-	 * Port A : UART4 is on this port
-	 * Port B : LPUART1 is on this port
-    */
-	/*
-	 * Just change GPIOB_MODER and take care about LPUART1:
-	 * - GPIOx_MODER_MSK 0xFFFFCFFF
-    */
-
-	// Read GPIO PB6
-	// If 1 : enable the trace
-	// If 0 : disable the trace
-	register uint32_t temp;
-	LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
-	temp = GPIOB->MODER & 0xFFFFCFFF;
-	GPIOB->MODER = temp;
+	TRACE_EN_GPIO_CLK_ENABLE();
+	TRACE_EN_GPIO_SETUP();
 	// Init Uart
 	hal_uart_init();
 	// Get GPIO PB6
-	trace_enable = (GPIOB->IDR & 0x40) >> 6;
+	trace_enable = TRACE_IS_ENABLE();
 }
 
 void RAMFUNCTION trace(uint8_t id)

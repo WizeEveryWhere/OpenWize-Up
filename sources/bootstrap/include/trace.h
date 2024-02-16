@@ -26,6 +26,12 @@ typedef enum
 	TRACE_MSG_FAILURE,
 	TRACE_MSG_NOT_BOOTABLE,
 	// ---
+#ifdef HAS_RDP_TRACE
+	TRACE_MSG_RDP0,
+	TRACE_MSG_RDP1,
+	TRACE_MSG_RDP2,
+#endif
+	// ---
 	TRACE_MSG_NB,
 } trace_id_e;
 

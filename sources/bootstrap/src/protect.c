@@ -8,6 +8,7 @@ extern "C"
 #include "protect.h"
 #include "flash.h"
 #include "wdg.h"
+#include "trace.h"
 
 #include <stm32l4xx_hal.h>
 //#include <stm32l4xx_hal_cortex.h>
@@ -66,7 +67,7 @@ extern "C"
  * 		Bits 10:8 BOR_LEV: BOR reset Level
  * 			= 000: BOR Level 0. Reset level threshold is around 1.7 V
  * 		Bits 7:0 RDP: Read protection level
- * 			= 0xAA: Level 0, read protection not active
+ * 			= keep previous setting
  */
 #define OB_nBOOT // Get previous settings
 #define OB_SRAM2 // Get previous settings
@@ -74,11 +75,11 @@ extern "C"
 #define OB_IWDG (OB_IWDG_STDBY_FREEZE | OB_IWDG_STOP_FREEZE | OB_IWDG_SW)
 #define OB_nRST (OB_SHUTDOWN_NORST | OB_STANDBY_NORST | OB_STOP_NORST)
 #define OB_BOR OB_BOR_LEVEL_0
-#define OB_RDP OB_RDP_LEVEL_0
+//#define OB_RDP OB_RDP_LEVEL_0
 
-#define OB_KEEP_PREV_MSK 0xFFF88800
+#define OB_KEEP_PREV_MSK 0xFFF888FF
 
-#define OB_SETTING_REG (OB_IWDG | OB_nRST | OB_BOR | OB_RDP)
+#define OB_SETTING_REG (OB_IWDG | OB_nRST | OB_BOR)
 
 static inline uint32_t RAMFUNCTION get_wdt_ob(uint32_t ob_org)
 {
@@ -292,9 +293,24 @@ int RAMFUNCTION protect(register struct __exch_info_s * pp)
 	uint32_t status = 0;
 	uint32_t current;
 	uint32_t expected;
-
+	uint32_t rdp;
 	// Get current loaded OB
 	current = hal_flash_ob_read();
+
+	rdp = current & 0xFF;
+	if ( rdp == OB_RDP_LEVEL_2)
+	{
+		TRACE(TRACE_MSG_RDP2);
+	}
+	else if (rdp == OB_RDP_LEVEL_0)
+	{
+		TRACE(TRACE_MSG_RDP0);
+	}
+	else
+	{
+		TRACE(TRACE_MSG_RDP1);
+	}
+
 	// Set OB for WDG
 	expected = get_wdt_ob(current);
 	// If the current OB is not what we expect, then re-prog OB

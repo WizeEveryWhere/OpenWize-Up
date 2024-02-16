@@ -11,6 +11,7 @@ function(display_option)
     message ("      -> USE_BOOTSTRAP_TRACE : ${USE_BOOTSTRAP_TRACE}")
     message ("      -> USE_LPUART_COM      : ${USE_LPUART_COM}")
     message ("      -> USE_ENABLE_IWDG     : ${USE_ENABLE_IWDG}")
+    message ("      -> HAS_RDP_TRACE       : ${HAS_RDP_TRACE}")
 endfunction(display_option)
 
 ################################################################################
@@ -21,7 +22,7 @@ option(HAS_MEMORY_LOADER       "TODO : description." OFF)
 option(USE_BOOTSTRAP_TRACE     "Activate the trace." ON)
 option(USE_LPUART_COM          "Use the LPUART as trace port (default UART4)" OFF)
 option(USE_ENABLE_IWDG         "Enable IWDG from bootstrap" ON)
-
+option(HAS_RDP_TRACE           "Enable OB RDP trace info" ON)
 ################################################################################
 
 display_option()
@@ -95,6 +96,11 @@ if(USE_ENABLE_IWDG)
     target_sources(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/protect.c)
     add_compile_definitions(USE_ENABLE_IWDG=1)
 endif(USE_ENABLE_IWDG)
+
+if(HAS_RDP_TRACE)
+    add_compile_definitions(HAS_RDP_TRACE=1)
+endif(HAS_RDP_TRACE)
+
 ################################################################################
 setup_install(
     TARGET ${MODULE_NAME} 

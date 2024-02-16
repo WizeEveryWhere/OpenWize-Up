@@ -12,6 +12,60 @@ extern "C" {
 #include <stm32l4xx_ll_rcc.h>
 #include <stm32l4xx_ll_gpio.h>
 
+/******************************************************************************/
+
+// Assume we come from Reset
+/* At reset
+ * 	GPIOx_MODER
+ * 	   0xABFF FFFF (for port A)
+ * 	   0xFFFF FEBF (for port B)
+ * GPIOx_OSPEEDR
+ *     0x0C00 0000 (for port A)
+ *     0x0000 0000 (for the other ports)
+ * GPIOx_PUPDR
+ *     0x6400 0000 (for port A)
+ *     0x0000 0100 (for port B)
+ * GPIOx_AFRL
+ *     0x0000 0000
+ * GPIOx_AFRH
+ *     0x0000 0000
+ *
+*/
+/*
+ * Port A : UART4 is on this port
+ * Port B : LPUART1 is on this port
+*/
+
+/*
+ * Just change GPIOB_MODER and take care about LPUART1:
+ * - GPIOx_MODER_MSK 0xFFFFCFFF
+*/
+
+// Read GPIO PB6 (IO1)
+// If 1 : enable the trace
+// If 0 : disable the trace
+#define TRACE_EN_GPIO_PORT GPIOB
+#define TRACE_EN_GPIO_PIN 6
+#define TRACE_EN_GPIO_CLK_ENABLE()  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB)
+#define TRACE_EN_GPIO_CLK_DISABLE() LL_AHB2_GRP1_DisableClock(LL_AHB2_GRP1_PERIPH_GPIOB)
+
+
+#define TRACE_EN_GPIO_MODER_MSK() (~(0x3 << (TRACE_EN_GPIO_PIN << 1))) // 0xFFFFCFFF
+#define TRACE_EN_GPIO_PUPD_MSK() (0x2 << (TRACE_EN_GPIO_PIN << 1)) // 0x2000
+
+#define TRACE_EN_GPIO_SETUP() \
+	register uint32_t temp; \
+	/* Set GPIO PB6 Pull-Down */ \
+	temp = TRACE_EN_GPIO_PORT->PUPDR & TRACE_EN_GPIO_MODER_MSK(); \
+	temp |= TRACE_EN_GPIO_PUPD_MSK(); \
+	TRACE_EN_GPIO_PORT->PUPDR = temp; \
+	/* Set GPIO PB6 as Input */ \
+	temp = TRACE_EN_GPIO_PORT->MODER & TRACE_EN_GPIO_MODER_MSK(); \
+	TRACE_EN_GPIO_PORT->MODER = temp; \
+
+#define TRACE_IS_ENABLE() (TRACE_EN_GPIO_PORT->IDR >> TRACE_EN_GPIO_PIN ) & 0x1
+
+/******************************************************************************/
 /*
  * Assume that :
  * - MSI clock is selected as SYSCLK
