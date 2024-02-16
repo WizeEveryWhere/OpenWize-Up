@@ -133,6 +133,7 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 	 * 	-	Restore all registers from last stored ones in NVM
 	 * 	-	Clear the current clock initialize flag value
 	 * 	-	Clear all internal counters.
+	 * 	-	Clear network statistics.
 	 */
 		case CMD_ATZ:
 		case CMD_ATZ0:
@@ -153,6 +154,10 @@ atci_error_e Exec_ATZn_Cmd(atci_cmd_t *atciCmdData)
 	{
 		Atci_Debug_Str("Cold Reboot");
 		Storage_SetDefault(ALL_AREA_ID);
+		// FIXME : put it somewhere else
+		NetMgr_Open(NULL);
+		NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, 0);
+		NetMgr_Close();
 	}
 	else
 	{
@@ -336,10 +341,82 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 			NetMgr_Open(NULL);
 			if (NetMgr_Ioctl(NETDEV_CTL_GET_STATS, (uint32_t)(&sStats)) == NET_STATUS_OK)
 			{
+				/*
+				int16_t i16_IntPart;
+				uint8_t u8_DecPart;
+				EX_PHY_GetIhmRssi(&i16_IntPart, &u8_DecPart);
+				EX_PHY_GetIhmNoise(&i16_IntPart, &u8_DecPart);
+				*/
 				_format_stats_( atciCmdData->params[0].data, &sStats);
 
 				Atci_Resp(atciCmdData);
-				//Atci_Resp_Data(atciCmdData->cmd_code_str[atciCmdData->cmdCode], atciCmdData);
+
+				// FIXME : maybe costly
+				uint8_t *pBase = atciCmdData->paramsMem;
+				// ---
+#define RSSI_TO_FLOAT_DBM(u8Val) ((255 - u8Val) / 2 + 20) , ( (255 - u8Val) % 2)*5
+				snprintf( (char*) pBase, AT_CMD_DATA_MAX_LEN,
+						"RSSI dBm (Min, Avg, Max): -%d.%d, -%d.%d, -%d.%d",
+						RSSI_TO_FLOAT_DBM(sStats.u8RxRssiMin),
+						RSSI_TO_FLOAT_DBM(sStats.u8RxRssiAvg),
+						RSSI_TO_FLOAT_DBM(sStats.u8RxRssiMax) );
+				Atci_Debug_Param_Data(pBase, NULL);
+
+				snprintf( (char*) pBase, AT_CMD_DATA_MAX_LEN,
+						"Noise dBm (Min, Avg, Max): -%d.%d, -%d.%d, -%d.%d",
+						RSSI_TO_FLOAT_DBM(sStats.u8TxNoiseMin),
+						RSSI_TO_FLOAT_DBM(sStats.u8TxNoiseAvg),
+						RSSI_TO_FLOAT_DBM(sStats.u8TxNoiseMax) );
+				Atci_Debug_Param_Data(pBase, NULL);
+
+				snprintf( (char*) pBase, AT_CMD_DATA_MAX_LEN,
+						"RX (Frm, Bytes) : %ld, %ld",
+						(sStats.u32RxNbFrmOK),
+						(sStats.u32RxNbBytes) );
+				Atci_Debug_Param_Data(pBase, NULL);
+
+				snprintf( (char*) pBase, AT_CMD_DATA_MAX_LEN,
+						"TX (Frm, Bytes) : %ld, %ld",
+						(sStats.u32TxNbFrames),
+						(sStats.u32TxNbBytes) );
+				Atci_Debug_Param_Data(pBase, NULL);
+
+				/*
+				// ---
+				atciCmdData->params[0].size = 1;
+				atciCmdData->params[1].size = 1;
+				atciCmdData->params[2].size = 1;
+				atciCmdData->nbParams = 3;
+
+				pBase++;
+				atciCmdData->params[0].data = pBase++;
+				atciCmdData->params[1].data = pBase++;
+				atciCmdData->params[2].data = pBase++;
+				Atci_Debug_Param_Data("RSSI (Min, Avg, Max)", atciCmdData);
+
+				pBase++;
+				atciCmdData->params[0].data = pBase++;
+				atciCmdData->params[1].data = pBase++;
+				atciCmdData->params[2].data = pBase++;
+				Atci_Debug_Param_Data("Noise (Min, Avg, Max)", atciCmdData);
+
+				// ---
+				atciCmdData->params[0].size = PARAM_INT32;
+				atciCmdData->params[1].size = PARAM_INT32;
+				atciCmdData->nbParams = 2;
+
+				pBase += sizeof(frm_err_stats_t) + sizeof(sStats.u32RxNbFrmErr);
+				atciCmdData->params[0].data = pBase;
+				pBase += 4;
+				atciCmdData->params[1].data = pBase;
+				Atci_Debug_Param_Data("RX (Frm, Bytes)", atciCmdData);
+
+				pBase += 4;
+				atciCmdData->params[0].data = pBase;
+				pBase += 4;
+				atciCmdData->params[1].data = pBase;
+				Atci_Debug_Param_Data("TX (Frm, Bytes)", atciCmdData);
+				*/
 			}
 			else
 			{
@@ -361,7 +438,7 @@ atci_error_e Exec_ATSTAT_Cmd(atci_cmd_t *atciCmdData)
 			{
 				NetMgr_Open(NULL);
 				//if ( *(atciCmdData->params[0].val8 == 0)
-				if (NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, (uint32_t)(&sStats)))
+				if (NetMgr_Ioctl(NETDEV_CTL_CLR_STATS, 0))
 				{
 					// error
 					status = ATCI_ERR_UNK;
