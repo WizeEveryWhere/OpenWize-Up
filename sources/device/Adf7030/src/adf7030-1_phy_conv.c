@@ -130,8 +130,11 @@ void PHY_CONV_IhmToSigned11( int16_t i16_IntPart,
  */
 inline uint8_t PHY_CONV_Signed11ToRssi(uint16_t u16_Signed11)
 {
+	uint16_t temp;
 	uint8_t u8_Rssi;
-	u8_Rssi = 255 - ( ( ( u16_Signed11^0x7FF ) + 1 ) >> 1 ) + 40;
+	//u8_Rssi = 255 - ( ( ( u16_Signed11^0x7FF ) + 1 ) >> 1 ) + 40;
+	temp = ( ( ( u16_Signed11^0x7FF ) + 1 ) >> 1 );
+	u8_Rssi = (temp > 295)?(0):(295 - temp);
 	return u8_Rssi;
 }
 

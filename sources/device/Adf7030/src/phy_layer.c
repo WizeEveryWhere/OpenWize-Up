@@ -519,6 +519,7 @@ static int32_t _init(phydev_t *pPhydev)
 		if( !(adf7030_1_Init( pDevice, &spi_ADF7030 )) )
 		{
 			// set default parameters
+			pPhydev->i16RssiOffset = i16RssiOffsetCal;
 			pPhydev->i16TxFreqOffset = DEFAULT_TX_FREQ_OFFSET;
 			pPhydev->eModulation = DEFAULT_MOD;
 			pPhydev->eTxPower = DEFAULT_TX_POWER;
@@ -864,10 +865,7 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 			// Write offset value to NB_OFFSET in rssi_cfg_t
 			rssi_cfg_t rssi_cfg;
 			rssi_cfg = (rssi_cfg_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_RSSI_CFG_Addr));
-			// Calculate error (dbm) = Average (dbm) - Power input (dbm)
-			//u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
-			//rssi_cfg.RSSI_CFG_b.NB_OFFSET = pPhydev->i16RssiOffset;
-			rssi_cfg.RSSI_CFG_b.NB_OFFSET = i16RssiOffsetCal;
+			rssi_cfg.RSSI_CFG_b.NB_OFFSET = pPhydev->i16RssiOffset;
 			adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RSSI_CFG_Addr, rssi_cfg.RSSI_CFG);
 
 			// Change frequency
@@ -1222,6 +1220,7 @@ static int32_t _rssi_calibrate_seq(phydev_t *pPhydev, int8_t i8RssiRefLevel)
 			eStatus = PHY_STATUS_OK;
 			TRACE_PHY_LAYER("Phy RSSI-Calibration success\n");
 			TRACE_PHY_LAYER("RSSI offset %d\n", i16RssiOffsetCal);
+			pPhydev->i16RssiOffset = i16RssiOffsetCal;
 		}
 		// Revert DETECTION_TIME
 		adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_CCA_CFG_Addr, cca_cfg.CCA_CFG);
@@ -1267,9 +1266,9 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 		pDevice->bTxPwrDone = 0;
 		pDevice->u8PendTXBuffSize = 0;
 
-		pPhydev->u16_Noise = 0;
-		pPhydev->u16_Rssi  = 0;
-		pPhydev->u16_Ferr  = 0;
+		//pPhydev->u16_Noise = 0;
+		//pPhydev->u16_Rssi  = 0;
+		//pPhydev->u16_Ferr  = 0;
 		pPhydev->eTestMode = PHY_TST_MODE_NONE;
 
 		switch(eCmd)
@@ -1626,6 +1625,8 @@ static int32_t _do_CCA(phydev_t *pPhydev, phy_chan_e eChannel, phy_mod_e eModula
 			if ( i32Ret == PHY_STATUS_OK)
 			{
 				pPhydev->u16_Noise = adf7030_1__GetRawNoise( &(((adf7030_1_device_t*)pPhydev->pCxt)->SPIInfo), NOISE_MEAS_AVG_NB );
+				//pPhydev->u16_Noise += pPhydev->i16RssiOffset;
+				//pPhydev->u16_Noise -= pPhydev->i16RssiOffset;
 				i32Ret = _do_cmd(pPhydev, PHY_CTL_CMD_READY);
 				pDevice->eState &= ~ADF7030_1_STATE_NOISE_MEAS;
 			}
@@ -1895,6 +1896,9 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 						(bPaState)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
 					}
 					break;
+				case PHY_CTL_SET_RSSI_OFF:
+					pPhydev->i16RssiOffset = (int16_t)args;
+					break;
 				case PHY_CTL_SET_TX_FREQ_OFF:
 					pPhydev->i16TxFreqOffset = (int16_t)args;
 					break;
@@ -1938,6 +1942,9 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 				case PHY_CTL_GET_PA:
 					//*(uint8_t*)args = (BSP_PwrLine_Get(PA_EN_MSK))?(1):(0);
 					*(uint8_t*)args = bPaState;
+					break;
+				case PHY_CTL_GET_RSSI_OFF:
+					*(uint8_t*)args = pPhydev->i16RssiOffset;
 					break;
 				case PHY_CTL_GET_TX_FREQ_OFF:
 					*(uint8_t*)args = pPhydev->i16TxFreqOffset;

@@ -416,6 +416,18 @@ inline int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry)
 	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_PWR_ENTRY, (uint32_t)pPhyPwrEntry);
 }
 
+inline int32_t EX_PHY_GetIhmRssi(int16_t *i16_IntPart, uint8_t *u8_DecPart)
+{
+	PHY_CONV_Signed11ToIhm(sPhyDev.u16_Rssi, i16_IntPart, u8_DecPart);
+	return 0;
+}
+
+inline int32_t EX_PHY_GetIhmNoise(int16_t *i16_IntPart, uint8_t *u8_DecPart)
+{
+	PHY_CONV_Signed11ToIhm(sPhyDev.u16_Noise, i16_IntPart, u8_DecPart);
+	return 0;
+}
+
 #ifdef __cplusplus
 }
 #endif
