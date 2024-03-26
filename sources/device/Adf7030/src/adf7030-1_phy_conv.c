@@ -42,6 +42,44 @@ extern "C" {
 #include "adf7030-1_phy_conv.h"
 
 /*!
+ * @brief  This function convert a signed 11 bits to signed 16 bits.
+ *
+ * @param [in]  u16_Signed11 The signed 11 bits value.
+ *
+ * @return The signed 16 bits value
+ */
+inline
+int16_t PHY_CONV_Signed11ToSigned16( uint16_t u16_Signed11)
+{
+	if ( u16_Signed11 & 0x400)
+	{
+		return (u16_Signed11 | 0xFC00);
+	}
+	else
+	{
+		return (u16_Signed11);
+	}
+}
+
+/*!
+ * @brief  This function convert a signed 16 (with 0.25 step as unit) to "IHM" (human readable) value.
+ *
+ * @param [in]  i16Value    The signed 16 value to convert .
+ * @param [out] i16_IntPart Reference variable to hold the Integer part.
+ * @param [out] u8_DecPart  Reference variable to hold the Decimal part.
+ *
+ * @return None
+ */
+inline
+void PHY_CONV_Signed16toIhm(int16_t i16Value,
+							int16_t *i16_IntPart,
+							uint8_t *u8_DecPart )
+{
+	*i16_IntPart = i16Value / 4;
+	*u8_DecPart = ( ( ( i16Value^0xFFFF ) +1 ) & 0x3) * 25;
+}
+
+/*!
  * @brief  This function convert "IHM" (human readable) RSSI to WIZE compliant RSSI.
  *
  * @param [in]  u8_IntPart Integer part of RSSI value.
@@ -50,9 +88,9 @@ extern "C" {
  *
  * @return None
  */
-inline void PHY_CONV_IhmToRssi( uint8_t u8_IntPart,
-                           uint8_t u8_DecPart,
-                           uint8_t *u8_Rssi )
+inline void PHY_CONV_IhmToRssi(uint8_t u8_IntPart,
+                               uint8_t u8_DecPart,
+                               uint8_t *u8_Rssi )
 {
 	uint8_t u8_Tmp;
 	u8_Tmp = ( u8_IntPart << 1 ) + ( u8_DecPart & 0x1 );
@@ -69,9 +107,9 @@ inline void PHY_CONV_IhmToRssi( uint8_t u8_IntPart,
  * @return None
  */
 inline
-void PHY_CONV_RssiToIhm( uint8_t u8_Rssi,
-                           int16_t *i16_IntPart,
-                           uint8_t *u8_DecPart )
+void PHY_CONV_RssiToIhm(uint8_t u8_Rssi,
+                        int16_t *i16_IntPart,
+                        uint8_t *u8_DecPart )
 {
 	uint8_t u8_Tmp;
 	u8_Tmp =  255 - u8_Rssi + 40;
@@ -89,9 +127,9 @@ void PHY_CONV_RssiToIhm( uint8_t u8_Rssi,
  * @return None
  */
 inline
-void PHY_CONV_Signed11ToIhm( uint16_t u16_Signed11,
-                               int16_t *i16_IntPart,
-                               uint8_t *u8_DecPart )
+void PHY_CONV_Signed11ToIhm(uint16_t u16_Signed11,
+                            int16_t *i16_IntPart,
+                            uint8_t *u8_DecPart )
 {
 	int16_t i16_Tmp;
 	i16_Tmp = (int16_t)(u16_Signed11 << 5);
@@ -111,9 +149,9 @@ void PHY_CONV_Signed11ToIhm( uint16_t u16_Signed11,
  * @return None
  */
 inline
-void PHY_CONV_IhmToSigned11( int16_t i16_IntPart,
-                             uint8_t u8_DecPart,
-							 uint16_t *u16_Signed11)
+void PHY_CONV_IhmToSigned11(int16_t i16_IntPart,
+                            uint8_t u8_DecPart,
+							uint16_t *u16_Signed11)
 {
 	int16_t i16_Tmp;
 	i16_Tmp = i16_IntPart >> 5;

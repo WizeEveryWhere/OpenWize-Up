@@ -195,7 +195,10 @@ void Atci_Resp_Data(char *cmdCodeStr, atci_cmd_t *atciCmdData)
 {
 	Console_Send_Str("\r\n+"); //new line + prefix (beginning)
 	Console_Send_Str(cmdCodeStr); //command code
-	_atci_send_(atciCmdData);
+	if(atciCmdData)
+	{
+		_atci_send_(atciCmdData);
+	}
 	Console_Send_Str("\r\n"); //new line (end)
 }
 

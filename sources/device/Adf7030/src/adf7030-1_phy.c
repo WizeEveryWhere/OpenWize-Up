@@ -185,9 +185,55 @@ uint8_t adf7030_1_PulseWakup(
     return 0;
 }
 
-
 /******************************************************************************/
 /* Getter/Setter  */
+
+/*!
+ * @brief  This function get the average of nb measure
+ *
+ * @note  The PHY device has to be in CCA state before calling this function
+ *
+ * @param [in] pSPIDevInfo   Pointer to ADF7030-1 SPI device instance.
+ * @param [in] u8NbMeas      The number of noise measure to average one.
+ * @param [in] eMeas         Select RSSI (eMeas = 1) or CCA (eMeas = 0) value
+ *
+ * @return Current Noise
+ */
+uint16_t adf7030_1__GetRawMeasAvg(
+    adf7030_1_spi_info_t* pSPIDevInfo,
+	uint8_t               u8NbMeas,
+	uint8_t               eMeas
+)
+{
+	uint16_t (*pf)(adf7030_1_spi_info_t* pSPIDevInfo);
+    uint32_t u32_Sum;
+    uint8_t u8i;
+
+    if (pSPIDevInfo == NULL) { return 0;}
+    if (u8NbMeas == 0) { u8NbMeas = 1; }
+
+    pf = (eMeas)?(adf7030_1__GetRawRSSI):(adf7030_1__GetRawCCA);
+    u32_Sum = 0;
+    for (u8i = 1; u8i <= u8NbMeas ; u8i++)
+    {
+        u32_Sum += (uint16_t)(pf(pSPIDevInfo));
+    }
+    return (uint16_t)(u32_Sum / u8NbMeas);
+}
+
+/*!
+ * @brief  This function get the Temperature
+ *
+ * @param [in] pSPIDevInfo   Pointer to ADF7030-1 SPI device instance.
+ *
+ * @return Current Temperature
+ */
+inline uint16_t adf7030_1__GetRawTEMP(
+    adf7030_1_spi_info_t* pSPIDevInfo
+)
+{
+	return (uint16_t)(adf7030_1__READ_FIELD(PROFILE_MONITOR1_TEMP_OUTPUT));
+}
 
 /*!
  * @brief  This function get the RSSI
@@ -196,63 +242,29 @@ uint8_t adf7030_1_PulseWakup(
  *
  * @return Current RSSI
  */
-uint16_t adf7030_1__GetRawRSSI(
+inline uint16_t adf7030_1__GetRawRSSI(
     adf7030_1_spi_info_t* pSPIDevInfo
 )
 {
-    if (pSPIDevInfo == NULL) { return 0;}
     /* PHY Radio RSSI fixpoint format Q9.2 */
     return (uint16_t)(adf7030_1__READ_FIELD(GENERIC_PKT_LIVE_LINK_QUAL_RSSI));
 }
 
 /*!
- * @brief  This function get the Noise
+ * @brief  This function get the CCA
  *
  * @note  The PHY device has to be in CCA state before calling this function
  *
  * @param [in] pSPIDevInfo   Pointer to ADF7030-1 SPI device instance.
- * @param [in] u8NbMeas      The number of noise measure to average one.
  *
- * @return Current Noise
+ * @return Current CCA value
  */
-uint16_t adf7030_1__GetRawNoise(
-    adf7030_1_spi_info_t* pSPIDevInfo,
-	uint8_t               u8NbMeas
+inline uint16_t adf7030_1__GetRawCCA(
+    adf7030_1_spi_info_t* pSPIDevInfo
 )
 {
-    uint8_t u8i, u8j;
-    uint32_t u32_Sum;
-    uint16_t u16_NoiseMeas;
-    uint16_t u16_NoiseAvg;
-    cca_read_back_t ccaReadBack;
-
-    if (pSPIDevInfo == NULL) { return 0;}
-
-    u32_Sum = 0;
-    u8j = 0;
-    u16_NoiseAvg = 0;
-    for (u8i = 1; u8i <= u8NbMeas ; u8i++)
-    {
-        ccaReadBack = (cca_read_back_t)adf7030_1__SPI_GetMem32(pSPIDevInfo,  PROFILE_CCA_READBACK_Addr );
-        u16_NoiseMeas = ccaReadBack.CCA_READBACK_b.VALUE;
-        if (ccaReadBack.CCA_READBACK_b.LIVE_STATUS == 1 || u16_NoiseMeas == 0){
-            u8i--; u8j++;
-            if (u8j > (u8NbMeas*10) )
-            {
-            	break;
-            }
-        }
-        else {
-            u32_Sum += u16_NoiseMeas;
-            u16_NoiseAvg = u32_Sum / u8i;
-        }
-        if (u8j > 1000) {
-        	break;
-        }
-    }
-    return u16_NoiseAvg;
+    return (uint16_t)(adf7030_1__READ_FIELD(PROFILE_CCA_READBACK_VALUE));
 }
-
 /*!
  * @brief  This function get the AFC frequency error
  *
@@ -264,7 +276,6 @@ inline int16_t adf7030_1__GetRawAfcFreqErr(
     adf7030_1_spi_info_t* pSPIDevInfo
 )
 {
-    if (pSPIDevInfo == NULL) { return 0;}
     return (int16_t)adf7030_1__READ_FIELD(AFC_FREQUENCY_ERROR_READBACK);
 }
 
@@ -279,7 +290,6 @@ inline uint32_t adf7030_1__GetRawFrequency(
     adf7030_1_spi_info_t* pSPIDevInfo
 )
 {
-    if (pSPIDevInfo == NULL) { return 0;}
     return adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_CH_FREQ_VAL_Addr);
 }
 
@@ -344,7 +354,7 @@ inline uint8_t adf7030_1__GetRawState(
 )
 {
     misc_fw_t misc_fw;
-    if (pSPIDevInfo == NULL) { return 0xFF;}
+    //if (pSPIDevInfo == NULL) { return 0xFF;}
     misc_fw = (misc_fw_t)adf7030_1__SPI_GetMem32(pSPIDevInfo, MISC_FW_Addr);
     pSPIDevInfo->ePhyError = misc_fw.FW_b.ERR_CODE;
     pSPIDevInfo->nPhyState = misc_fw.FW_b.CURR_STATE;
@@ -380,6 +390,8 @@ uint8_t adf7030_1__SetRawTXPower(
     adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RADIO_DIG_TX_CFG0_Addr, tx_cfg0.RADIO_DIG_TX_CFG0);
     return ( (pSPIDevInfo->eXferResult)?(1):(0) );
 }
+
+/******************************************************************************/
 
 /*!
  * @brief  This function get the fw module info (Name or Version)
@@ -911,6 +923,7 @@ uint8_t adf7030_1__GetRxPacket(
     return e_Ret;
 }
 
+#if 0
 /*!
  * @brief This function measure the noise
  *
@@ -941,6 +954,7 @@ uint8_t adf7030_1__MeasureNoise(
     *u16_Noise = adf7030_1__GetRawNoise( pSPIDevInfo, NOISE_MEAS_AVG_NB );
     return e_Ret;
 }
+#endif
 /******************************************************************************/
 /*!
  * @brief  This function synchronize the Host current state with the PHY state

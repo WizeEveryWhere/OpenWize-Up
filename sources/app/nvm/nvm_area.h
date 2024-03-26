@@ -41,7 +41,7 @@ struct _store_special_s
 {
 	device_id_t sDeviceInfo;
 	uint8_t     bPaState;
-#ifdef PHY_USE_POWER_RAMP
+#ifdef USE_PHY_POWER_RAMP
 	uint8_t     ePaRampRate;
 #else
 	uint8_t     ND1;

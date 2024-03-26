@@ -2,28 +2,40 @@
 find_package(gen_param REQUIRED)
 
 ################################################################################
-function(display_option)
-    message ("      -> USE_LPUART_COM                  : ${USE_LPUART_COM}")
+function(display_if_on _var_)
+    set(_m_len_ 34)
+    if(${_var_})
+        string(LENGTH ${_var_} _len_)
+        math(EXPR _len_ "${_m_len_} - ${_len_}")
+        string(REPEAT " " ${_len_} out_space)
+        string(CONCAT out_str "      -> ${_var_}" ${out_space} ": ${${_var_}}" )
+        message ("${out_str}")
+    endif(${_var_})
+endfunction(display_if_on)
 
-    message ("      -> USE_PHY_TRIG                    : ${USE_PHY_TRIG}")
-    message ("      -> USE_PHY_LAYER_TRACE             : ${USE_PHY_LAYER_TRACE}")
-    message ("      -> HAS_HIRES_TIME_MEAS             : ${HAS_HIRES_TIME_MEAS}")
-    
-    message ("      -> HAS_WIZE_CORE_EXTEND_PARAMETER  : ${HAS_WIZE_CORE_EXTEND_PARAMETER}")
-    message ("      -> HAS_LOW_POWER_PARAMETER         : ${HAS_LOW_POWER_PARAMETER}")
-    message ("      -> HAS_TEST_MODE_PARAMETER         : ${HAS_TEST_MODE_PARAMETER}")
-    message ("      -> HAS_EXTEND_PARAMETER            : ${HAS_EXTEND_PARAMETER}")
-    
-    message ("      -> BUILD_STANDALONE_APP            : ${BUILD_STANDALONE_APP}")
-    message ("      -> BUILD_NVM_BINARY                : ${BUILD_NVM_BINARY}")
-   
+function(display_option)
     message ("      -> HW_NAME         : ${HW_NAME}")
     message ("      -> HW_VENDOR       : ${HW_VENDOR}")
     message ("      -> HW_MODEL        : ${HW_MODEL}")
     message ("      -> HW_VER_MAJ      : ${HW_VER_MAJ}")
     message ("      -> HW_VER_MIN      : ${HW_VER_MIN}")
     message ("      -> HW_VER_REV      : ${HW_VER_REV}")
-    message ("      -> HW_DATE         : ${HW_DATE}")   
+    message ("      -> HW_DATE         : ${HW_DATE}")
+    
+    display_if_on(USE_LPUART_COM)
+    display_if_on(USE_PHY_TRIG)
+    display_if_on(USE_PHY_LAYER_TRACE)
+    display_if_on(USE_PHY_CCA_CFG_VALUE)
+    display_if_on(USE_PHY_CCA_DELAY_VALUE)
+    display_if_on(USE_PHY_POWER_RAMP)
+    display_if_on(HAS_HIRES_TIME_MEAS)
+    display_if_on(HAS_WIZE_CORE_EXTEND_PARAMETER)
+    display_if_on(HAS_LOW_POWER_PARAMETER)
+    display_if_on(HAS_TEST_MODE_PARAMETER)
+    display_if_on(HAS_EXTEND_PARAMETER)
+    display_if_on(BUILD_STANDALONE_APP)
+    display_if_on(BUILD_NVM_BINARY)
+    display_if_on(NOT_BOOTABLE)
 endfunction(display_option)
 
 ################################################################################
@@ -50,6 +62,9 @@ option(USE_LPUART_COM                    "Use the LPUART as COM port (default UA
 
 option(USE_PHY_TRIG                      "Use the PHY trigger pin as TX/RX command" OFF)
 option(USE_PHY_LAYER_TRACE               "Enable the PHY layer trace messages." OFF)
+option(USE_PHY_CCA_CFG_VALUE             "Allow CCA cfg register value to be changed." OFF)
+option(USE_PHY_CCA_DELAY_VALUE           "Allow to change the delay before the first measured value in the CCA." OFF)
+option(USE_PHY_POWER_RAMP                "Enable the PHY PA ramping." OFF)
 option(HAS_HIRES_TIME_MEAS               "Define if High-Resolution timer is present (used to get the clock on PONG message)." ON)
 option(HAS_WIZE_CORE_EXTEND_PARAMETER    "Use the low power xml file." ON)
 option(HAS_LOW_POWER_PARAMETER           "Use the low power xml file." ON)
@@ -108,6 +123,20 @@ endif(USE_PHY_TRIG)
 if(USE_PHY_LAYER_TRACE)
 	add_compile_definitions(USE_PHY_LAYER_TRACE=1)
 endif(USE_PHY_LAYER_TRACE)
+#-------------------------------------------------------------------------------
+if(USE_PHY_CCA_CFG_VALUE)
+    add_compile_definitions(USE_PHY_CCA_CFG_VALUE=1)
+endif(USE_PHY_CCA_CFG_VALUE)
+
+if(USE_PHY_CCA_DELAY_VALUE)
+    add_compile_definitions(USE_PHY_CCA_DELAY_VALUE=1)
+endif(USE_PHY_CCA_DELAY_VALUE)
+#-------------------------------------------------------------------------------
+if(USE_PHY_POWER_RAMP)
+    add_compile_definitions(USE_PHY_POWER_RAMP=1)
+endif(USE_PHY_POWER_RAMP)
+#-------------------------------------------------------------------------------
+add_compile_definitions(USE_PHY_BYP_DIS_INT=1)
 #-------------------------------------------------------------------------------
 if(HAS_HIRES_TIME_MEAS)
     add_compile_definitions(HAS_HIRES_TIME_MEAS=1)

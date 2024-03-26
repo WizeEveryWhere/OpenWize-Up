@@ -72,13 +72,22 @@ uint8_t adf7030_1_PulseWakup(
 /******************************************************************************/
 /* Getter/Setter  */
 
+uint16_t adf7030_1__GetRawMeasAvg(
+    adf7030_1_spi_info_t* pSPIDevInfo,
+	uint8_t               u8NbMeas,
+	uint8_t               eMeas
+);
+
+uint16_t adf7030_1__GetRawTEMP(
+    adf7030_1_spi_info_t* pSPIDevInfo
+);
+
 uint16_t adf7030_1__GetRawRSSI(
 	adf7030_1_spi_info_t* pSPIDevInfo
 );
 
-uint16_t adf7030_1__GetRawNoise(
-    adf7030_1_spi_info_t* pSPIDevInfo,
-	uint8_t               u8NbMeas
+uint16_t adf7030_1__GetRawCCA(
+    adf7030_1_spi_info_t* pSPIDevInfo
 );
 
 int16_t adf7030_1__GetRawAfcFreqErr(
@@ -183,10 +192,12 @@ uint8_t adf7030_1__GetRxPacket(
 
 /******************************************************************************/
 // The following function use SPI polling on PHY state
+#if 0
 uint8_t adf7030_1__MeasureNoise(
     adf7030_1_spi_info_t* pSPIDevInfo,
     uint16_t*             u16_Noise
 );
+#endif
 
 uint8_t adf7030_1__Send(
     adf7030_1_spi_info_t* pSPIDevInfo,

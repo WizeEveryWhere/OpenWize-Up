@@ -135,10 +135,6 @@ phy_power_t aPhyPower[PHY_NB_PWR] __attribute__(( weak )) =
 	[PHY_PMAX_minus_12db] = {.coarse = 6, .fine =  3, .micro = 0}, // -12 dBm
 };
 
-#ifdef PHY_USE_POWER_RAMP
-pa_ramp_rate_e ePaRampRate __attribute__(( weak )) = RAMP_OFF;
-#endif
-
 /*!
  * @brief This variable hold the PA state
  */
@@ -148,6 +144,29 @@ uint8_t bPaState __attribute__(( weak )) = 0;
  * @brief This variable hold the RSSI offset after its calibration
  */
 int16_t i16RssiOffsetCal __attribute__(( weak )) = 0;
+
+#ifdef USE_PHY_POWER_RAMP
+/*!
+ * @brief This variable hold the PA ramp register value
+ */
+pa_ramp_rate_e ePaRampRate __attribute__(( weak )) = RAMP_OFF;
+#endif
+
+#ifdef USE_PHY_CCA_CFG_VALUE
+/*!
+ * @brief This variable hold the CCA cfg register value
+ */
+uint32_t u32CCACfgValue __attribute__(( weak )) = 0x00000043;
+#endif
+
+#define PHY_CCA_MIN_DELAY 280 // in uS
+
+#ifdef USE_PHY_CCA_DELAY_VALUE
+/*!
+ * @brief This variable hold the delay (in uS) before CCA measurement
+ */
+uint16_t u16CCADelay __attribute__(( weak )) = PHY_CCA_MIN_DELAY;
+#endif
 
 /*!
  * @cond INTERNAL
@@ -240,13 +259,20 @@ typedef struct {
  * @{
  */
 
-#define PHY_BASE_CFG (PHY_NB_MOD)
+enum
+{
+	PHY_SPARE_1 = PHY_NB_MOD,
+	PHY_SPARE_2,
+	PHY_SPARE_3,
+	PHY_SPARE_4,
+	PHY_BASE_CFG,
+	PHY_HIDDEN,
+	PHY_RADIO_CAL,
+	PHY_VCO_CAL,
+	PHY_CAL_CFG,
+	PHY_NB_CFG
+};
 
-#define PHY_RADIO_CAL (PHY_BASE_CFG +1)
-#define PHY_VCO_CAL   (PHY_RADIO_CAL +1)
-#define PHY_CAL_CFG   (PHY_VCO_CAL +1)
-#define PHY_HIDDEN    (PHY_CAL_CFG +1)
-#define PHY_NB_CFG    (PHY_HIDDEN +1)
 
 /*!
  * @}
@@ -262,16 +288,23 @@ typedef struct {
  * @brief This table hold the modulation configuration for the Phy device
  */
 static const cfg_t RF_CFG[PHY_NB_CFG] = {
+	// standard config
     [PHY_WM2400]    = RF_CFG_SETUP( RF_CFG_WM2400 ),
     [PHY_WM4800]    = RF_CFG_SETUP( RF_CFG_WM4800 ),
     [PHY_WM6400]    = RF_CFG_SETUP( RF_CFG_WM6400 ),
+	// spare config
+	[PHY_SPARE_1]   = { .cf = NULL, .size = 0 },
+	[PHY_SPARE_2]   = { .cf = NULL, .size = 0 },
+	[PHY_SPARE_3]   = { .cf = NULL, .size = 0 },
+	[PHY_SPARE_4]   = { .cf = NULL, .size = 0 },
 	// hidden config
 	[PHY_BASE_CFG]  = RF_CFG_SETUP( RF_BASE_CFG ),
-	//
-	[PHY_RADIO_CAL] = RF_CFG_SETUP( RF_RADIO_CAL ),
+	[PHY_HIDDEN]    = RF_CFG_SETUP( RF_HIDDEN ),
+	// ---
 	[PHY_VCO_CAL]   = RF_CFG_SETUP( RF_VCO_CAL ),
 	[PHY_CAL_CFG]   = RF_CFG_SETUP( RF_CAL_CFG ),
-	[PHY_HIDDEN]    = RF_CFG_SETUP( RF_HIDDEN ),
+	[PHY_RADIO_CAL] = RF_CFG_SETUP( RF_RADIO_CAL ),
+
 };
 #undef RF_CFG_SETUP
 
@@ -583,15 +616,19 @@ static int32_t _uninit(phydev_t *pPhydev)
 {
     int32_t i32Ret = PHY_STATUS_ERROR;
     adf7030_1_device_t* pDevice = pPhydev->pCxt;
+#ifndef USE_PHY_BYP_DIS_INT
     uint8_t u8i;
+#endif
     if(pPhydev)
     {
     	i32Ret = PHY_STATUS_OK;
+#ifndef USE_PHY_BYP_DIS_INT
 		 /* Clear and disable adf7030 interrupt */
 		for (u8i = 0; u8i < ADF7030_1_NUM_INT_PIN; u8i++)
 		{
 			i32Ret |= adf7030_1_SetupInt( pDevice, u8i, 0);
 		}
+#endif
 		if (!i32Ret) {
 			i32Ret = adf7030_1_UnInit( pPhydev->pCxt );
 		}
@@ -744,7 +781,7 @@ static int32_t _ready_seq(phydev_t *pPhydev)
 	}
 	else
 	{
-		// enable to communicate with the PHY
+		// unable to communicate with the PHY
 		eStatus = PHY_STATUS_ERROR;
 		/* Notice that, at this point :
 		 *  - pDevice->eState has ADF7030_1_STATE_READY not set
@@ -853,7 +890,7 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 				tx_cfg0.RADIO_DIG_TX_CFG0_b.PA_MICRO = aPhyPower[pPhydev->eTxPower].micro;
 				adf7030_1__SPI_SetMem32(pSPIDevInfo, PROFILE_RADIO_DIG_TX_CFG0_Addr, tx_cfg0.RADIO_DIG_TX_CFG0);
 				// Change TX power ramp
-#ifdef PHY_USE_POWER_RAMP
+#ifdef USE_PHY_POWER_RAMP
 				radio_dig_tx_cfg1_t tx_cfg1;
 				tx_cfg1 = (radio_dig_tx_cfg1_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_RADIO_DIG_TX_CFG1_Addr));
 				tx_cfg1.RADIO_DIG_TX_CFG1_b.PA_RAMP_RATE = ePaRampRate;
@@ -870,32 +907,22 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 
 			// Change frequency
 			uint32_t u32_Freq = PHY_FREQUENCY_CH(pPhydev->eChannel);
-			// only for TX
+			// Add the offset
 			u32_Freq += pPhydev->i16TxFreqOffset;
 			adf7030_1__SPI_SetMem32( pSPIDevInfo, PROFILE_CH_FREQ_Addr, u32_Freq);
 
 			// Enable / Disable interrupt
 			if (pPhydev->eTestMode == PHY_TST_MODE_NONE)
 			{
-				// Need to update interrupt on PREMBLE and SYNC ?
+				// Need to update interrupt on PREAMBLE and SYNC ?
 				if(pPhydev->bPreSyncOn)
 				{
-					// if not set
-					//if( !(pDevice->IntGPIOInfo[ADF7030_1_INTPIN0].nIntMap & (PREAMBLE_IRQn_Msk | SYNCWORD_IRQn_Msk)) )
-					{
-						eRet |= adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)(PREAMBLE_IRQn_Msk | SYNCWORD_IRQn_Msk | EOF_IRQn_Msk));
-						eRet |= adf7030_1__IRQ_ClrStatus(pDevice, ADF7030_1_INTPIN0, 0xFFFFFFFF);
-					}
-					// else, already set
+					eRet |= adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)(PREAMBLE_IRQn_Msk | SYNCWORD_IRQn_Msk | EOF_IRQn_Msk));
+					eRet |= adf7030_1__IRQ_ClrStatus(pDevice, ADF7030_1_INTPIN0, 0xFFFFFFFF);
 				}
 				else {
-					// if set
-					//if( (pDevice->IntGPIOInfo[ADF7030_1_INTPIN0].nIntMap & (PREAMBLE_IRQn_Msk | SYNCWORD_IRQn_Msk)) )
-					{
-						eRet |= adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)EOF_IRQn_Msk);
-						eRet |= adf7030_1__IRQ_ClrStatus(pDevice, ADF7030_1_INTPIN0, 0xFFFFFFFF);
-					}
-					// else, already unset
+					eRet |= adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)EOF_IRQn_Msk);
+					eRet |= adf7030_1__IRQ_ClrStatus(pDevice, ADF7030_1_INTPIN0, 0xFFFFFFFF);
 				}
 			}
 			else
@@ -1172,8 +1199,7 @@ static int32_t _rssi_calibrate_seq(phydev_t *pPhydev, int8_t i8RssiRefLevel)
     adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
     cca_cfg_t cca_cfg;
     uint16_t u16Avg;
-    uint32_t u32Sum;
-    uint8_t i;
+
 	// Auto-Calibrate
     if ( _auto_calibrate_seq(pPhydev) == PHY_STATUS_OK )
     {
@@ -1202,13 +1228,10 @@ static int32_t _rssi_calibrate_seq(phydev_t *pPhydev, int8_t i8RssiRefLevel)
 		// assume 2400 bit/s, so 416.67µs per bit, then wait t > 26.67ms
 		msleep(30);
 		// Read 20 RSSI samples, convert in dbm then average it
-		u32Sum = 0;
-		for (i = 0; i < 20; i ++)
-		{
-			u32Sum += adf7030_1__GetRawRSSI( pSPIDevInfo );
-		}
+		u16Avg = adf7030_1__GetRawMeasAvg(pSPIDevInfo, 20, 0);
 		// Calculate error (dbm) = Average (dbm) - Power input (dbm)
-		u16Avg = u32Sum/20 - ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
+		u16Avg -= ( ( (i8RssiRefLevel >>2) ^0x7FF) +1 );
+
 		// Write offset value to NB_OFFSET in rssi_cfg_t
 		adf7030_1__WRITE_FIELD(PROFILE_RSSI_CFG_NB_OFFSET, u16Avg);
 
@@ -1621,12 +1644,19 @@ static int32_t _do_CCA(phydev_t *pPhydev, phy_chan_e eChannel, phy_mod_e eModula
 		i32Ret = _do_cmd(pPhydev, PHY_CTL_CMD_READY);
 		if (i32Ret == PHY_STATUS_OK)
 		{
+#ifdef USE_PHY_CCA_CFG_VALUE
+		    adf7030_1__SPI_SetMem32(&(((adf7030_1_device_t*)pPhydev->pCxt)->SPIInfo),  PROFILE_CCA_CFG_Addr, u32CCACfgValue);
+#endif
 			i32Ret = _do_cmd(pPhydev, PHY_CMD_CCA);
 			if ( i32Ret == PHY_STATUS_OK)
 			{
-				pPhydev->u16_Noise = adf7030_1__GetRawNoise( &(((adf7030_1_device_t*)pPhydev->pCxt)->SPIInfo), NOISE_MEAS_AVG_NB );
-				//pPhydev->u16_Noise += pPhydev->i16RssiOffset;
-				//pPhydev->u16_Noise -= pPhydev->i16RssiOffset;
+#ifdef USE_PHY_CCA_DELAY_VALUE
+		    	usleep((uint32_t)u16CCADelay);
+#else
+		    	usleep((uint32_t)PHY_CCA_MIN_DELAY);
+#endif
+				pPhydev->u16_Noise = adf7030_1__GetRawMeasAvg(&(pDevice->SPIInfo), NOISE_MEAS_AVG_NB, 0);
+
 				i32Ret = _do_cmd(pPhydev, PHY_CTL_CMD_READY);
 				pDevice->eState &= ~ADF7030_1_STATE_NOISE_MEAS;
 			}
@@ -1778,8 +1808,8 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 			}
 			else
 			{
-				int32_t temp = (int32_t)(adf7030_1__READ_FIELD(PROFILE_MONITOR1_TEMP_OUTPUT));
-				*(float*)args = PHY_CONV_TempToFloat((int16_t)temp);
+				int16_t temp = (int16_t)adf7030_1__GetRawTEMP(pSPIDevInfo);
+				*(float*)args = PHY_CONV_TempToFloat(temp);
 			}
 		}
 		else if (eCtl == PHY_CMD_CLKOUT)
@@ -1907,7 +1937,7 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 					{
 						pPhydev->eTxPower = (phy_power_e)args;
 						// run-time configure TX power is required
-						((adf7030_1_device_t*)pPhydev->pCxt)->bTxPwrDone = 0;
+						pDevice->bTxPwrDone = 0;
 					}
 					break;
 				case PHY_CTL_SET_PWR_ENTRY:
@@ -1957,21 +1987,6 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 					break;
 				case PHY_CTL_GET_RSSI:
 					*(uint8_t*)args = PHY_CONV_Signed11ToRssi( pPhydev->u16_Rssi );
-#if 0
-#if defined (USE_PHY_LAYER_TRACE)
-					live_link_qual_t link_qual;
-					link_qual = (live_link_qual_t)(adf7030_1__SPI_GetMem32(pSPIDevInfo, GENERIC_PKT_LIVE_LINK_QUAL_Addr));
-
-				    uint32_t signed_rssi = (adf7030_1__READ_FIELD(GENERIC_PKT_LIVE_LINK_QUAL_RSSI)) << (32 -11);
-				    signed_rssi >>= (32 -11);
-
-				    int32_t sign = signed_rssi >> 31;
-				    uint32_t abs_rssi = (sign + signed_rssi) ^ sign;
-
-				     /* Output received packet RSSI */
-				    TRACE_PHY_LAYER("%+03d\.%02d dBm", (signed_rssi >> 2), (abs_rssi & 3) * 25);
-#endif
-#endif
 					break;
 				case PHY_CTL_GET_NOISE:
 					*(uint8_t*)args = PHY_CONV_Signed11ToRssi( pPhydev->u16_Noise );

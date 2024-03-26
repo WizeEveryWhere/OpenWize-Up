@@ -77,7 +77,7 @@ PERM_SECTION(".roinfo.hw") DECLARE_HWINFO();
  */
 const uint8_t bDefaultPaState = 1;
 
-#ifdef PHY_USE_POWER_RAMP
+#ifdef USE_PHY_POWER_RAMP
 /*!
  * @brief This hold (hard-coded) the default PA ramp state
  */
@@ -107,7 +107,7 @@ const int16_t i16DefaultRssiOffsetCal = 0x3C7;
 
 /*! @cond INTERNAL @{ */
 PERM_SECTION(".noinit") uint8_t bPaState;
-#ifdef PHY_USE_POWER_RAMP
+#ifdef USE_PHY_POWER_RAMP
 	PERM_SECTION(".noinit") pa_ramp_rate_e ePaRampRate;
 #endif
 PERM_SECTION(".noinit") int16_t i16RssiOffsetCal;
@@ -304,7 +304,7 @@ void Storage_SetDefault(uint8_t eArea)
 		WizeApi_SetDeviceId(&sDefaultDevId);
 		memcpy(aPhyPower, aDefaultPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
 		bPaState = bDefaultPaState;
-	#ifdef PHY_USE_POWER_RAMP
+	#ifdef USE_PHY_POWER_RAMP
 		ePaRampRate = eDefaultPaRampRate;
 	#endif
 		i16RssiOffsetCal = i16DefaultRssiOffsetCal;
@@ -358,7 +358,7 @@ uint8_t Storage_Store(void)
 		WizeApi_GetDeviceId(&(store_special.sDeviceInfo));
 	}
 	store_special.bPaState = bPaState;
-#ifdef PHY_USE_POWER_RAMP
+#ifdef USE_PHY_POWER_RAMP
 	store_special.ePaRampRate = (uint8_t)ePaRampRate;
 #endif
 
@@ -427,7 +427,7 @@ uint8_t Storage_Get(uint8_t eArea)
 		WizeApi_SetDeviceId( &(store_special.sDeviceInfo) );
 		memcpy(aPhyPower, store_special.aPhyPower, sizeof(phy_power_t)*PHY_NB_PWR);
 		bPaState = store_special.bPaState;
-	#ifdef PHY_USE_POWER_RAMP
+	#ifdef USE_PHY_POWER_RAMP
 		ePaRampRate = (pa_ramp_rate_e)store_special.ePaRampRate;
 	#endif
 		i16RssiOffsetCal = store_special.i16PhyRssiOffset;

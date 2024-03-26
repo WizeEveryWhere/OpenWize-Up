@@ -40,6 +40,30 @@ extern "C" {
 #endif
 
 /*!
+ * @brief  This function convert a signed 11 bits to signed 16 bits.
+ *
+ * @param [in]  u16_Signed11 The signed 11 bits value.
+ *
+ * @return The signed 16 bits value
+ */
+extern
+int16_t PHY_CONV_Signed11ToSigned16( uint16_t u16_Signed11);
+
+/*!
+ * @brief  This function convert a signed 16 (with 0.25 step as unit) to "IHM" (human readable) value.
+ *
+ * @param [in]  i16Value    The signed 16 value to convert .
+ * @param [out] i16_IntPart Reference variable to hold the Integer part.
+ * @param [out] u8_DecPart  Reference variable to hold the Decimal part.
+ *
+ * @return None
+ */
+extern
+void PHY_CONV_Signed16toIhm(int16_t i16Value,
+							int16_t *i16_IntPart,
+							uint8_t *u8_DecPart );
+
+/*!
  * @brief  This function convert "IHM" (human readable) RSSI to WIZE compliant RSSI.
  *
  * @param [in]  u8_IntPart Integer part of RSSI value.
@@ -48,10 +72,10 @@ extern "C" {
  *
  * @return None
  */
-extern inline
-void PHY_CONV_IhmToRssi( uint8_t u8_IntPart,
-                           uint8_t u8_DecPart,
-                           uint8_t *u8_Rssi );
+extern
+void PHY_CONV_IhmToRssi(uint8_t u8_IntPart,
+                        uint8_t u8_DecPart,
+                        uint8_t *u8_Rssi );
 
 /*!
  * @brief  This function convert a WIZE compliant RSSI to "IHM" (human readable) RSSI.
@@ -62,10 +86,10 @@ void PHY_CONV_IhmToRssi( uint8_t u8_IntPart,
  *
  * @return None
  */
-extern inline
-void PHY_CONV_RssiToIhm( uint8_t u8_Rssi,
-                           int16_t *i16_IntPart,
-                           uint8_t *u8_DecPart );
+extern
+void PHY_CONV_RssiToIhm(uint8_t u8_Rssi,
+                        int16_t *i16_IntPart,
+                        uint8_t *u8_DecPart );
 
 /*!
  * @brief  This function convert a ADF7030 (signed 11 bits) RSSI to "IHM" (human readable) RSSI.
@@ -76,10 +100,10 @@ void PHY_CONV_RssiToIhm( uint8_t u8_Rssi,
  *
  * @return None
  */
-extern inline
-void PHY_CONV_Signed11ToIhm( uint16_t u16_Signed11,
-                               int16_t *i16_IntPart,
-                               uint8_t *u8_DecPart ) ;
+extern
+void PHY_CONV_Signed11ToIhm(uint16_t u16_Signed11,
+                            int16_t *i16_IntPart,
+                            uint8_t *u8_DecPart ) ;
 
 
 
@@ -92,10 +116,10 @@ void PHY_CONV_Signed11ToIhm( uint16_t u16_Signed11,
  *
  * @return None
  */
-inline
-void PHY_CONV_IhmToSigned11( int16_t i16_IntPart,
-                             uint8_t u8_DecPart,
-							 uint16_t *u16_Signed11);
+extern
+void PHY_CONV_IhmToSigned11(int16_t i16_IntPart,
+                            uint8_t u8_DecPart,
+							uint16_t *u16_Signed11);
 
 /*!
  * @brief  This function convert a ADF7030 (signed 11 bits) RSSI to WIZE compliant RSSI.
@@ -104,7 +128,7 @@ void PHY_CONV_IhmToSigned11( int16_t i16_IntPart,
  *
  * @return The WIZE compliant RSSI value
  */
-extern inline
+extern
 uint8_t PHY_CONV_Signed11ToRssi(uint16_t u16_Signed11);
 
 /*!
@@ -114,7 +138,7 @@ uint8_t PHY_CONV_Signed11ToRssi(uint16_t u16_Signed11);
  *
  * @return The float representation of RSSI
  */
-extern inline
+extern
 float PHY_CONV_Signed11ToFloat(uint16_t u16_Signed11);
 
 /*!
@@ -124,7 +148,7 @@ float PHY_CONV_Signed11ToFloat(uint16_t u16_Signed11);
  *
  * @return The float representation of AFC frequency error
  */
-extern inline
+extern
 float PHY_CONV_AfcFreqErrToFloat(int16_t i16AfcFreqErr);
 
 /*!
@@ -134,7 +158,7 @@ float PHY_CONV_AfcFreqErrToFloat(int16_t i16AfcFreqErr);
  *
  * @return The float representation of temperature in °C
  */
-extern inline
+extern
 float PHY_CONV_TempToFloat(int16_t i16Temp);
 
 #ifdef __cplusplus

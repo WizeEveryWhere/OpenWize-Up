@@ -386,7 +386,7 @@ atci_error_e Exec_ATPING_Cmd(atci_cmd_t *atciCmdData)
 		return ATCI_ERR_CMD_FORBIDDEN;
 	}
 
-	Atci_Debug_Str("Send PING");/////////
+	Atci_Debug_Param_Data("Send PING", NULL);
 
 	// clear PING_NBFOUND
 	nbPong = 0;

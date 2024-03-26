@@ -640,7 +640,14 @@ typedef union {
 } rssi_cfg_t;
 
 typedef union {
-    uint32_t CCA_CFG; /*!< CCA configuration */
+    uint32_t CCA_CFG; /*!< CCA configuration. The RSSI is measured every tick
+    					   for DETECTION_TIME ticks. A duration of a CCA tick is
+    				       calculated as follows:
+    				       (tB) × (TICK_POSTSCALAR + 1)/(CCA Rate Divisor)
+    				       where:
+    				       tB is the data bit time in seconds.
+    				       CCA Rate Divisor given by TICK_RATE (see cca_tick_rate_e)
+    				       */
     struct {
         uint32_t TICK_RATE       : 4;  /*!< This field sets the number of CCA
                                             ticks per RX data bit period (see

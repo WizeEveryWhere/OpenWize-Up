@@ -76,15 +76,18 @@
  * -----------------------------------------------------------------------------
  */
 #ifndef AT_CMD_DATA_MAX_LEN
-#define AT_CMD_DATA_MAX_LEN		256	// 230// maximum length for all parameter of a command (after conversion; in bytes; note: maximum data is ATSEND_L7_MAX_MSG_LEN for ATSEND command)
+	#define AT_CMD_DATA_MAX_LEN		256	// 230// maximum length for all parameter of a command (after conversion; in bytes; note: maximum data is ATSEND_L7_MAX_MSG_LEN for ATSEND command)
 #endif
+
 #ifndef AT_CMD_BUF_LEN
-#define AT_CMD_BUF_LEN			512 // 471 // maximum received command length (as text)
+	#define AT_CMD_BUF_LEN			512 // 471 // maximum received command length (as text)
 #endif
 
 #define AT_CMD_CODE_MIN_LEN		2	// minimum command code length (reformatted text)
 #define AT_CMD_CODE_MAX_LEN		16	// maximum command code length (reformatted text)
-#define AT_CMD_MAX_NB_PARAM		6	// maximum number of parameters for a command/response
+#ifndef AT_CMD_MAX_NB_PARAM
+	#define AT_CMD_MAX_NB_PARAM	6	// maximum number of parameters for a command/response
+#endif
 
 #define PARAM_INT 			0xF000
 #define PARAM_INT8			0xF001
