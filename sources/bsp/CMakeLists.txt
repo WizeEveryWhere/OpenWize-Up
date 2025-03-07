@@ -7,6 +7,18 @@ set(MODULE_NAME bsp)
 add_library(${MODULE_NAME} STATIC)
 
 # Add sources to Build
+if(CUSTOM_THE_126)
+target_sources(${MODULE_NAME} 
+    PRIVATE 
+        src/platform_cust_126.c
+    )
+else()
+target_sources(${MODULE_NAME} 
+    PRIVATE 
+        src/platform.c
+    ) 
+endif()
+
 target_sources(${MODULE_NAME}
     PRIVATE
         src/bsp_pwrlines.c
@@ -24,7 +36,6 @@ target_sources(${MODULE_NAME}
         src/bsp_wdg.c
         src/bsp.c
         src/fault_handler.c
-        src/platform.c
         src/sys_handler.c
         src/syscalls.c
     )

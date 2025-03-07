@@ -7,9 +7,20 @@ set(STARTUP   startup_stm32l451ceux.s)
 ################################################################################
 add_library(${MODULE_NAME} INTERFACE)
 
+if(CUSTOM_THE_126)
+target_sources(${MODULE_NAME} 
+    INTERFACE 
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/main_cust_126.c
+    )
+else()
 target_sources(${MODULE_NAME} 
     INTERFACE 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
+    ) 
+endif()
+
+target_sources(${MODULE_NAME} 
+    INTERFACE 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_msp.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_hal_timebase_tim.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/stm32l4xx_it.c

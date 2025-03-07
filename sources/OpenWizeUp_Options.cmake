@@ -136,6 +136,11 @@ if(HAS_EXTEND_PARAMETER)
     add_compile_definitions(HAS_EXTEND_PARAMETER=1)
 	add_xml_cfg(DESTINATION PARAM_XML_FILE_LIST SOURCE "ExtendParams.xml")
 endif(HAS_EXTEND_PARAMETER)
+
+#-------------------------------------------------------------------------------
+if(CUSTOM_THE_126)
+	include(sources/ClockConfig_Options.cmake)
+endif(CUSTOM_THE_126)
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # Add Restriction xml files . 
@@ -164,6 +169,10 @@ endif(NOT_BOOTABLE)
 ################################################################################
 
 display_option()
+
+if(CUSTOM_THE_126)
+	display_clock_setting()
+endif(CUSTOM_THE_126)
 
 #-------------------------------------------------------------------------------
 if(custom_FOUND)

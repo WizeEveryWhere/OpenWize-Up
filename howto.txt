@@ -1,0 +1,63 @@
+This version is a special implementation dedicated to change the main clock 
+(SYSCLK) and the Low Speed Clock (LSC) behavior.
+
+To be able to use these features, the option "-DCUSTOM_THE_126=1" must be added 
+on the cmake command line.
+
+1. Change the main clock to external crystal oscillator HSE 
+Select the HSE oscillator :
+-DOSC_SOURCE=OSC_HSE
+Select the PLL factors :
+-DPLL_M=1 -DPLL_N=12 -DPLL_R=2
+
+Note that, default crystal oscillator frequency is 8MHz. You can change this 
+value by modifying the "STM32HALConfig.cmake". Warning, in this last the PLL 
+factors have to be adjusted (see the STM32L451 Reference Manual).
+
+2. Change the Low Speed Clock (LSC) behavior
+The LSC use the LSE (Low Speed External) from an external crystal of 32762 Hz.
+By default, it is started with a high current drive then to reduce the power 
+consumption the drive current is changed (toggle) to the low ("end" current).
+
+a. Disable the drive toggle (the drive current stay to high):
+-DLSC_TOGGLE=OFF
+
+b. Enable toggle with other drive current :
+-DLSC_DRIVE=<drive_value>
+
+The drive value can be one of : RCC_LSEDRIVE_LOW, RCC_LSEDRIVE_MEDIUMLOW, 
+RCC_LSEDRIVE_MEDIUMHIGH, RCC_LSEDRIVE_HIGH.
+
+3. Some cmake command line example
+
+a. Use HSE and disable LSC toggle 
+cmake \
+-DCUSTOM_THE_126=1 \
+-DOSC_SOURCE=OSC_HSE -DPLL_M=1 -DPLL_N=12 -DPLL_R=2 \
+-DLSC_TOGGLE=OFF \
+-DCMAKE_BUILD_TYPE=Debug \
+../.
+
+b. Use MSI and enable toggle with the "medium-high" drive current 
+cmake \
+-DCUSTOM_THE_126=1 \
+-DLSC_DRIVE=RCC_LSEDRIVE_MEDIUMLOW \
+-DCUSTOM_BIN_NAME="EchoWize" -DCMAKE_INSTALL_PREFIX=../_install_echo \
+-DCMAKE_BUILD_TYPE=Debug \
+../.
+
+c. Use MSI and enable toggle with the "low" drive current 
+cmake \
+-DCUSTOM_THE_126=1 \
+-DCUSTOM_BIN_NAME="EchoWize" -DCMAKE_INSTALL_PREFIX=../_install_echo \
+-DCMAKE_BUILD_TYPE=Debug \
+../.
+
+
+Note : 
+Optionally, one or more of the following options can be added.
+-DBUILD_STANDALONE_APP=ON
+-DUSE_LPUART_COM=ON
+-DCUSTOM_BIN_NAME="YourBinFileName" 
+-DCMAKE_INSTALL_PREFIX=../where/to/install
+
