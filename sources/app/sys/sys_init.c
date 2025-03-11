@@ -78,6 +78,50 @@ static adf7030_1_device_t adf7030_1_ctx;
 phydev_t sPhyDev;
 
 /*!
+ * @cond INTERNAL
+ * @{
+ */
+static uint8_t _pre_init_ = 0;
+/*!
+ * @}
+ * @endcond
+ */
+
+/*!
+ * @brief This function pre_initialize the system"
+ */
+void Sys_PreInit(void)
+{
+	// Do not buffer stdout, so that single chars are output without any delay to the console.
+	setvbuf(stdout, NULL, _IONBF, 0);
+	// Do not buffer stdin, so that single chars are output without any delay to the console.
+	setvbuf(stdin, NULL, _IONBF, 0);
+
+	// Setup adf device
+  	int32_t ret;
+  	ret = Phy_adf7030_setup(
+		&sPhyDev,
+        &adf7030_1_ctx,
+        (adf7030_1_gpio_int_info_t *)&DEFAULT_GPIO_INT,
+
+#ifdef USE_PHY_TRIG
+		(adf7030_1_gpio_trig_info_t *)&DEFAULT_GPIO_TRIG,
+#else
+		(adf7030_1_gpio_trig_info_t *)NULL,
+#endif
+        (adf7030_1_gpio_reset_info_t *)&DEFAULT_GPIO_RESET,
+		ADF7030_1_GPIO6,
+        ADF7030_1_GPIO_NONE
+        );
+  	assert(0 == ret);
+
+	// Init storage
+	Storage_Init(0);
+
+	_pre_init_ = 1;
+}
+
+/*!
  * @brief This function initialize the system"
  */
 void Sys_Init(void)
@@ -85,10 +129,11 @@ void Sys_Init(void)
 	uint8_t u8LogLevel;
 	uint8_t u8Tstmp;
 
-	// Do not buffer stdout, so that single chars are output without any delay to the console.
-	setvbuf(stdout, NULL, _IONBF, 0);
-	// Do not buffer stdin, so that single chars are output without any delay to the console.
-	setvbuf(stdin, NULL, _IONBF, 0);
+  	if (_pre_init_ == 0)
+  	{
+		// Setup adf device
+		Sys_PreInit();
+  	}
 
   	/* Show the welcome message */
 #ifndef HAS_NO_BANNER
@@ -96,25 +141,6 @@ void Sys_Init(void)
   	printf("%s\n", WIZE_ALLIANCE_BANNER);
   	printf("\n###########################################################\n");
 #endif
-
-	// Setup adf device
-	assert(0 == Phy_adf7030_setup( &sPhyDev,
-                               &adf7030_1_ctx,
-                               (adf7030_1_gpio_int_info_t *)&DEFAULT_GPIO_INT,
-
-#ifdef USE_PHY_TRIG
-							   (adf7030_1_gpio_trig_info_t *)&DEFAULT_GPIO_TRIG,
-#else
-							   (adf7030_1_gpio_trig_info_t *)NULL,
-#endif
-                               (adf7030_1_gpio_reset_info_t *)&DEFAULT_GPIO_RESET,
-							   ADF7030_1_GPIO6,
-                               ADF7030_1_GPIO_NONE
-                               ) );
-
-
-	// Init storage
-	Storage_Init(0);
 
 	// Init Logger
 #ifdef LOGGER_USE_FWRITE

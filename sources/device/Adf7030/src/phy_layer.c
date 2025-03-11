@@ -294,6 +294,18 @@ mem_cfg_desc_t sConfig =
 			.pData = (uint8_t*)(&sPacket)
 	},
 };
+
+static int32_t _get_content(adf7030_1_spi_info_t* pSPIDevInfo)
+{
+	int32_t eRet;
+	eRet = adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[0]));
+	eRet |= adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[1]));
+	return eRet;
+}
+
+#define GET_CONTENT(_eRet, _pSPIDevInfo) eRet = _get_content(_pSPIDevInfo)
+#else
+#define GET_CONTENT(_eRet, _pSPIDevInfo)
 #endif
 
 // Private function (mapped to interface)
@@ -903,14 +915,11 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 				// disable interrupt
 				eRet |= adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)0x0);
 			}
-#ifdef PHY_DEBUG_SPE
-			eRet = adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[0]));
-			eRet = adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[1]));
-#endif
 			if(eRet)
 			{
 				eStatus = PHY_STATUS_ERROR;
 			}
+			GET_CONTENT(eRet, pSPIDevInfo);
 		}
 		else {
 			eStatus = PHY_STATUS_BUSY;
@@ -1280,8 +1289,8 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 			case PHY_CTL_CMD_PWR_ON:
 				PHY_TMR_CAPTURE_POWER_ON();
 				// sleep for x µS or mS
+				usleep(100); // FIXME : this fix the ADF7030 HW error when buils in Release mode (but don't know why)
 				BSP_PwrLine_Set(RF_EN_MSK);
-				// TODO : add micro-sleep to ensure power "propagating"
 				(bPaState)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
 			case PHY_CTL_CMD_RESET:
 			default:
@@ -1297,6 +1306,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 				{
 					pDevice->eState |= ADF7030_1_STATE_INITIALIZED;
 				}
+				GET_CONTENT(eRet, pSPIDevInfo);
 				break;
 		}
 	}

@@ -102,6 +102,8 @@ uint16_t hex2ascii(uint8_t u8Hex)
 //inline __attribute__((always_inline))
 void msleep(uint32_t milisecond) { HAL_Delay(milisecond); }
 
+#pragma GCC push_options
+#pragma GCC optimize("O1")
 /*!
   * @brief Wait for (inaccurate) microsecond
   *
@@ -109,9 +111,14 @@ void msleep(uint32_t milisecond) { HAL_Delay(milisecond); }
   */
 void usleep(uint32_t microsecond)
 {
-	uint32_t cnt = microsecond * ( SystemCoreClock / 1000000);
+#define _K_ 3000000 // 1000000
+	// From assembly : 6 instructions
+	uint32_t cnt = microsecond * ( SystemCoreClock / 3000000);
+
+	// From assembly : 3 instructions
 	while(cnt) { cnt--; }
 }
+#pragma GCC pop_options
 
 /*!
   * @brief Get the Unique Identifier (CPU ID)

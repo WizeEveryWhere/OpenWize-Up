@@ -128,7 +128,7 @@ uint8_t adf7030_1_PulseReset(
         {
             return 1;
         }
-        usleep(20);
+        usleep(5);
         if(BSP_Gpio_SetHigh(pResetGPIOInfo->u32Port, pResetGPIOInfo->u16Pin) != DEV_SUCCESS)
         {
             return 1;
