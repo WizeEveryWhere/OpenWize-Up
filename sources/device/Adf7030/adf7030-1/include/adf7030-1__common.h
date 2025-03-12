@@ -97,7 +97,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 //#define ADF7030_1_SPI_BUFFER_SIZE 256u
 // FIXME: increased form 256 to 300 due to "buffer" overflow of spi_CfgBuffer
+#ifndef ADF7030_1_SPI_BUFFER_SIZE
 #define ADF7030_1_SPI_BUFFER_SIZE 300u
+#endif
+
+#if ADF7030_1_SPI_BUFFER_SIZE < 300
+#error ADF7030_1_SPI_BUFFER_SIZE too small
+#endif
 
 /*!
  *  Defines the maximum size of an SPI transaction.
@@ -113,7 +119,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
  *  Defines the maximum numbers of byte transfert for which "Fast SPI mode" will
  *  be used. Above this number, standart SPI API is used.
  */
+#ifndef ADF7030_1_SPI_FAST_SIZE_THRESHOLD
 #define ADF7030_1_SPI_FAST_SIZE_THRESHOLD 20
+#endif
 
 /*!
  *  Defines the numbers of SPI pointers address the driver will keep to schedule

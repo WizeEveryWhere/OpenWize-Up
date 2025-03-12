@@ -569,19 +569,19 @@ uint8_t adf7030_1__XferCmdPoll(
     nStatusPoll_Cond1 &= nStatusPoll_msk;
     nStatusPoll_Cond2 &= nStatusPoll_msk;
   
-    if((nStatePoll == 0) && (nStatusPoll_msk != 0))
+    int8_t EXIT = 0;
+
+    if ((nStatePoll == 0) && (nStatusPoll_msk != 0))
     {
       /* Poll until SPI status match */
         uint32_t nPollcnt = nRetry;
       
         uint8_t NOP_Cmd = 0xFF;
               
-        uint8_t EXIT = 0;
-        
         /* Polling loop */
-        do{
+        do {
             /* Decrement the polling loop counter if tracking */
-            if(nRetry) nPollcnt--;
+            if (nRetry) nPollcnt--;
 
             /* Transmit the sequence */
             adf7030_1__SPI_ReadWrite_Fast( pSPIDevInfo,
@@ -590,17 +590,22 @@ uint8_t adf7030_1__XferCmdPoll(
                                            1 );
 
             /* Set Exit flag if SPI Status word matches nStatusPoll_Cond1 */
-            if(nStatusPoll_Cond1 == (pSPIDevInfo->nStatus.VALUE & nStatusPoll_msk)){
+            if (nStatusPoll_Cond1 == (pSPIDevInfo->nStatus.VALUE & nStatusPoll_msk)) {
                 EXIT = 1;
             }
             
             /* Set Exit flag if SPI Status word matches nStatusPoll_Cond2 */
-            if(nStatusPoll_Cond2 == (pSPIDevInfo->nStatus.VALUE & nStatusPoll_msk)){
+            if (nStatusPoll_Cond2 == (pSPIDevInfo->nStatus.VALUE & nStatusPoll_msk)) {
                 EXIT = 1;
             }
             
+            if (pSPIDevInfo->nStatus.VALUE_b.ERR_STATUS)
+            {
+            	EXIT = -1;
+            }
+
             /* Return if number of retries expired in the polling loop */
-            if(nRetry && !nPollcnt)
+            if (nRetry && !nPollcnt)
             {
             	if ( !(pSPIDevInfo->eXferResult) ) {
             		pSPIDevInfo->eXferResult = ADF7030_1_SPI_DEV_POLL_EXPIRE;
@@ -608,9 +613,9 @@ uint8_t adf7030_1__XferCmdPoll(
             	return 1;
             }
             
-        }while(EXIT == 0);
+        } while (EXIT == 0);
     }
-    else if(nStatePoll)
+    else if (nStatePoll)
     {
       /* Poll until PHY state match */
         uint32_t Addr = MISC_FW_Addr;
@@ -620,16 +625,18 @@ uint8_t adf7030_1__XferCmdPoll(
         
         uint8_t Offset;
         
-        if((AddrDiff >= 0 ) && (AddrDiff < (255 - 1)))
+        if ((AddrDiff >= 0 ) && (AddrDiff < (255 - 1)))
         {
           /* Here PNTR_CUSTOM2_ADDR is within range, just change the offset */
             Offset = (uint8_t)AddrDiff;
           
-        }else{
-          /* Here PNTR_CUSTOM2_ADDR is not within range, changing it, we shall */
+        }
+        else
+        {
+            /* Here PNTR_CUSTOM2_ADDR is not within range, changing it, we shall */
                 
             /* Setup the PHY Radio SPI pointer 0 address to Addr */
-            if(adf7030_1__SPI_wr_word_b_a( pSPIDevInfo, pSPIDevInfo->PHY_PNTR[PNTR_SETUP_ADDR] + 8, 1, &Addr))
+            if (adf7030_1__SPI_wr_word_b_a( pSPIDevInfo, pSPIDevInfo->PHY_PNTR[PNTR_SETUP_ADDR] + 8, 1, &Addr))
             {
                 return 1;
             }
@@ -656,12 +663,11 @@ uint8_t adf7030_1__XferCmdPoll(
         /* Add 8bits of NOPs in spi_txbuf */
         *((uint16_t *)pSPI_TX_BUFF + 1) = 0xFFFF;
 
-        uint8_t EXIT = 0;
         
         uint32_t nPollcnt = nRetry;
         
         /* Polling loop */
-        do{
+        do {
             /* Transmit the sequence */
             adf7030_1__SPI_ReadWrite_Fast( pSPIDevInfo,
                                            (void *)pSPI_TX_BUFF,
@@ -675,38 +681,43 @@ uint8_t adf7030_1__XferCmdPoll(
             pSPIDevInfo->nPhyState      = (adf7030_1_radio_state_e)*(pSPI_RX_BUFF + 3);
 
             /* Decrement the polling loop counter if tracking */
-            if(nRetry) nPollcnt--;
+            if (nRetry) nPollcnt--;
             
-            if(nStatusPoll_msk){
+            if (nStatusPoll_msk) {
                 /* Set Exit flag if SPI Status word matches nStatusPoll_Cond1 and FW State matches nStatePoll */
-                if((nStatusPoll_Cond1 == (*(pSPI_RX_BUFF + 2) & nStatusPoll_msk)) && (nStatePoll == *(pSPI_RX_BUFF + 3))){
+                if ((nStatusPoll_Cond1 == (*(pSPI_RX_BUFF + 2) & nStatusPoll_msk)) && (nStatePoll == *(pSPI_RX_BUFF + 3))) {
                     EXIT = 1;
                 }
                 /* Set Exit flag if SPI Status word matches nStatusPoll_Cond2 and FW State matches nStatePoll */
-                if((nStatusPoll_Cond2 == (*(pSPI_RX_BUFF + 2) & nStatusPoll_msk)) && (nStatePoll == *(pSPI_RX_BUFF + 3))){
+                if ((nStatusPoll_Cond2 == (*(pSPI_RX_BUFF + 2) & nStatusPoll_msk)) && (nStatePoll == *(pSPI_RX_BUFF + 3))) {
                     EXIT = 1;
                 }
-            }else{
+            } else {
                 /* Set Exit flag if FW State matches nStatePoll */
-                if(nStatePoll == *(pSPI_RX_BUFF + 3)){
+                if (nStatePoll == *(pSPI_RX_BUFF + 3)) {
                     EXIT = 1;
                 }
             }
             
+            if (pSPIDevInfo->nStatus.VALUE_b.ERR_STATUS)
+            {
+            	EXIT = -1;
+            }
+
             /* Return if number of retries expired in the polling loop */
-            if(nRetry && !nPollcnt)
+            if (nRetry && !nPollcnt)
             {
             	if ( !(pSPIDevInfo->eXferResult) ) {
             		pSPIDevInfo->eXferResult = ADF7030_1_SPI_DEV_POLL_EXPIRE;
             	}
             	return 1;
             }
-        }while(EXIT == 0);
+        } while (EXIT == 0);
     }
 
 #if (ADF7030_1_PHY_ERROR_REPORT_ENABLE == 1) && ( ADF7030_1_PHY_ERROR_REPORT_SCHEME == 0)
 
-    if((nPhyCmd != CMD_RESET) && (nPhyCmd != RADIO_CMD) && (pSPIDevInfo->bPhyErrorCheck == 1))
+    if ((nPhyCmd != CMD_RESET) && (nPhyCmd != RADIO_CMD) && (pSPIDevInfo->bPhyErrorCheck == 1))
     {
         /*!
          *  The "error" bit inside pSPIDevInfo->nStatus is automatically cleared
@@ -717,7 +728,7 @@ uint8_t adf7030_1__XferCmdPoll(
 
         /* Read MISC_FW_ERR_CODE register from radio PHY */
         uint32_t fw_status_reg;
-        if(adf7030_1__SPI_rd_word_b_a( pSPIDevInfo, MISC_FW_Addr, 1, &fw_status_reg))
+        if (adf7030_1__SPI_rd_word_b_a( pSPIDevInfo, MISC_FW_Addr, 1, &fw_status_reg))
         {
         	return 1;
         }
@@ -727,7 +738,7 @@ uint8_t adf7030_1__XferCmdPoll(
         pSPIDevInfo->ePhyError = (adf7030_1_radio_error_e)(fw_status_reg >> 24);
 
         /* If error code exists, return ADF7030_1_HW_ERROR status */
-        if(pSPIDevInfo->ePhyError != SM_NOERROR){
+        if (pSPIDevInfo->ePhyError != SM_NOERROR) {
 
             /* If global Radio driver application callback is defined */
             if(pSPIDevInfo->pfPhyErrCb != NULL)
@@ -739,7 +750,13 @@ uint8_t adf7030_1__XferCmdPoll(
         	return 1;
         }
     }
+
 #endif
+    if (EXIT == -1)
+    {
+    	pSPIDevInfo->eXferResult = ADF7030_1_FAILURE;
+    	return 1;
+    }
     return 0;
 }
 

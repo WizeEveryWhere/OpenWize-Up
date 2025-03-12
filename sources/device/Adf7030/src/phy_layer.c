@@ -24,6 +24,9 @@
   * @par 1.0.0 : 2020/05/15[GBI]
   * Initial version
   *
+  * @par 1.1.0 : 2025/03/12[GBI]
+  * - Add trace ability
+  * - Fix the ADF7030 HW error when built in Release mode (but don't know why)
   *
   */
 
@@ -327,6 +330,18 @@ mem_cfg_desc_t sConfig =
 			.pData = (uint8_t*)(&sPacket)
 	},
 };
+
+static int32_t _get_content(adf7030_1_spi_info_t* pSPIDevInfo)
+{
+	int32_t eRet;
+	eRet = adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[0]));
+	eRet |= adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[1]));
+	return eRet;
+}
+
+#define GET_CONTENT(_eRet, _pSPIDevInfo) eRet = _get_content(_pSPIDevInfo)
+#else
+#define GET_CONTENT(_eRet, _pSPIDevInfo)
 #endif
 
 // Private function (mapped to interface)
@@ -402,7 +417,6 @@ int32_t Phy_adf7030_setup(
                 eExtLnaPin
                 )))
         {
-
             /* Set to default the SPI struct */
         	//BSP_Spi_SetDefault(pCtx->SPIInfo.hSPIDevice);
         	BSP_Spi_SetDefault(&spi_ADF7030);
@@ -413,6 +427,11 @@ int32_t Phy_adf7030_setup(
             	i32Ret = PHY_STATUS_OK;
             }
         }
+    }
+
+    if (i32Ret)
+    {
+    	TRACE_PHY_LAYER("Phy Setup failed\n");
     }
     return i32Ret;
 }
@@ -598,6 +617,9 @@ static int32_t _init(phydev_t *pPhydev)
 			}
 		}
     }
+
+   	TRACE_PHY_LAYER("Phy init : %ld\n", i32Ret);
+
     return i32Ret;
 }
 
@@ -638,13 +660,16 @@ static int32_t _uninit(phydev_t *pPhydev)
 		// Release the Reset pin
 		BSP_Gpio_SetLow(pDevice->ResetGPIOInfo.u32Port, pDevice->ResetGPIOInfo.u16Pin);
 
-		if (!i32Ret) {
+		//if (!i32Ret)
+		{
 			pDevice->bCfgDone = 0;
 			pDevice->bCrcOn = 0;
 			pDevice->bTxPwrDone = 0;
 			pDevice->u8PendTXBuffSize = 0;
 		}
     }
+
+    TRACE_PHY_LAYER("Phy uninit : %ld\n", i32Ret);
     return i32Ret;
 }
 
@@ -930,14 +955,11 @@ static int32_t _trx_seq(phydev_t *pPhydev)
 				// disable interrupt
 				eRet |= adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)0x0);
 			}
-#ifdef PHY_DEBUG_SPE
-			eRet = adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[0]));
-			eRet = adf7030_1__ReadDataBlock(pSPIDevInfo, &(sConfig.BLOCKS[1]));
-#endif
 			if(eRet)
 			{
 				eStatus = PHY_STATUS_ERROR;
 			}
+			GET_CONTENT(eRet, pSPIDevInfo);
 		}
 		else {
 			eStatus = PHY_STATUS_BUSY;
@@ -1152,14 +1174,14 @@ static int32_t _auto_calibrate_seq(phydev_t *pPhydev)
 					TRACE_PHY_LAYER("Phy Radio Calibration result :\n");
 					for (i = 0; i < (RF_CFG[PHY_RADIO_CAL].size/4); i++)
 					{
-						TRACE_PHY_LAYER("0x%08x\n", p[i]);
+						TRACE_PHY_LAYER("0x%08lx\n", p[i]);
 					}
 
 					p = (uint32_t*)(RF_CFG[PHY_VCO_CAL].cf);
 					TRACE_PHY_LAYER("Phy VCO Calibration result :\n");
 					for (i = 0; i < (RF_CFG[PHY_VCO_CAL].size/4); i++)
 					{
-						TRACE_PHY_LAYER("0x%08x\n", p[i]);
+						TRACE_PHY_LAYER("0x%08lx\n", p[i]);
 					}
 #endif
 				}
@@ -1272,6 +1294,8 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
     adf7030_1_device_t* pDevice = pPhydev->pCxt;
     adf7030_1_spi_info_t* pSPIDevInfo = &(pDevice->SPIInfo);
 
+   	TRACE_PHY_LAYER("Phy do_cmd %d\n", eCmd);
+
 	if ( eCmd < PHY_CTL_CMD_READY)
 	{
 		// Power supply command
@@ -1303,8 +1327,8 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 			case PHY_CTL_CMD_PWR_ON:
 				PHY_TMR_CAPTURE_POWER_ON();
 				// sleep for x µS or mS
+				usleep(100); // FIXME : this fix the ADF7030 HW error when buils in Release mode (but don't know why)
 				BSP_PwrLine_Set(RF_EN_MSK);
-				// TODO : add micro-sleep to ensure power "propagating"
 				(bPaState)?(BSP_PwrLine_Set(PA_EN_MSK)):(BSP_PwrLine_Clr(PA_EN_MSK));
 			case PHY_CTL_CMD_RESET:
 			default:
@@ -1320,6 +1344,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 				{
 					pDevice->eState |= ADF7030_1_STATE_INITIALIZED;
 				}
+				GET_CONTENT(eRet, pSPIDevInfo);
 				break;
 		}
 	}
@@ -1356,15 +1381,20 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 						{
 							pSPIDevInfo->nPhyNextState = PHY_RX;
 							pDevice->eState |= ADF7030_1_STATE_RECEIVING;
+							TRACE_PHY_LAYER("...PHY_CMD_RX\n");
 						}
 						else if (eCmd == PHY_CMD_CCA)
 						{
 							pSPIDevInfo->nPhyNextState = CCA;
 							pDevice->eState |= ADF7030_1_STATE_NOISE_MEAS;
+							TRACE_PHY_LAYER("...PHY_CMD_CCA\n");
+							// disable interrupt ?
+							//adf7030_1__IRQ_SetMap(pDevice, ADF7030_1_INTPIN0, (uint32_t)0x0);
 						}
 						else { // PHY_CMD_TX
 							pSPIDevInfo->nPhyNextState = PHY_TX;
 							pDevice->eState |= ADF7030_1_STATE_TRANSMITTING;
+							TRACE_PHY_LAYER("...PHY_CMD_TX\n");
 						}
 #ifdef USE_PHY_TRIG
 						eRet = adf7030_1_SetupTrig(pDevice, ADF7030_1_TRIGPIN0, pSPIDevInfo->nPhyNextState, 1);
@@ -1376,6 +1406,7 @@ static int32_t _do_cmd(phydev_t *pPhydev, uint8_t eCmd)
 						if(eRet)
 						{
 							eStatus = PHY_STATUS_ERROR;
+							TRACE_PHY_LAYER("...failed\n");
 						}
 					}
 					break;
@@ -1473,6 +1504,7 @@ static void _frame_it(void *p_CbParam, void *p_Arg)
 		pPhydev->pfEvtCb(pPhydev->pCbParam, eEvt);
 	}
     PHY_TMR_CAPTURE_LEAVING_IT();
+    TRACE_PHY_LAYER_IT("frm_it\n");
 }
 
 /*!
@@ -1495,6 +1527,7 @@ static void _instrum_it(void *p_CbParam, void *p_Arg)
     pDevice->IntGPIOInfo[ADF7030_1_INTPIN1].nIntStatus = u32IrqStatus;
     // clear interrupt status
     adf7030_1__ClrIrqStatus(pSPIDevInfo, ADF7030_1_INTPIN1);
+    TRACE_PHY_LAYER_IT("instr_it\n");
 }
 
 /******************************************************************************/
@@ -1802,6 +1835,37 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 	{
 		if (eCtl == PHY_CMD_TEMP)
 		{
+			/*
+
+			if (adf7030_1__STATE_PhyCMD( pSPIDevInfo, MON ))
+			{
+				i32Ret = PHY_STATUS_ERROR;
+			}
+			else
+			{
+				if (adf7030_1__STATE_WaitStateReady(pSPIDevInfo, PHY_ON, 0))
+				{
+					i32Ret = PHY_STATUS_ERROR;
+				}
+				else
+				{
+					uint32_t temp;
+					temp = adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_MONITOR1_Addr - 4);
+					*(float*)args = PHY_CONV_TempToFloat((int16_t)temp);
+
+					temp = adf7030_1__SPI_GetMem32(pSPIDevInfo, PROFILE_MONITOR1_Addr);
+					//int16_t temp = (int16_t)adf7030_1__GetRawTEMP(pSPIDevInfo);
+					*(float*)args = PHY_CONV_TempToFloat((int16_t)temp);
+				}
+			}
+			 */
+
+			/*
+			 * WARNING : dosen't work!!!
+			 * More than 5 second in MON state.
+			 * Temperature sensor is not calibrate in factory.
+			 * Measure is "2" @ ambient T°C (more or less 22, 25... °C)
+			 */
 			if (adf7030_1__STATE_PhyCMD_WaitReady( pSPIDevInfo, MON, PHY_ON ))
 			{
 				i32Ret = PHY_STATUS_ERROR;
@@ -1906,7 +1970,7 @@ static int32_t _ioctl(phydev_t *pPhydev, uint32_t eCtl, uint32_t args)
 	{
 		if(eCtl == PHY_CTL_GET_STR_ERR)
 		{
-			if(pSPIDevInfo->eXferResult)
+			if(pSPIDevInfo->eXferResult || pSPIDevInfo->ePhyError)
 			{
 				//*((char*)args) = getErrMsg(pDevice);
 				uint32_t tt = (uint32_t)getErrMsg(pDevice);

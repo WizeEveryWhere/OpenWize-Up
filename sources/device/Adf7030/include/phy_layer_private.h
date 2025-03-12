@@ -24,7 +24,9 @@
   * @par 1.0.0 : 2020/05/15[GBI]
   * Initial version
   *
-  *
+  * @par 1.1.0 : 2025/03/12[GBI]
+  * - Add trace ability
+  * 
   */
 
 /*!
@@ -76,6 +78,22 @@ extern "C" {
 #ifndef PHY_TMR_CAPTURE_RX_COMPLETE
 	#define PHY_TMR_CAPTURE_RX_COMPLETE() BSP_HiResTmr_Capture((uint8_t)CAPTURE_ID_RX_COMPLETE)
 #endif
+#endif
+
+#if defined (USE_PHY_LAYER_TRACE)
+#ifndef TRACE_PHY_LAYER
+#define TRACE_PHY_LAYER(...) fprintf (stdout, __VA_ARGS__ )
+#endif
+#else
+#define TRACE_PHY_LAYER(...)
+#endif
+
+#if defined (USE_PHY_LAYER_IT_TRACE)
+#ifndef TRACE_PHY_LAYER_IT
+#define TRACE_PHY_LAYER_IT(...) fprintf (stdout, __VA_ARGS__ )
+#endif
+#else
+#define TRACE_PHY_LAYER_IT(...)
 #endif
 
 #include "adf7030-1_phy.h"
