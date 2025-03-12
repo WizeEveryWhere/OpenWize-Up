@@ -63,7 +63,6 @@ typedef enum {
 
 void BSP_Rtc_SetCal(uint32_t pulse_cnt);
 
-void BSP_Rtc_Setup_Clk(uint32_t clock_sel);
 void BSP_Rtc_Setup(uint16_t div_s, uint8_t div_a);
 
 void BSP_Rtc_Backup_Write(uint32_t regNum, uint32_t data);

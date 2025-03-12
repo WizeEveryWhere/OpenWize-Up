@@ -93,24 +93,6 @@ void BSP_Rtc_SetCal(uint32_t pulse_cnt)
 }
 
 /*******************************************************************************/
-/*!
-  * @brief This function setup the RTC clock
-  *
-  * @param [in] clock_sel RTC clock selection
-  * 
-  * @return None
-  * 
-  */
-void BSP_Rtc_Setup_Clk(uint32_t clock_sel)
-{
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-	PeriphClkInit.RTCClockSelection = clock_sel & RCC_BDCR_RTCSEL;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-	{
-		Error_Handler();
-	}
-}
 
 /*!
   * @brief This function setup the RTC divider
