@@ -42,19 +42,6 @@ extern "C" {
 #include <stm32l4xx_hal.h>
 
 /*!
- * @brief This enum define GPIO port
- */
-typedef enum {
-    GPIO_PORTA,      /*!< Port 000 */
-    GPIO_PORTB,      /*!< Port 001 */
-    GPIO_PORTC,      /*!< Port 010 */
-	GPIO_PORTD,      /*!< Port 011 */
-	GPIO_PORTE,      /*!< Port 100 */
-	//GPIO_PORTH,      /*!< Port  */
-    GPIO_NUM_PORTS   /*!< maximum number of ports */
-} gpio_port_e;
-
-/*!
  * @brief This struct define the gpio interrupt
  */
 typedef struct {
@@ -106,7 +93,6 @@ static gpio_it_t aGpioCb[16] = {
  */
 
 static uint32_t _bsp_gpioit_getport_(uint32_t u32Line);
-static gpio_port_e _bsp_gpioit_getnumport_(const uint32_t u32Port);
 
 /*!
   * @static
@@ -144,41 +130,6 @@ static uint32_t _bsp_gpioit_getport_(uint32_t u32Line)
 		break;
 	}
 	return port;
-}
-
-/*!
-  * @static
-  * @brief Retrieve GPIO port number from port address
-  *
-  * @param [in] u32Port Gpio port address
-  *
-  * @return the gpio port number
-  *
-  */
-static gpio_port_e _bsp_gpioit_getnumport_(const uint32_t u32Port)
-{
-	gpio_port_e gpio_port;
-	switch (u32Port) {
-	case GPIOA_BASE :
-		gpio_port = GPIO_PORTA;
-		break;
-	case GPIOB_BASE :
-		gpio_port = GPIO_PORTB;
-		break;
-	case GPIOC_BASE :
-		gpio_port = GPIO_PORTC;
-		break;
-	case GPIOD_BASE :
-		gpio_port = GPIO_PORTD;
-		break;
-	case GPIOE_BASE :
-		gpio_port = GPIO_PORTE;
-		break;
-	default:
-		gpio_port = GPIO_NUM_PORTS;
-		break;
-	}
-	return gpio_port;
 }
 
 /*!
@@ -222,13 +173,13 @@ uint8_t BSP_GpioIt_ConfigLine (const uint32_t u32Port, const uint16_t u16Pin, co
 	int8_t i8_ItLineId;
 	uint32_t u32_ItLine;
 	uint8_t e_ret;
-	gpio_port_e e_Port;
+	gpio_port_id_e e_Port;
 
 	e_ret = DEV_FAILURE;
-	e_Port = _bsp_gpioit_getnumport_(u32Port);
+	e_Port = BSP_Gpio_GetPortId(u32Port);
 	i8_ItLineId = BSP_GpioIt_GetLineId(u16Pin);
 
-	if (e_Port < GPIO_NUM_PORTS && i8_ItLineId >= 0){
+	if (e_Port < GPIO_PORT_ID_NB && i8_ItLineId >= 0){
 		// setup the required port for the given EXTI line
 		SYSCFG->EXTICR[i8_ItLineId >> 2u] |= (e_Port & 0x07) << (i8_ItLineId % 0x04)*4;
 		u32_ItLine = (1 << i8_ItLineId);

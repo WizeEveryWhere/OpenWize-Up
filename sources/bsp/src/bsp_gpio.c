@@ -42,6 +42,171 @@ extern "C" {
 #include <stm32l4xx_hal.h>
 
 /*!
+  * @brief Retrieve GPIO pin from its id
+  *
+  * @param [in] id The pin id number
+  *
+  * @return the gpio pin
+  *
+  */
+inline
+uint16_t BSP_Gpio_GetPin(gpio_pin_id_e id)
+{
+	return (0x1 << id);
+}
+
+/*!
+  * @brief Retrieve GPIO pin id from pin number
+  *
+  * @param [in] id The pin number
+  *
+  * @return the gpio pin id
+  *
+  */
+inline
+gpio_pin_id_e BSP_Gpio_GetPinId(uint16_t pin)
+{
+	return (gpio_pin_id_e)__builtin_clrsb((int)pin);
+}
+
+/*!
+  * @brief Retrieve GPIO port address from its id
+  *
+  * @param [in] id The port id number
+  *
+  * @return the gpio port address
+  *
+  */
+uint32_t BSP_Gpio_GetPort(gpio_port_id_e id)
+{
+	uint32_t port;
+	switch (id)
+	{
+		case GPIO_PORT_ID_A :
+			port = (uint32_t)GPIOA;
+			break;
+		case GPIO_PORT_ID_B :
+			port = (uint32_t)GPIOB;
+			break;
+		case GPIO_PORT_ID_C :
+			port = (uint32_t)GPIOC;
+			break;
+		case GPIO_PORT_ID_D:
+			port = (uint32_t)GPIOD;
+			break;
+		case GPIO_PORT_ID_E :
+			port = (uint32_t)GPIOE;
+			break;
+		default:
+			port = (uint32_t)(NULL);
+			break;
+	}
+	return port;
+}
+
+/*!
+  * @brief Retrieve GPIO port number from port address
+  *
+  * @param [in] u32Port Gpio port address
+  *
+  * @return the gpio port id number
+  *
+  */
+gpio_port_id_e BSP_Gpio_GetPortId(const uint32_t u32Port)
+{
+	gpio_port_id_e gpio_port;
+	switch (u32Port) {
+	case GPIOA_BASE :
+		gpio_port = GPIO_PORT_ID_A;
+		break;
+	case GPIOB_BASE :
+		gpio_port = GPIO_PORT_ID_B;
+		break;
+	case GPIOC_BASE :
+		gpio_port = GPIO_PORT_ID_C;
+		break;
+	case GPIOD_BASE :
+		gpio_port = GPIO_PORT_ID_D;
+		break;
+	case GPIOE_BASE :
+		gpio_port = GPIO_PORT_ID_E;
+		break;
+	default:
+		gpio_port = GPIO_PORT_ID_NB;
+		break;
+	}
+	return gpio_port;
+}
+
+/*!
+  * @brief This function set as input (or analog mode) the given gpio
+  *
+  * @param [in] sGpioId Gpio ids description (port and pin ids)
+  *
+  * @retval DEV_SUCCESS (see @link dev_res_e::DEV_SUCCESS @endlink)
+  *
+  */
+uint8_t BSP_Gpio_Config (const gpio_id_t sGpioId, const uint16_t u16Cfg)
+{
+#define GPIO_MODE             (0x00000003u)
+#define GPIO_OUTPUT_TYPE      (0x00000010u)
+
+	GPIO_TypeDef  *GPIOx = (GPIO_TypeDef*)BSP_Gpio_GetPort(sGpioId.port);
+	uint16_t u16Pin = BSP_Gpio_GetPin(sGpioId.pin);
+
+	struct iomux_s io_cfg = {.io = u16Cfg};
+	uint32_t position = 0x00u;
+
+	assert_param(IS_GPIO_ALL_INSTANCE(GPIOx));
+	assert_param(IS_GPIO_PIN(u16Pin));
+
+	while (( u16Pin >> position) != 0x00u)
+	{
+		if ( ( u16Pin & (1uL << position) ) != 0x00u)
+		{
+			uint32_t temp;
+			// If alternate function mode selection
+			if ( (io_cfg.mode & GPIO_MODE_AF_PP) == GPIO_MODE_AF_PP)
+			{
+				// Configure the alternate function
+				temp = GPIOx->AFR[position >> 3u];
+				temp &= ~(0xFu << ((position & 0x07u) * 4u));
+				temp |= ((io_cfg.af) << ((position & 0x07u) * 4u));
+				GPIOx->AFR[position >> 3u] = temp;
+			}
+			// Configure IO Direction mode (Input, Output, Alternate or Analog)
+			temp = GPIOx->MODER;
+			temp &= ~(GPIO_MODER_MODE0 << (position * 2u));
+			temp |= ((io_cfg.mode & GPIO_MODE) << (position * 2u));
+			GPIOx->MODER = temp;
+
+			if ( (io_cfg.mode != GPIO_MODE_INPUT) && (io_cfg.mode != GPIO_MODE_ANALOG) )
+			{
+				// Configure the IO Speed
+				temp = GPIOx->OSPEEDR;
+				temp &= ~(GPIO_OSPEEDR_OSPEED0 << (position * 2u));
+				temp |= (io_cfg.speed << (position * 2u));
+				GPIOx->OSPEEDR = temp;
+
+				// Configure the IO Output Type
+				temp = GPIOx->OTYPER;
+				temp &= ~(GPIO_OTYPER_OT0 << position) ;
+				temp |= (((io_cfg.type & GPIO_OUTPUT_TYPE) >> 4u) << position);
+				GPIOx->OTYPER = temp;
+			}
+			/* Activate the Pull-up or Pull down resistor for the current IO */
+			temp = GPIOx->PUPDR;
+			temp &= ~(GPIO_PUPDR_PUPD0 << (position * 2u));
+			temp |= ((io_cfg.pu_pd) << (position * 2u));
+			GPIOx->PUPDR = temp;
+		}
+		position++;
+	}
+
+	return DEV_SUCCESS;
+}
+
+/*!
   * @brief This function set as input (or analog mode) the given gpio
   *
   * @param [in] u32Port Gpio port
