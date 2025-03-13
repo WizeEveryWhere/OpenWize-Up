@@ -4,24 +4,15 @@ cmake_minimum_required( VERSION 3.12 )
 set(BOARD_NAME "Alciom Wize'Up Board")
 set(APP_NAME "OpenwWizeUp App")
 
-add_compile_definitions(HAS_NO_BANNER=1)
-add_compile_definitions(USE_RTOS_TRACE=1)
-add_compile_definitions(HAS_BSP_PWRLINE=1)
-add_compile_definitions(LOGGER_HAS_COLOR=1)
-add_compile_definitions(LOGGER_USE_FWRITE=1)
-add_compile_definitions(DUMP_CORE_HAS_TRACE=1)
-add_compile_definitions(DUMP_CORE_HAS_FAULT_STATUS_REGISTER=1)
-add_compile_definitions(L6VERS=L6VER_WIZE_REV_1_2)
-
-add_compile_definitions(USE_SPI=1)
-# add_compile_definitions(USE_I2C=1)
-
-add_compile_definitions(CONSOLE_RX_TIMEOUT=5000)
-
 add_compile_options(-Wall -ffunction-sections -fdata-sections -fstack-usage)
 
 # OpenWizeUp Options
 include(sources/OpenWizeUp_Options.cmake)
+
+if(HAS_TRACE_FACILITY)
+    # Add to global include
+    include_directories(${CMAKE_SOURCE_DIR}/sources/trace_facility/include) 
+endif(HAS_TRACE_FACILITY)
 
 ################################################################################
 # Set Coss compile
@@ -71,6 +62,10 @@ set(MOD_DIR_LST
     "sources/device/Adf7030" 
     "sources/app" 
     )
+
+if(HAS_TRACE_FACILITY)
+    set(MOD_DIR_LST ${MOD_DIR_LST} "sources/trace_facility") 
+endif(HAS_TRACE_FACILITY)
 
 # Add subdirectories
 set(MAIN_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

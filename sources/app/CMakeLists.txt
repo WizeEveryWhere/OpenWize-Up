@@ -28,6 +28,9 @@ target_sources(${MODULE_NAME}
         update/update_area.c
         ../../${CFG_GEN_DIR}/gen/parameters_cfg.c
         ../../${CFG_GEN_DIR}/gen/parameters_default.c
+        # ---
+        sys/m_test.c
+        # ---
     )
 
 # Add include dir    
@@ -56,17 +59,26 @@ target_link_options(${MODULE_NAME}
     )
 
 ################################################################################
+set(DEP_LIST
+    Board_WizeUp 
+    atci 
+    extra 
+    adf7030 
+    flashstorage 
+    bsp 
+    Openwize::Openwize
+)
+
+if(HAS_TRACE_FACILITY)
+    set(DEP_LIST ${DEP_LIST} trace_facility) 
+endif(HAS_TRACE_FACILITY)
+
 setup_install(
     TARGET ${MODULE_NAME} 
     DEPENDS 
-        Board_WizeUp 
-        atci 
-        extra 
-        adf7030 
-        flashstorage 
-        bsp 
-        Openwize::Openwize
+    ${DEP_LIST}
     )
+
 ################################################################################
 if(BUILD_NVM_BINARY)
 

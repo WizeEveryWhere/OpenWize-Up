@@ -42,6 +42,32 @@ extern "C" {
 #include "common.h"
 
 /*!
+ * @brief This enum define baud rate id
+ */
+typedef enum
+{
+	UART_BAUD_ID_1K2,   /*!< */
+	UART_BAUD_ID_2K4,   /*!< */
+	UART_BAUD_ID_4K8,   /*!< */
+	UART_BAUD_ID_9K6,   /*!< */
+	UART_BAUD_ID_19K2,  /*!< */
+	UART_BAUD_ID_38K4,  /*!< */
+	/* Warning : for the following 5 baud rate, with a main clk @48Mhz, the
+	error on calculated vs desired is no null */
+	UART_BAUD_ID_57K6,  /*!< */
+	UART_BAUD_ID_115K2, /*!< */
+	UART_BAUD_ID_230K4, /*!< */
+	UART_BAUD_ID_460K8, /*!< */
+	UART_BAUD_ID_921K6, /*!< */
+	// ---
+	UART_BAUD_ID_2M,    /*!< */
+	UART_BAUD_ID_3M,    /*!< */
+	UART_BAUD_ID_4M,    /*!< */
+	// ---
+	UART_BAUD_ID_NB
+} uart_baud_e;
+
+/*!
  * @brief This enum define possible events from UART
  */
 typedef enum
@@ -70,7 +96,7 @@ typedef enum
  */
 typedef enum
 {
-	UART_MODE_NONE, /*!< None (wait until the buffer reach the geiven size) */
+	UART_MODE_NONE, /*!< None (wait until the buffer reach the given size) */
 	UART_MODE_EOB,  /*!< Event is sent when character match the end of block */
 } uart_mode_e;
 
@@ -79,15 +105,24 @@ typedef enum
  */
 typedef struct
 {
-    uint8_t bus_id;       /*!< Peripheral Bus Id */
-   	uint8_t u8Mode;       /*!< Current UART device mode */
-    uint8_t u8CharMatch;  /*!< Character to match (if mode is enabled) */
-    int8_t  i8ItLine;     /*!< Interrupt line id (NVIC) */
+    uint32_t dev_id;      /*!< Device Id */
+    void *hHandle;        /*!< Pointer on HAL UART handle*/
+    const struct iomux_s *pIomux;  /*!< Pointer on iomux pin configuration */
+    const struct gpio_id_s *pGpio; /*!< Pointer on gpio pin configuration */
+
+    void *pCbParam;       /*!< Pointer on Call-back parameter */
+    pfEvtCb_t pfEvent;    /*!< Function pointer on event call-back */
+
    	uint32_t u32RxTmo;    /*!< Rx Time-out value (0 : disable) */
    	uint32_t u32TxTmo;    /*!< Tx Time-out value (0 : disable) */
-    pfEvtCb_t pfEvent;    /*!< Function pointer on event call-back */
-    void *pCbParam;       /*!< Pointer on Call-back parameter */
-    void *hHandle;        /*!< Pointer on HAL UART handle*/
+
+    uint8_t u8Mode;       /*!< Current UART device mode */
+    uint8_t u8CharMatch;  /*!< Character to match (if mode is enabled) */
+    int8_t  i8ItLine;     /*!< Interrupt line id (NVIC) */
+    uint8_t u8ItPrio;     /*!< Interrupt priority */
+
+    uint8_t swap;
+    uint32_t baud;
 } uart_dev_t;
 
 /*!
@@ -101,19 +136,7 @@ typedef uart_dev_t* p_uart_dev_t;
  * @{
  */
 
-#ifndef CONSOLE_TX_TIMEOUT
-#define CONSOLE_TX_TIMEOUT 2000
-#endif
-#ifndef CONSOLE_RX_TIMEOUT
-#define CONSOLE_RX_TIMEOUT 0xFFFF
-#endif
-
-#ifndef LOGGER_TX_TIMEOUT
-#define LOGGER_TX_TIMEOUT 2000
-#endif
-#ifndef LOGGER_RX_TIMEOUT
-#define LOGGER_RX_TIMEOUT 0xFFFFFFFF
-#endif
+extern const uint32_t baud_rate[UART_BAUD_ID_NB];
 
 /*!
  * @}

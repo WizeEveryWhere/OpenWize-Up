@@ -53,7 +53,7 @@ void __init_sys_handlers__(void)
 #define HANDLER_SECTION(hsection) __attribute__(( section(hsection) ))
 
 HANDLER_SECTION(".exception")
-void NMI_Handler(void)  __attribute__((naked, noreturn));
+void NMI_Handler(void)  __attribute__((naked, noreturn, weak));
 HANDLER_SECTION(".sys")
 void DebugMon_Handler(void) __attribute__((naked, noreturn));
 

@@ -39,6 +39,7 @@ extern "C" {
 #include "app_entry.h"
 #include "atci.h"
 #include "update.h"
+#include "update_area.h"
 #include "wize_app.h"
 #include "itf.h"
 
@@ -62,6 +63,9 @@ void App_Init(void);
   */
 void app_entry(void)
 {
+	extern void m_test(void);
+	m_test();
+
   	Sys_Init();
   	App_Init();
   	Sys_Start();
@@ -252,6 +256,10 @@ void Monitor_Task(void const * argument)
 
 			// Timeout
 			LOG_DBG("Monitor alive\n");
+#ifdef HAS_TRACE_FACILITY
+			extern  void ITM_Print(int port, const char *p);
+			ITM_Print(0, "Boot");
+#endif
 		}
 #ifdef HAS_EXTEND_PARAMETER
 

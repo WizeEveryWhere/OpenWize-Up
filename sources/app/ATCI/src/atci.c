@@ -374,7 +374,7 @@ static void _atci_tsk_(void const *argument)
 	pAtciCtx = (atci_cmd_t *)argument;
 
 	uint32_t ulEvent;
-	uint32_t ulNotify;
+	//uint32_t ulNotify;
 
 	uint8_t bTmo;
 	uint8_t bComIsStarted;
@@ -418,7 +418,7 @@ static void _atci_tsk_(void const *argument)
 		// If COM is not started, then start it
 		if (!bComIsStarted)
 		{
-			if ( DEV_SUCCESS == BSP_Uart_Receive(UART_ID_COM, consoleRxBuf.data, (uint16_t)AT_CMD_BUF_LEN))
+			if ( DEV_SUCCESS == BSP_Uart_Receive(SERIAL_ID_COM, consoleRxBuf.data, (uint16_t)AT_CMD_BUF_LEN))
 			{
 				bComIsStarted = 1;
 			}
@@ -436,7 +436,7 @@ static void _atci_tsk_(void const *argument)
 			bTmo = 1;
 			if (bTmo && pAtciCtx->bLpAllowed && !(pAtciCtx->bTestMode))
 			{
-				BSP_Uart_AbortReceive(UART_ID_COM);
+				BSP_Uart_AbortReceive(SERIAL_ID_COM);
 				bComIsStarted = 0;
 				bTmo = 0;
 
@@ -496,7 +496,7 @@ static int32_t _inner_loop_(atci_cmd_t *pAtciCtx)
 	{
 		if (!bComIsStarted)
 		{
-			if ( BSP_Uart_Receive(UART_ID_COM, pAtciCtx->pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN) != DEV_SUCCESS)
+			if ( BSP_Uart_Receive(SERIAL_ID_COM, pAtciCtx->pComRxBuf->data, (uint16_t)AT_CMD_BUF_LEN) != DEV_SUCCESS)
 			{
 				ret = -2;
 				break;
@@ -545,7 +545,7 @@ static int32_t _inner_loop_(atci_cmd_t *pAtciCtx)
 
 	if (bComIsStarted)
 	{
-		BSP_Uart_AbortReceive(UART_ID_COM);
+		BSP_Uart_AbortReceive(SERIAL_ID_COM);
 	}
 
 	return ret;
@@ -671,7 +671,7 @@ static uint8_t _init_lp_var_(void)
 	// Init LP mode
 	uint32_t u32LPdelay = CONSOLE_RX_TIMEOUT;
 	uint8_t eLPmode = 1;
-#ifdef HAS_LP_PARAMETER
+#ifdef HAS_LOW_POWER_PARAMETER
 	/*
 	 *  0b xxxx xxxxxx00
 	 *  0b xxxx xx00 : disable

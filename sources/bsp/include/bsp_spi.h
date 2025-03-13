@@ -43,6 +43,25 @@ extern "C" {
 #include "bsp_gpio.h"
 
 /*!
+  * @brief This struct define the spi bus
+  */
+typedef struct
+{
+    void *hHandle;                 /*!< Pointer on HAL SPI handle*/
+    const struct iomux_s *pIomux;  /*!< Pointer on iomux pin configuration */
+    const struct gpio_id_s *pGpio; /*!< Pointer on gpio pin configuration */
+} spi_bus_t;
+
+/*!
+  * @brief This struct define the spi device chip select
+  */
+typedef struct
+{
+	const struct iomux_s *pIomux;  /*!< Chip select iomux */
+	const struct gpio_id_s *pGpio; /*!< Chip select gpio */
+} spi_ss_t;
+
+/*!
   * @brief This struct define the spi transaction
   */
 typedef struct
@@ -64,6 +83,12 @@ typedef struct
     uint32_t ss_port; /*!< Chip select gpio port */
     uint16_t ss_pin;  /*!< Chip select gpio pin */
 } spi_dev_t;
+
+typedef struct
+{
+    uint8_t bus_id;  /*!< SPI bus id */
+    spi_ss_t cs;     /*!< Chip select gpio */
+} zz_spi_dev_t;
 
 /*!
   * @brief This define a pointer on spi device

@@ -49,12 +49,21 @@
 	#define SPI_TX_TIMEOUT 1000
 #endif
 
+#if defined (USE_BSP_SPI_TRACE)
+#ifndef TRACE_BSP_SPI
+#define TRACE_BSP_SPI(...) fprintf (stdout, __VA_ARGS__ )
+#endif
+#else
+#define TRACE_BSP_SPI(...)
+#endif
+
 /*!
  * @}
  * @endcond
  */
 
-extern SPI_HandleTypeDef *paSPI_BusHandle[SPI_ID_MAX];
+//extern SPI_HandleTypeDef *paSPI_BusHandle[SPI_ID_MAX];
+extern spi_bus_t aSpiBus[SPI_ID_MAX];
 
 static uint32_t _get_SPI_freq_(void);
 static uint8_t _get_APB_div_(void);
@@ -188,14 +197,23 @@ static uint32_t _get_SPI_freq_(void){
   */
 uint8_t BSP_Spi_Init(const p_spi_dev_t p_Device)
 {
-	uint8_t ret = DEV_SUCCESS;
-	uint8_t u8_Status;
-    SPI_HandleTypeDef *p_handle = paSPI_BusHandle[p_Device->bus_id];
-    u8_Status = HAL_SPI_Init(p_handle);
-    if ( u8_Status != HAL_OK) {
-    	DBG_BSP("SPI 0x%8X Init: status %d\r\n", paSPI_BusHandle[p_Device->bus_id]->Instance, u8_Status);
-        ret = DEV_FAILURE;
-    }
+	uint8_t ret = DEV_FAILURE;
+    //SPI_HandleTypeDef *p_handle = paSPI_BusHandle[p_Device->bus_id];
+    SPI_HandleTypeDef* p_handle = (SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle);
+
+	if (p_handle->Instance == SPI1)
+	{
+		__HAL_RCC_SPI1_CLK_ENABLE();
+		ret = HAL_SPI_Init(p_handle);
+	    if ( ret != HAL_OK) {
+	    	TRACE_BSP_SPI("SPI 0x%8X Init: status %d\r\n", p_handle->Instance, ret);
+	    }
+	}
+	else
+	{
+		// error
+		TRACE_BSP_SPI("SPI 0x%8X is not SPI1\r\n", p_handle->Instance);
+	}
     return ret;
 }
 
@@ -209,7 +227,9 @@ uint8_t BSP_Spi_Init(const p_spi_dev_t p_Device)
   */
 uint8_t BSP_Spi_SetDefault(const p_spi_dev_t p_Device)
 {
-	SPI_HandleTypeDef *p_handle = paSPI_BusHandle[p_Device->bus_id];
+	//SPI_HandleTypeDef *p_handle = paSPI_BusHandle[p_Device->bus_id];
+	SPI_HandleTypeDef* p_handle = (SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle);
+
     /* Fill default value */
     p_handle->Init.Mode              = SPI_MODE_MASTER;
     p_handle->Init.Direction         = SPI_DIRECTION_2LINES;
@@ -240,8 +260,26 @@ uint8_t BSP_Spi_SetDefault(const p_spi_dev_t p_Device)
   */
 uint8_t BSP_Spi_Open(const p_spi_dev_t p_Device)
 {
-	BSP_Gpio_SetHigh(p_Device->ss_port, p_Device->ss_pin);
-	HAL_SPI_MspInit(paSPI_BusHandle[p_Device->bus_id]);
+	//BSP_Gpio_SetHigh(p_Device->ss_port, p_Device->ss_pin);
+	//HAL_SPI_MspInit(paSPI_BusHandle[p_Device->bus_id]);
+	uint8_t bus_id = p_Device->bus_id;
+	SPI_HandleTypeDef* p_handle = (SPI_HandleTypeDef*)(aSpiBus[bus_id].hHandle);
+
+	if (p_handle->Instance == SPI1)
+	{
+		__HAL_RCC_SPI1_CLK_ENABLE();
+		// Set IOMUX
+		for (uint8_t i = 0; i < 3; i++)
+		{
+			BSP_Gpio_Config(aSpiBus[bus_id].pGpio[i], aSpiBus[bus_id].pIomux[i].io);
+		}
+	}
+	else
+	{
+		// error
+    	TRACE_BSP_SPI("SPI 0x%8X is not SPI1\r\n", p_handle->Instance);
+		return DEV_FAILURE;
+	}
 	return DEV_SUCCESS;
 }
 
@@ -255,8 +293,24 @@ uint8_t BSP_Spi_Open(const p_spi_dev_t p_Device)
   */
 uint8_t BSP_Spi_Close (const p_spi_dev_t p_Device)
 {
-	HAL_SPI_MspDeInit(paSPI_BusHandle[p_Device->bus_id]);
-	BSP_Gpio_SetLow(p_Device->ss_port, p_Device->ss_pin);
+	//HAL_SPI_MspDeInit(paSPI_BusHandle[p_Device->bus_id]);
+
+	uint8_t bus_id = p_Device->bus_id;
+	SPI_HandleTypeDef* p_handle = (SPI_HandleTypeDef*)(aSpiBus[bus_id].hHandle);
+
+	if (p_handle->Instance == SPI1)
+	{
+		__HAL_RCC_SPI1_CLK_DISABLE();
+		// Set IOMUX
+		struct iomux_s io_analog = {0};
+		io_analog.mode = GPIO_MODE_ANALOG;
+		for (uint8_t i = 0; i < 3; i++)
+		{
+			BSP_Gpio_Config(aSpiBus[bus_id].pGpio[i], io_analog.io);
+		}
+	}
+	//BSP_Gpio_SetLow(p_Device->ss_port, p_Device->ss_pin);
+
 	return DEV_SUCCESS;
 }
 
@@ -286,16 +340,21 @@ uint8_t BSP_Spi_SetBitrate (const p_spi_dev_t p_Device, const uint32_t u32_Hertz
 		prescaler_rank++;
 	}
 
+	//SPI_HandleTypeDef* p_handle = paSPI_BusHandle[p_Device->bus_id];
+	SPI_HandleTypeDef* p_handle = (SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle);
+
 	/*  Use the best fit pre-scaler */
-	paSPI_BusHandle[p_Device->bus_id]->Init.BaudRatePrescaler = prescaler_table[prescaler_rank];
+	p_handle->Init.BaudRatePrescaler = prescaler_table[prescaler_rank];
 
 	/*  In case maximum pre-scaler still gives too high freq, raise an error */
-	if (spi_hz > u32_Hertz) {
-		DBG_BSP("WRN: lowest SPI freq (%d)  higher than requested (%d)\r\n", spi_hz, (int)u32_Hertz);
+	if (spi_hz != u32_Hertz) {
+		TRACE_BSP_SPI("SPI (Hz), %d -> %d\r\n", (int)u32_Hertz, spi_hz);
+		if (spi_hz > u32_Hertz) {
+	    	TRACE_BSP_SPI("WRN: SPI 0x%8X : lowest Hz (%d) > req. Hz (%d)\r\n",
+	    			p_handle->Instance,
+					spi_hz, (int)u32_Hertz);
+		}
 	}
-
-	DBG_BSP("spi_frequency, request:%d, select:%d\r\n", (int)u32_Hertz, spi_hz);
-
 	return BSP_Spi_Init(p_Device);
 }
 
@@ -312,10 +371,12 @@ uint8_t BSP_Spi_SetClockPhase (const p_spi_dev_t p_Device, const bool b_Flag)
 {
     switch (b_Flag) {
         case 1:
-        	paSPI_BusHandle[p_Device->bus_id]->Init.CLKPhase = SPI_PHASE_2EDGE;
+        	//paSPI_BusHandle[p_Device->bus_id]->Init.CLKPhase = SPI_PHASE_2EDGE;
+        	((SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle))->Init.CLKPhase = SPI_PHASE_2EDGE;
             break;
         default : //case 0:
-        	paSPI_BusHandle[p_Device->bus_id]->Init.CLKPhase = SPI_PHASE_1EDGE;
+        	//paSPI_BusHandle[p_Device->bus_id]->Init.CLKPhase = SPI_PHASE_1EDGE;
+        	((SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle))->Init.CLKPhase = SPI_PHASE_1EDGE;
             break;
     }
 	return DEV_SUCCESS;
@@ -334,10 +395,12 @@ uint8_t BSP_Spi_SetClockPol (const p_spi_dev_t p_Device, const bool b_Flag)
 {
 	switch (b_Flag) {
 		case 1:
-			paSPI_BusHandle[p_Device->bus_id]->Init.CLKPolarity = SPI_POLARITY_HIGH;
+			//paSPI_BusHandle[p_Device->bus_id]->Init.CLKPolarity = SPI_POLARITY_HIGH;
+			((SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle))->Init.CLKPolarity = SPI_POLARITY_HIGH;
 			break;
 		default:// case 0:
-			paSPI_BusHandle[p_Device->bus_id]->Init.CLKPolarity = SPI_POLARITY_LOW;
+			//paSPI_BusHandle[p_Device->bus_id]->Init.CLKPolarity = SPI_POLARITY_LOW;
+			((SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle))->Init.CLKPolarity = SPI_POLARITY_LOW;
 			break;
 	}
 	return DEV_SUCCESS;
@@ -358,25 +421,30 @@ uint8_t BSP_Spi_ReadWrite (const p_spi_dev_t p_Device, spi_transceiver_s* const 
 {
 	uint8_t ret = DEV_SUCCESS;
 	uint8_t u8_Status;
-	if (HAL_SPI_GetState(paSPI_BusHandle[p_Device->bus_id]) == HAL_SPI_STATE_READY)
+
+	//SPI_HandleTypeDef* p_handle = paSPI_BusHandle[p_Device->bus_id];
+	SPI_HandleTypeDef* p_handle = (SPI_HandleTypeDef*)(aSpiBus[p_Device->bus_id].hHandle);
+
+	if (HAL_SPI_GetState(p_handle) == HAL_SPI_STATE_READY)
 	{
 		BSP_Gpio_SetLow(p_Device->ss_port, p_Device->ss_pin);
 		u8_Status = HAL_SPI_TransmitReceive(
-				paSPI_BusHandle[p_Device->bus_id],
+				p_handle,
 				p_Xfr->pTransmitter,
 				p_Xfr->pReceiver,
 				p_Xfr->ReceiverBytes, SPI_TX_TIMEOUT);
+		BSP_Gpio_SetHigh(p_Device->ss_port, p_Device->ss_pin);
 		if ( u8_Status != HAL_OK )
 		{
-			DBG_BSP("SPI %x Transmit: status %d\r\n", paSPI_BusHandle[p_Device->bus_id]e->Instance, u8_Status);
+			TRACE_BSP_SPI("SPI %x xfer : status %d\r\n", p_handle->Instance, u8_Status);
 			ret = DEV_FAILURE;
 		}
-		BSP_Gpio_SetHigh(p_Device->ss_port, p_Device->ss_pin);
 	}
 	else {
 		ret = DEV_BUSY;
 	}
 	return ret;
 }
+//#pragma GCC pop_options
 
 /*! @} */

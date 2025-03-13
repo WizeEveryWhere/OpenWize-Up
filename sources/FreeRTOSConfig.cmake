@@ -82,3 +82,11 @@ set( configUSE_NEWLIB_REENTRANT 1)
 set( vPortSVCHandler    "SVC_Handler")
 set( xPortPendSVHandler "PendSV_Handler")
 set( xPortSysTickHandler "SysTick_Handler")
+
+#if(HAS_RTOS_TRACE_CMAKE)
+#    include(${HAS_RTOS_TRACE_CMAKE})
+#endif(HAS_RTOS_TRACE_CMAKE)
+
+if(HAS_RTOS_TRACE)
+    include(${CMAKE_SOURCE_DIR}/sources/FreeRTOSTrace.cmake)
+endif(HAS_RTOS_TRACE)

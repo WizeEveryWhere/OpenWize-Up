@@ -38,71 +38,143 @@ extern "C" {
 #endif
 
 #include "bsp_uart.h"
+#include "bsp_clk.h"
+#include "bsp_gpio.h"
+
 #include "platform.h"
 #include <stm32l4xx_hal.h>
 
-extern uart_dev_t aDevUart[UART_ID_MAX];
-
-extern void HAL_UART_MspInit(UART_HandleTypeDef* huart);
-extern void HAL_UART_MspDeInit(UART_HandleTypeDef* huart);
+extern uart_dev_t aDevUart[SERIAL_ID_MAX];
 
 /*******************************************************************************/
 static void _bsp_com_TxISR_8BIT(UART_HandleTypeDef *huart);
 static void _bsp_com_RxISR_8BIT(UART_HandleTypeDef *huart);
 
 /*******************************************************************************/
+const uint32_t baud_rate[UART_BAUD_ID_NB] =
+{
+	[UART_BAUD_ID_1K2] = 1200,
+	[UART_BAUD_ID_2K4] = 2400,
+	[UART_BAUD_ID_4K8] = 4800,
+	[UART_BAUD_ID_9K6] = 9600,
+	[UART_BAUD_ID_19K2] = 19200,
+	[UART_BAUD_ID_38K4] = 38400,
+	[UART_BAUD_ID_57K6] = 57600,
+	[UART_BAUD_ID_115K2] = 115200,
+	[UART_BAUD_ID_230K4] = 230400,
+	[UART_BAUD_ID_460K8] = 460800,
+	[UART_BAUD_ID_921K6] = 921600,
+	//
+	[UART_BAUD_ID_2M] = 2000000,
+	[UART_BAUD_ID_3M] = 3000000,
+	[UART_BAUD_ID_4M] = 4000000,
+};
+
+/*******************************************************************************/
+
+#ifdef USE_SEMIHOSTING
+#warning SEMIHOSTING is defined. 1) You should exclude "syscalls.c" from build.
+#warning SEMIHOSTING is defined. 2) Add "rdimon" in link.
+#warning SEMIHOSTING is defined. 2) Add "-specs=rdimon.specs" to compiler CFLAGS
+#warning SEMIHOSTING is defined. 3) For debugging : Select OpenOCD
+#warning SEMIHOSTING is defined. 3) For debugging : add "monitor arm semihosting enable" into "Startup", "Initalization Commands"
+
+extern void initialise_monitor_handles(void);
+#else
+int __io_putchar(int ch){
+	uint16_t nb = 1;
+	if ((uint8_t)ch == '\n'){
+		nb = 2;
+		((uint8_t *)&ch)[0] = '\r';
+		((uint8_t *)&ch)[1] = '\n';
+	}
+	HAL_UART_Transmit(aDevUart[SERIAL_ID_LOG].hHandle, (uint8_t *)&ch, nb, aDevUart[SERIAL_ID_LOG].u32TxTmo);
+	return ch;
+}
+
+int __io_puts(char *ptr, int len)
+{
+	// This will be checked in HAL_UART_Transmit
+	// if (ptr)
+	// if (len > 0)
+	if (HAL_UART_Transmit(aDevUart[SERIAL_ID_LOG].hHandle, (uint8_t *)ptr, len, aDevUart[SERIAL_ID_LOG].u32TxTmo) )
+	{
+		return 0;
+	}
+	if (*(ptr + len - 1) == '\n')
+	{
+		char c = '\r';
+		HAL_UART_Transmit(aDevUart[SERIAL_ID_LOG].hHandle, (uint8_t*)&c, 1, aDevUart[SERIAL_ID_LOG].u32TxTmo);
+	}
+	return len;
+}
+
+
+int __io_getchar(void){
+	int c;
+	HAL_UART_Receive(aDevUart[SERIAL_ID_LOG].hHandle, (uint8_t*)&c, 1, aDevUart[SERIAL_ID_LOG].u32RxTmo);
+	return c;
+}
+#endif
+
+
 uint8_t BSP_Console_Init(void)
 {
 	dev_res_e eRet = DEV_INVALID_PARAM;
-
-
 	return eRet;
 }
 
 uint8_t BSP_Console_Send(uint8_t *pData, uint16_t u16Length)
 {
 	dev_res_e eRet = DEV_INVALID_PARAM;
-
-	eRet = HAL_UART_Transmit(aDevUart[UART_ID_COM].hHandle, pData, u16Length, aDevUart[UART_ID_COM].u32TxTmo);
+	eRet = HAL_UART_Transmit(aDevUart[SERIAL_ID_COM].hHandle, pData, u16Length, aDevUart[SERIAL_ID_COM].u32TxTmo);
 	return eRet;
 }
 
 uint8_t BSP_Console_Received(uint8_t *pData, uint16_t u16Length)
 {
 	dev_res_e eRet = DEV_INVALID_PARAM;
-
-	eRet = HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, pData, u16Length, aDevUart[UART_ID_COM].u32RxTmo);
+	eRet = HAL_UART_Receive(aDevUart[SERIAL_ID_COM].hHandle, pData, u16Length, aDevUart[SERIAL_ID_COM].u32RxTmo);
 	return eRet;
 }
 
 inline uint8_t BSP_Console_SetRXTmo(uint32_t u32Tmo)
 {
-	aDevUart[UART_ID_COM].u32RxTmo = u32Tmo;
+	aDevUart[SERIAL_ID_COM].u32RxTmo = u32Tmo;
 	return DEV_SUCCESS;
 }
 
 inline uint32_t BSP_Console_GetRXTmo(void)
 {
-	return aDevUart[UART_ID_COM].u32RxTmo;
+	return aDevUart[SERIAL_ID_COM].u32RxTmo;
 }
 
 inline uint8_t BSP_Console_SetTXTmo(uint32_t u32Tmo)
 {
-	aDevUart[UART_ID_COM].u32TxTmo = u32Tmo;
+	aDevUart[SERIAL_ID_COM].u32TxTmo = u32Tmo;
 	return DEV_SUCCESS;
 }
 
 inline uint32_t BSP_Console_GetTXTmo(void)
 {
-	return aDevUart[UART_ID_COM].u32TxTmo;
+	return aDevUart[SERIAL_ID_COM].u32TxTmo;
 }
 
 inline void BSP_Console_FlushRx(void)
 {
 	uint8_t tmp;
-	while( HAL_UART_Receive(aDevUart[UART_ID_COM].hHandle, &tmp, 1, 0) == 0);
+	while( HAL_UART_Receive(aDevUart[SERIAL_ID_COM].hHandle, &tmp, 1, 0) == 0);
 }
 /******************************************************************************/
+
+#if defined (USE_BSP_UART_TRACE)
+#ifndef TRACE_BSP_UART
+#define TRACE_BSP_UART(...) fprintf (stdout, __VA_ARGS__ )
+#endif
+#else
+#define TRACE_BSP_UART(...)
+#endif
+
 /*!
   * @brief Enable the given uart and its related GPIO
   *
@@ -114,13 +186,49 @@ inline void BSP_Console_FlushRx(void)
   */
 uint8_t BSP_Uart_Open(uint8_t u8DevId)
 {
-	UART_HandleTypeDef *huart = aDevUart[u8DevId].hHandle;
-	if (u8DevId >= UART_ID_MAX)
+	uart_dev_t *dev = &aDevUart[u8DevId];
+	UART_HandleTypeDef *huart = dev->hHandle;
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
 	__HAL_LOCK(huart);
-	HAL_UART_MspInit(huart);
+	__HAL_UART_DISABLE(huart);
+
+	// Set the base clock
+	if (huart->Instance == UART4)
+	{
+		BSP_Clk_Peripheral(RCC_PERIPHCLK_UART4, SERIAL_BASE_CLK);
+		__HAL_RCC_UART4_CLK_ENABLE();
+	}
+	else if (huart->Instance == LPUART1)
+	{
+		BSP_Clk_Peripheral(RCC_PERIPHCLK_LPUART1, SERIAL_BASE_CLK);
+		__HAL_RCC_LPUART1_CLK_ENABLE();
+	}
+	else if (huart->Instance == USART3)
+	{
+		BSP_Clk_Peripheral(RCC_PERIPHCLK_USART3, SERIAL_BASE_CLK);
+		__HAL_RCC_USART3_CLK_ENABLE();
+	}
+	else if (huart->Instance == USART1)
+	{
+		BSP_Clk_Peripheral(RCC_PERIPHCLK_USART1, SERIAL_BASE_CLK);
+		__HAL_RCC_USART1_CLK_ENABLE();
+	}
+	else
+	{
+		// error
+		__HAL_UNLOCK(huart);
+		return DEV_FAILURE;
+	}
+
+	// Set IOMUX
+	BSP_Gpio_Config(dev->pGpio[0], dev->pIomux[0].io);
+	BSP_Gpio_Config(dev->pGpio[1], dev->pIomux[1].io);
+
+	HAL_NVIC_SetPriority(dev->i8ItLine, dev->u8ItPrio, 0);
+
 	huart->RxState = HAL_UART_STATE_READY;
 	huart->gState = HAL_UART_STATE_READY;
 	__HAL_UNLOCK(huart);
@@ -139,20 +247,52 @@ uint8_t BSP_Uart_Open(uint8_t u8DevId)
   */
 uint8_t BSP_Uart_Close(uint8_t u8DevId)
 {
-	UART_HandleTypeDef *huart = aDevUart[u8DevId].hHandle;
-	if (u8DevId >= UART_ID_MAX)
+	uart_dev_t *dev = &aDevUart[u8DevId];
+	UART_HandleTypeDef *huart = dev->hHandle;
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
+	__HAL_LOCK(huart);
+
 	HAL_NVIC_DisableIRQ(aDevUart[u8DevId].i8ItLine);
 	__HAL_UART_DISABLE(huart);
-	HAL_UART_MspDeInit(huart);
+
+	if (huart->Instance == UART4)
+	{
+		__HAL_RCC_UART4_CLK_DISABLE();
+	}
+	else if (huart->Instance == LPUART1)
+	{
+		__HAL_RCC_LPUART1_CLK_DISABLE();
+	}
+	else if (huart->Instance == USART3)
+	{
+		__HAL_RCC_USART3_CLK_DISABLE();
+	}
+	else if (huart->Instance == USART1)
+	{
+		__HAL_RCC_USART1_CLK_DISABLE();
+	}
+	else
+	{
+		// error
+		__HAL_UNLOCK(huart);
+		return DEV_FAILURE;
+	}
+
+	struct iomux_s io_analog = {0};
+	io_analog.mode = GPIO_MODE_ANALOG;
+	BSP_Gpio_Config(dev->pGpio[0], io_analog.io);
+	BSP_Gpio_Config(dev->pGpio[1], io_analog.io);
+
+	__HAL_UNLOCK(huart);
 	return DEV_SUCCESS;
 }
 
 uint8_t BSP_Uart_SetDefault(uint8_t u8DevId)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
@@ -186,12 +326,13 @@ uint8_t BSP_Uart_SetDefault(uint8_t u8DevId)
   */
 uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
 	uint8_t u8_Status;
-	UART_HandleTypeDef *huart = aDevUart[u8DevId].hHandle;
+	uart_dev_t *dev = &aDevUart[u8DevId];
+	UART_HandleTypeDef *huart = dev->hHandle;
 	/*
 #ifdef COM_SWAP_PINS
 	SET_BIT(huart->Instance->CR2, USART_CR2_SWAP);
@@ -199,6 +340,14 @@ uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode)
 	SET_BIT(huart->Instance->CR3, USART_CR3_OVRDIS);
 */
 	BSP_Uart_SetDefault(u8DevId);
+
+	huart->Init.BaudRate = dev->baud;
+	huart->AdvancedInit.Swap = dev->swap << USART_CR2_SWAP_Pos;
+	if (dev->swap)
+	{
+		huart->AdvancedInit.AdvFeatureInit |= UART_ADVFEATURE_SWAP_INIT;
+	}
+
 	u8_Status = HAL_UART_Init(huart);
 	//----------------
 
@@ -207,7 +356,7 @@ uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode)
 	//----------------
 	if ( u8_Status != HAL_OK)
 	{
-    	DBG_BSP("UART 0x%8X Init: status %d\r\n", huart->Instance, u8_Status);
+    	TRACE_BSP_UART("UART 0x%8lX Init: status %d\r\n", (uint32_t)huart->Instance, u8_Status);
 		return DEV_FAILURE;
 	}
 	__HAL_UART_DISABLE(huart);
@@ -251,7 +400,7 @@ uint8_t BSP_Uart_Init(uint8_t u8DevId, uint8_t u8CharMatch, uint8_t u8Mode)
   */
 uint8_t BSP_Uart_SetCallback (uint8_t u8DevId, pfEvtCb_t const pfEvtCb, void *pCbParam)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
@@ -275,7 +424,7 @@ uint8_t BSP_Uart_SetCallback (uint8_t u8DevId, pfEvtCb_t const pfEvtCb, void *pC
   */
 uint8_t BSP_Uart_Transmit(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
@@ -323,7 +472,7 @@ uint8_t BSP_Uart_Transmit(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
   */
 uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
@@ -392,16 +541,41 @@ uint8_t BSP_Uart_Receive(uint8_t u8DevId, uint8_t *pData, uint16_t u16Length)
   */
 uint8_t BSP_Uart_AbortReceive(uint8_t u8DevId)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return DEV_INVALID_PARAM;
 	}
 	UART_HandleTypeDef *huart = aDevUart[u8DevId].hHandle;
 
+	/*
+	// Disable all Receiver interrupt
+	CLEAR_BIT(huart->Instance->CR1, (
+			USART_CR1_EOBIE | USART_CR1_RTOIE |
+			USART_CR1_CMIE | USART_CR1_PCE |
+			USART_CR1_PEIE | USART_CR1_RXNEIE |	USART_CR1_IDLEIE) );
+	CLEAR_BIT(huart->Instance->CR3, (
+			USART_CR3_WUFIE |
+			USART_CR3_CTSIE |
+			USART_CR3_EIE ) );
+    // Clear the Receiver related flags in the ICR register
+    __HAL_UART_CLEAR_FLAG(huart, (
+    		USART_ICR_WUCF | USART_ICR_CMCF | USART_ICR_EOBCF | USART_ICR_RTOCF |
+			USART_ICR_IDLECF | USART_ICR_ORECF | USART_ICR_NECF |
+			USART_ICR_FECF | USART_ICR_PECF ));
+	// Discard the received data
+	__HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
+	// Reset Rx transfer counter
+    huart->RxXferCount = 0U;
+    // Clear RxISR function pointer
+    huart->pRxBuffPtr = NULL;
+	// Restore huart->RxState to Ready
+    huart->RxState = HAL_UART_STATE_READY;
+	*/
+
 	register uint32_t itflags = READ_REG(huart->Instance->CR1);
 	if(itflags & USART_CR1_RXNEIE)
 	{
-		CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
+		CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE | USART_CR1_CMIE));
 		CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
 		/* Reset Rx transfer counter */
@@ -419,6 +593,7 @@ uint8_t BSP_Uart_AbortReceive(uint8_t u8DevId)
 		/* Restore huart->RxState to Ready */
 	    huart->RxState = HAL_UART_STATE_READY;
 	}
+	// FIXME : Is it required ?
 	HAL_NVIC_DisableIRQ(aDevUart[u8DevId].i8ItLine);
 	return DEV_SUCCESS;
 }
@@ -434,7 +609,7 @@ uint8_t BSP_Uart_AbortReceive(uint8_t u8DevId)
   */
 uint16_t BSP_Uart_GetNbReceive(uint8_t u8DevId)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return 0;
 	}
@@ -453,7 +628,7 @@ uint16_t BSP_Uart_GetNbReceive(uint8_t u8DevId)
   */
 uint16_t BSP_Uart_GetNbTransmit(uint8_t u8DevId)
 {
-	if (u8DevId >= UART_ID_MAX)
+	if (u8DevId >= SERIAL_ID_MAX)
 	{
 		return 0;
 	}

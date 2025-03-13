@@ -188,6 +188,14 @@ void BSP_PwrLine_Init (void)
 	{
 		BSP_Gpio_OutputEnable(pwr_lines[i].u32Port, pwr_lines[i].u16Pin, 1);
 	}
+/*
+	extern struct iomux_s io_cfg_pwrlines[MAX_NB_POWER];
+	extern struct gpio_id_s gpio_pwr_lines[MAX_NB_POWER];
+	for (i = 0; i < MAX_NB_POWER; i++)
+	{
+		BSP_Gpio_Config(gpio_pwr_lines[i], io_cfg_pwrlines[i].io);
+	}
+*/
 	BSP_PwrLine_Clr((uint16_t)0xFFFF);
 }
 

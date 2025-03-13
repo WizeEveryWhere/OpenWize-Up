@@ -172,6 +172,9 @@ _sbrk(int incr)
  * @{
  */
 
+#define USE_IO_PUTS
+
+extern int __io_puts(char *ptr, int len) __attribute__((weak));
 extern int __io_putchar(int ch) __attribute__((weak));
 extern int __io_getchar(void) __attribute__((weak));
 
@@ -193,13 +196,16 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
 
 __attribute__((weak)) int _write(int file, char *ptr, int len)
 {
+#ifdef USE_IO_PUTS
+	return __io_puts(ptr, len);
+#else
 	int DataIdx;
-
 	for (DataIdx = 0; DataIdx < len; DataIdx++)
 	{
 		__io_putchar(*ptr++);
 	}
 	return len;
+#endif
 }
 
 int _open(char *path, int flags, ...)

@@ -39,18 +39,16 @@
 void RTC_WKUP_IRQHandler(void);
 void RTC_Alarm_IRQHandler(void);
 
-#ifdef USE_UART4
 void UART4_IRQHandler(void);
-#endif
-#ifdef USE_LPUART1
 void LPUART1_IRQHandler(void);
-#endif
+void USART1_IRQHandler(void);
 
 void TIM6_DAC_IRQHandler(void);
 
 void EXTI1_IRQHandler(void);
 void EXTI2_IRQHandler(void);
-
+void EXTI9_5_IRQHandler(void);
+void EXTI15_10_IRQHandler(void);
 
 #ifdef __cplusplus
 }

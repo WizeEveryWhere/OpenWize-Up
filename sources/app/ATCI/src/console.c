@@ -55,7 +55,7 @@ static void _loitf_evt_(void *p_CbParam,  uint32_t evt)
 {
 	if (p_CbParam)
 	{
-		((console_buf_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(UART_ID_COM);
+		((console_buf_t*)p_CbParam)->len = BSP_Uart_GetNbReceive(SERIAL_ID_COM);
 	}
 	if (hAtciTask)
 	{
@@ -78,8 +78,8 @@ void Console_Init(const char cMatch, void *pCbParam)
 {
 	uint8_t ret;
 	// ---
-	ret = BSP_Uart_Init(UART_ID_COM, cMatch, UART_MODE_EOB);
-	ret |= BSP_Uart_SetCallback(UART_ID_COM, _loitf_evt_, pCbParam);
+	ret = BSP_Uart_Init(SERIAL_ID_COM, cMatch, UART_MODE_EOB);
+	ret |= BSP_Uart_SetCallback(SERIAL_ID_COM, _loitf_evt_, pCbParam);
 	assert(ret == DEV_SUCCESS);
 
 }
@@ -93,7 +93,7 @@ void Console_Init(const char cMatch, void *pCbParam)
  */
 void Console_Enable(void)
 {
-	BSP_Uart_Open(UART_ID_COM);
+	BSP_Uart_Open(SERIAL_ID_COM);
 }
 
 /*!
@@ -105,7 +105,7 @@ void Console_Enable(void)
  */
 void Console_Disable(void)
 {
-	BSP_Uart_Close(UART_ID_COM);
+	BSP_Uart_Close(SERIAL_ID_COM);
 }
 
 /*!

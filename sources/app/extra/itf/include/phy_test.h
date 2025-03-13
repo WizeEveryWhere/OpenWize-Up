@@ -57,6 +57,7 @@ int32_t EX_PHY_RssiCalibrate(void);
 int32_t EX_PHY_AutoCalibrate(void);
 int32_t EX_PHY_SetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
 int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry);
+int32_t EX_PHY_GetTemperature(float *temperature);
 
 int32_t EX_PHY_GetIhmRssi(int16_t *i16_IntPart, uint8_t *u8_DecPart);
 int32_t EX_PHY_GetIhmNoise(int16_t *i16_IntPart, uint8_t *u8_DecPart);

@@ -50,7 +50,7 @@ extern "C" {
 #include <bsp_wdg.h>
 #include <bsp_crc.h>
 
-#include <bsp_cal.h>
+#include <bsp_clk.h>
 
 #ifdef HAS_HIRES_TIME_MEAS
 #include <bsp_hires_tmr.h>
@@ -70,6 +70,10 @@ extern "C" {
 
 #ifdef HAS_BSP_PWRLINE
 #include <bsp_pwrlines.h>
+#endif
+
+#ifdef HAS_TRACE_FACILITY
+#include <trace.h>
 #endif
 
 #define GP_PORT_NAME(name) name ##_GPIO_Port

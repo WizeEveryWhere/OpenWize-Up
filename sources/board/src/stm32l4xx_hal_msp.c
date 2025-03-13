@@ -39,7 +39,7 @@ void HAL_MspInit(void)
 
   /* System interrupt init*/
 
-#ifdef DEBUG
+//#ifdef DEBUG
 	#if defined(HAL_RTC_MODULE_ENABLED)
   		__HAL_DBGMCU_FREEZE_RTC();
   	#endif
@@ -72,7 +72,7 @@ void HAL_MspInit(void)
 	#if defined(HAL_WWDG_MODULE_ENABLED)
 		__HAL_DBGMCU_FREEZE_WWDG();
 	#endif
-#endif
+//#endif
 
 #ifdef LOWPOWER_DEBUG
 	HAL_DBGMCU_EnableDBGStandbyMode();
@@ -118,6 +118,7 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
 	}
 }
 
+#ifdef OLD_SPI
 /**
 * @brief SPI MSP Initialization
 * This function configures the hardware resources used in this example
@@ -163,6 +164,9 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 	}
 }
 
+#endif
+
+#ifdef OLD_UART
 /**
 * @brief UART MSP Initialization
 * This function configures the hardware resources used in this example
@@ -173,7 +177,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-#ifdef USE_UART4
+//#ifdef USE_UART4
 	if (huart->Instance == UART4)
 	{
 		__HAL_RCC_UART4_CLK_ENABLE();
@@ -189,9 +193,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		/* UART4 interrupt priority */
 		HAL_NVIC_SetPriority(UART4_IRQn, 5, 0);
 	}
-#endif
+//#endif
 
-#ifdef USE_LPUART1
+//#ifdef USE_LPUART1
 	if (huart->Instance == LPUART1)
 	{
 		__HAL_RCC_LPUART1_CLK_ENABLE();
@@ -207,7 +211,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		/* LPUART1 interrupt priority */
 		HAL_NVIC_SetPriority(LPUART1_IRQn, 5, 0);
 	}
-#endif
+//#endif
 }
 
 /**
@@ -218,19 +222,20 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 */
 void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 {
-#ifdef USE_UART4
+//#ifdef USE_UART4
 	if (huart->Instance == UART4)
 	{
 		__HAL_RCC_UART4_CLK_DISABLE();
 		HAL_GPIO_DeInit(GPIOA, UART_TXD_Pin|UART_RXD_Pin);
 	}
-#endif
+//#endif
 
-#ifdef USE_LPUART1
+//#ifdef USE_LPUART1
 	if (huart->Instance == LPUART1)
 	{
 		__HAL_RCC_LPUART1_CLK_DISABLE();
 		HAL_GPIO_DeInit(GPIOB, IOx0_Pin|IOx1_Pin);
 	}
-#endif
+//#endif
 }
+#endif

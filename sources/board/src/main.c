@@ -30,16 +30,11 @@
 /******************************************************************************/
 #include "main.h"
 #include "bsp.h"
-#include "platform.h"
 
 /******************************************************************************/
-/******************************************************************************/
-void SystemClock_Config(void);
-void PeriphClock_Config(void);
-void LSEClock_Config(void);
-
 /******************************************************************************/
 static void MX_GPIO_Init(void);
+
 extern void app_entry(void);
 
 /******************************************************************************/
@@ -52,158 +47,17 @@ int main(void)
 {
 	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
+	MX_GPIO_Init();
 
-	SystemClock_Config();
-	LSEClock_Config();
-	BSP_Rtc_Setup_Clk(RCC_RTCCLKSOURCE_LSE);
-
-	/** Enable MSI Auto calibration */ // Must be called after LSEON and LSERDY
-	HAL_RCCEx_EnableMSIPLLMode();
-
-#ifndef NOT_BOOTABLE // test purpose only (generate a small not bootable FW image)
 	// Init the BSP
 	BSP_Init();
-	/*
-	* The "PeriphClock_Config" call is not required because all "Peripherals
-	* independent clock" have expected configuration at Reset.
-	*/
-	//PeriphClock_Config();
 
-	MX_GPIO_Init();
-	BSP_PwrLine_Init();
-
-	BSP_Uart_Init(UART_ID_COM, '\r', UART_MODE_NONE);
-
+#ifndef NOT_BOOTABLE // test purpose only (generate a small not bootable FW image)
 	app_entry();
 #endif
 	while (1)
 	{
 	}
-}
-
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-	// Initializes the CPU, AHB and APB busses clocks
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSICalibrationValue = 0;
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_11; // 48 Mhz
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	{
-		Error_Handler();
-	}
-	// Initializes the CPU, AHB and APB busses clocks
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-								 |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	// Setup FLASH_LATENCY is only required when HSE or HSI is used. Auto-setup when MSI is used
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) // 48 Mhz OK
-	{
-		Error_Handler();
-	}
-
-	// Configure the main internal regulator output voltage
-	if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-	{
-		Error_Handler();
-	}
-}
-
-/**
-  * @brief Peripheral Clcok Initialization Function
-  * @retval None
-  */
-void PeriphClock_Config(void)
-{
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
-
-	/*
-	* The following is not required as default. All RCC_PERIPHCLK_xxxx
-	* are defined as 0x00 ("PCLK selected...") at Reset in "Peripherals
-	* independent clock configuration register" (RCC_CCIPR).
-	* Note that PCLK is defined as default for :
-	* USART1, USART2, USART3, UART4, LPUART1, LPTIM1, LPTIM2, I2C1, I2C2, I2C3
-	*
-	* Nevertheless, the following can be used to change default clocks in
-	* RCC_CCIPR register if required.
-	*
-	*/
-	PeriphClkInit.PeriphClockSelection = 0
-	/*
-#ifdef USE_USART1
-		|| RCC_PERIPHCLK_USART1
-#endif
-#ifdef USE_USART2
-		|| RCC_PERIPHCLK_USART2
-#endif
-#ifdef USE_UART4
-		|| RCC_PERIPHCLK_UART4
-#endif
-#ifdef USE_LPUART1
-		|| RCC_PERIPHCLK_LPUART1
-#endif
-#ifdef USE_I2C
-		|| RCC_PERIPHCLK_I2C1
-		|| RCC_PERIPHCLK_I2C2
-#endif
-	*/
-	;
-
-	/*
-	* The following is not required as default. All RCC_xxxxxCLKSOURCE_PCLK1
-	* are defined as 0x00000000U in stm32l4xx_hal_rcc_ex.h and initialization to
-	* 0x00000000U is already done with "PeriphClkInit = {0}" just before;
-	*/
-	/*
-	PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
-	PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
-	PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
-	PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-	PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
-	PeriphClkInit.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
-	*/
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-	{
-		Error_Handler();
-	}
-}
-
-/**
-  * @brief LSE Clock Initialization Function
-  * @retval None
-  */
-void LSEClock_Config(void)
-{
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-
-	// Enable Backup Domain access (must be set before accessing RCC_BDCR)
-	HAL_PWR_EnableBkUpAccess();
-
-	// Configure LSE Drive Capability
-	__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_HIGH);
-
-	// Initializes LSE Oscillator
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE;
-	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	// LSE is ON, so configure LSE Drive Capability
-	__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
 }
 
 /**
@@ -213,7 +67,7 @@ void LSEClock_Config(void)
   */
 static void MX_GPIO_Init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	//GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	//------------------------------------
 	// GPIO Reset values are :
@@ -305,9 +159,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
+	for (int i = 0 ; i < 1000; i++)
+	{
+		if (i == 0)
+		{
+			fprintf(stdout, "holala\n");
+		}
+	}
 }
 
 #ifdef  USE_FULL_ASSERT
+#include <stdio.h>
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -317,7 +179,15 @@ void Error_Handler(void)
   */
 void assert_failed(char *file, uint32_t line)
 { 
-  /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	/* User can add his own implementation to report the file name and line number,
+	   tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line)
+	*/
+	for (int i = 0 ; i < 1000; i++)
+	{
+		if (i == 0)
+		{
+			fprintf(stdout, "hooo\n");
+		}
+	}
 }
 #endif /* USE_FULL_ASSERT */

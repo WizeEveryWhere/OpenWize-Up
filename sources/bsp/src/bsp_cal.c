@@ -47,11 +47,11 @@ extern "C" {
  */
 
 static void Tim15_Cfg(uint16_t u16ARR, uint16_t u16PSC);
-static void Tim1_Cfg(uint16_t u16ARR, uint16_t u16PSC);
 static void Tim15_Init(uint16_t u16ARR, uint16_t u16PSC);
-
-static void Tim1_Init(uint16_t u16ARR, uint16_t u16PSC);
 static void Tim15_DeInit(void);
+
+static void Tim1_Cfg(uint16_t u16ARR, uint16_t u16PSC);
+static void Tim1_Init(uint16_t u16ARR, uint16_t u16PSC);
 static void Tim1_DeInit(void);
 
 static void Tim3_Cfg(uint16_t u16ARR, uint16_t u16PSC);
@@ -260,6 +260,367 @@ void BSP_TmrClk_Trim(timer_period_t sT15, timer_period_t sT1)
  * @cond INTERNAL
  * @{
  */
+/******************************************************************************/
+
+// Configuration
+#define Lptim1_CFGR LPTIM_COUNTERSOURCE_EXTERNAL
+
+// LPTIM_UPDATE_ENDOFPERIOD
+
+// LPTIM_CFGR_TIMOUT
+
+
+// TRIGEN[1:0]: Trigger enable and polarity
+
+// TRIGSEL[2:0]: Trigger selector
+// LPTIM_TRIGSOURCE_0 : GPIO
+// LPTIM_TRIGSOURCE_1 : RTC_ALR_A
+// LPTIM_TRIGSOURCE_2 : RTC_ALR_B
+
+// PRESC[2:0]: Clock prescaler
+// From LPTIM_PRESCALER_DIV1 to LPTIM_PRESCALER_DIV128
+
+// CKPOL[1:0]: Clock Polarity
+
+// CKSEL: Clock selector
+// LPTIM_CLOCKSOURCE_ULPTIM
+// LPTIM_CLOCKSOURCE_APBCLOCK_LPOSC
+
+// Control
+#define Lptim1_CR
+
+#define Lptim1_CMP
+
+#define Lptim1_ARR
+
+#define Lptim1_CNT
+
+
+#define Lptim1_OR
+
+
+#define RCC_Lptim1_CLKSEL
+// APB, LSE, LSI, HSI
+
+
+// Possible input/output : (AF1)
+// OUT PA14
+// IN1 PB5
+// ETR PB6
+static void Lptim1_Cfg(uint16_t u16ARR, uint16_t u16PSC)
+{
+
+}
+
+static void Lptim1_Init(uint16_t u16ARR, uint16_t u16PSC)
+{
+
+}
+
+static void Lptim1_DeInit(void)
+{
+	// Initialize LPTIM1
+	register LPTIM_TypeDef *TIMx = LPTIM1;
+}
+
+/******************************************************************************/
+#if 0
+
+// Control 1
+// TIM_OPMODE_SINGLE : Counter stops counting at the next update event (clearing the bit CEN)
+//#define Tim16_CR1 TIM_OPMODE_SINGLE | TIM_AUTORELOAD_PRELOAD_ENABLE
+#define Tim16_CR1 0x0
+
+// Capture/Compare mode 1
+// CC1S: Capture/Compare 1 selection : CC1 channel is configured as input, IC1 is mapped on TI1
+//#define Tim16_CCMR1 TIM_CCMR1_CC1S_0
+
+//#define	Tim16_CCER (TIM_INPUTCHANNELPOLARITY_RISING | TIM_OUTPUTSTATE_ENABLE)
+
+
+#pragma GCC push_options
+#pragma GCC optimize("O0")
+
+#define CAPTURE_START              ((uint32_t) 0x00000001)
+#define CAPTURE_ONGOING            ((uint32_t) 0x00000002)
+#define CAPTURE_COMPLETED          ((uint32_t) 0x00000003)
+
+uint32_t  __IO CaptureState = 0;
+uint32_t  __IO Capture = 0;
+uint32_t IC1ReadValue1 = 0;
+uint32_t IC1ReadValue2 = 0;
+
+void Update_CC(uint32_t u32CCValue)
+{
+	if (CaptureState == CAPTURE_START)
+	{
+		/* Get the 1st Input Capture value */
+		IC1ReadValue1 = u32CCValue;
+		CaptureState = CAPTURE_ONGOING;
+	}
+	else if (CaptureState == CAPTURE_ONGOING)
+	{
+		/* Get the 2nd Input Capture value */
+		IC1ReadValue2 = u32CCValue;
+
+		/* Capture computation */
+		if (IC1ReadValue2 > IC1ReadValue1)
+		{
+			Capture = (IC1ReadValue2 - IC1ReadValue1);
+		}
+		else if (IC1ReadValue2 < IC1ReadValue1)
+		{
+			Capture = ((0xFFFF - IC1ReadValue1) + IC1ReadValue2);
+		}
+		else
+		{
+			/* If capture values are equal, we have reached the limit of frequency
+			measures */
+			Error_Handler();
+		}
+
+		CaptureState = CAPTURE_COMPLETED;
+	}
+}
+
+// void HAL_TIM_IRQHandler(TIM_HandleTypeDef *htim)
+void Meas_IRQHandler(void)
+{
+	register uint32_t reg = TIM16->SR;
+	if ((reg & TIM_FLAG_CC1) == TIM_FLAG_CC1)
+	{
+	    if ((TIM16->DIER & TIM_IT_CC1) == TIM_IT_CC1)
+	    {
+	    	TIM16->SR = 0;
+	    	if ( (TIM16->CCMR1 & TIM_CCMR1_CC1S) == TIM_CCMR1_CC1S_0)
+	    	{
+	    		// Call back
+	    		Update_CC( (uint32_t)(TIM16->CCR1) );
+	    	}
+	    }
+	}
+}
+
+static uint32_t _do_one_meas_(uint32_t timeout)
+{
+	uint32_t tmo = timeout;
+
+	CaptureState = CAPTURE_START;
+	// Enable IT
+	TIM16->DIER = (TIM_DIER_CC1IE);
+	// Enable capture on IC1
+	TIM16->CCER |= TIM_CCER_CC1E;
+	// Enable counting
+	TIM16->CR1 |= (TIM_CR1_CEN);
+	/* Enable the TIMx IRQ channel */
+	HAL_NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);
+	/* Wait for end of capture: two consecutive captures */
+	while ((CaptureState != CAPTURE_COMPLETED) && (tmo != 0))
+	{
+		if (--tmo == 0)
+		{
+			break;
+		}
+	}
+	/* Disable the TIMx global Interrupt */
+	HAL_NVIC_DisableIRQ(TIM1_UP_TIM16_IRQn);
+
+	// This will be odne in Tim16_DeInit:
+	// - Disable IT, Disable capture on IC1, Disable counting
+	/*
+	// Disable IT
+	TIM16->DIER &= ~(TIM_DIER_CC1IE);
+	// Disable capture on IC1
+	TIM16->CCER &= ~(TIM_CCER_CC1E);
+	// Disable counting
+	TIM16->CR1 &= ~(TIM_CR1_CEN);
+	*/
+
+	// Timeout
+	if (tmo == 0)
+	{
+		Capture = 0;
+	}
+
+	return Capture;
+}
+
+enum meas_type_e {
+	TIM_IC_FREQ = 0,
+	TIM_CK_FREQ = 1,
+};
+
+static uint32_t _do_avg_meas_(uint8_t u8Type, uint8_t u8NbLoop, uint32_t u32Scale, uint32_t timeout)
+{
+	uint32_t meas = 0;
+	uint8_t loop_cnt = 0;
+	uint32_t capture;
+
+	while (loop_cnt <= u8NbLoop)
+	{
+		capture = _do_one_meas_(timeout);
+
+		if (capture == 0)
+		{
+			// Error
+			meas = 0;
+			goto done;
+		}
+
+		if (loop_cnt != 0)
+		{
+			/* Compute the frequency value :
+			 *
+			 * ratio = IcPSC / (PSC + 1)
+			 * scale = RefFreq x ratio
+			 *       = RefFreq x IcPSC / (PSC + 1)
+			 *
+			 * case 1 : IC clk is ref.  --> measure the TIM clk
+			 * meas = ratio x RefFreq x capture
+			 *      = scale x capture
+			 *
+			 * case 0 : TIM clk is ref. --> measure the IC clk
+			 * meas = ratio x RefFreq / capture
+			 *      = scale / capture
+			 *
+			*/
+			if (u8Type == TIM_CK_FREQ)
+			{
+				meas += (u32Scale * capture);
+			}
+			else // u8Type == TIM_IC_FREQ
+			{
+				meas += (u32Scale / capture);
+			}
+
+		}
+	    /* Increment counter */
+		loop_cnt++;
+	}
+
+	/* Compute the average of frequency value */
+	meas = (uint32_t) (meas / u8NbLoop);
+done :
+	return (uint32_t)(meas);
+}
+
+void BSP_CalInit(void)
+{
+	__HAL_DBGMCU_UNFREEZE_TIM16();
+	__HAL_DBGMCU_FREEZE_TIM16();
+
+
+	// If use LSE as ref clk
+
+#if 0
+	/* The signal in input capture is divided by 8 */
+	#define MSI_TIMx_IC_DIVIDER         TIM_ICPSC_DIV8
+	/* The LSE is divided by 8 => LSE/8 = 32768/8 = 4096 */
+	#define MSI_REFERENCE_FREQUENCY     ((uint32_t)4096) /* The reference frequency value in Hz */
+
+	#define MSI_NUMBER_OF_LOOPS         ((uint32_t)50)
+	// If use GPIO as ref clk (
+
+	/* The signal in input capture is not divided */
+	#define MSI_TIMx_IC_DIVIDER         TIM_ICPSC_DIV1
+	/* The reference frequency is 1000 Hz (the signal in input capture is not divided) */
+	#define MSI_REFERENCE_FREQUENCY     ((uint32_t)1000) /* The reference frequency value in Hz */
+
+	#define MSI_NUMBER_OF_LOOPS         ((uint32_t)10)
+#endif
+	/* Configure the NVIC for TIMx */
+	HAL_NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 0, 1);
+	/* Disable the TIMx global Interrupt */
+	HAL_NVIC_DisableIRQ(TIM1_UP_TIM16_IRQn);
+
+
+	// Option register 1
+	// TI1_RMP[2:0]: Input capture 1 remap
+	// TIM_TIM16_TI1_GPIO
+	// TIM_TIM16_TI1_LSI
+	// TIM_TIM16_TI1_LSE
+	// TIM_TIM16_TI1_RTC
+	// TIM_TIM16_TI1_MSI
+	// TIM_TIM16_TI1_HSE_32
+	// TIM_TIM16_TI1_MCO
+
+	// With TIM16
+	// LSI measurement : TIM_ICPSC_DIV4
+
+	// With TIM15
+	// MSI measurement :
+	// - LSE as ref. clk  : TIM_ICPSC_DIV8
+	// - GPIO as ref. clk : TIM_ICPSC_DIV1 (for input clock of 1000 Hz)
+
+	g_xSysInfo.pvd = BSP_Pvd_Check();
+
+}
+
+uint32_t BSP_OscMeas(uint32_t InternOscFrequency, uint8_t u8NbLoop)
+{
+#define LSI_TIMEOUT                 ((uint32_t)0xFFFFFF)
+
+	uint32_t meas = 0;
+
+
+	uint8_t ratio = 4; // IcPSC / (PSC + 1)
+	uint32_t u32Scale = ratio * InternOscFrequency;
+
+	Tim16_Init(TIM_TIM16_TI1_LSI, 0, TIM_ICPSC_DIV4);
+	meas = _do_avg_meas_(TIM_IC_FREQ, u8NbLoop, u32Scale, LSI_TIMEOUT);
+	// if meas = 0, an error occurs
+
+	Tim16_DeInit();
+	/* Return the LSI frequency or 0 if an error occurs*/
+	return (uint32_t)(meas);
+}
+
+
+
+
+#pragma GCC pop_options
+
+
+// Possible output : (AF14)
+// CH1N PB6
+static void Tim16_Cfg(uint16_t u16RMP, uint16_t u16PSC, uint16_t u16IcPSC)
+{
+	// Initialize TIM16
+	register TIM_TypeDef *TIMx = TIM16;
+	TIMx->ARR = 0xFFFF;
+	TIMx->PSC = u16PSC;
+	// update psc and arr
+	TIMx->EGR = TIM_EGR_UG;
+	// Setup remap
+	TIMx->OR1 = (u16RMP & TIM16_OR1_TI1_RMP);
+	TIMx->OR2 = 0x0;
+	// Disable counting
+	TIMx->CCER = 0x0;
+	// Configure IC1
+	TIMx->CCMR1 = TIM_CCMR1_CC1S_0 | (u16IcPSC & TIM_CCMR1_IC1PSC);
+    TIMx->CCER = TIM_ICPOLARITY_RISING;
+}
+
+static void Tim16_Init(uint16_t u16RMP, uint16_t u16PSC, uint16_t u16IcPSC)
+{
+	// Force Reset and Enable clock
+	__HAL_RCC_TIM16_FORCE_RESET();
+	__HAL_RCC_TIM16_CLK_ENABLE();
+	__HAL_RCC_TIM16_RELEASE_RESET();
+
+	Tim16_Cfg(u16RMP, u16PSC, u16IcPSC);
+}
+
+
+static void Tim16_DeInit(void)
+{
+	__HAL_RCC_TIM16_FORCE_RESET();
+	__HAL_RCC_TIM16_RELEASE_RESET();
+	__HAL_RCC_TIM16_CLK_DISABLE();
+}
+#endif
+
+/******************************************************************************/
 
 // Autoreload enable
 #define	Tim15_CR1 TIM_AUTORELOAD_PRELOAD_ENABLE
@@ -272,18 +633,21 @@ void BSP_TmrClk_Trim(timer_period_t sT15, timer_period_t sT1)
 // Capture IC1 to CCR1 is enable
 #define	Tim15_CCER (TIM_INPUTCHANNELPOLARITY_RISING | TIM_OUTPUTSTATE_ENABLE)
 
+// Possible output : (AF14)
+// CH1N PA1
+// CH1 PA9 ????
 static void Tim15_Cfg(uint16_t u16ARR, uint16_t u16PSC)
 {
 	// Initialize TIM15
-	register TIM_TypeDef *pInstance = TIM15;
-	pInstance->CR1 = Tim15_CR1;
-	pInstance->CR2 = Tim15_CR2;
-	pInstance->ARR = u16ARR;
-	pInstance->PSC = u16PSC;
-	pInstance->SMCR = Tim15_SMCR;
-	pInstance->CCMR1 = Tim15_CCMR1;
-	pInstance->CCER = Tim15_CCER;
-	pInstance->OR2 = 0;
+	register TIM_TypeDef *TIMx = TIM15;
+	TIMx->CR1 = Tim15_CR1;
+	TIMx->CR2 = Tim15_CR2;
+	TIMx->ARR = u16ARR;
+	TIMx->PSC = u16PSC;
+	TIMx->SMCR = Tim15_SMCR;
+	TIMx->CCMR1 = Tim15_CCMR1;
+	TIMx->CCER = Tim15_CCER;
+	TIMx->OR2 = 0;
 }
 
 static void Tim15_Init(uint16_t u16ARR, uint16_t u16PSC)
@@ -293,7 +657,7 @@ static void Tim15_Init(uint16_t u16ARR, uint16_t u16PSC)
 	__HAL_RCC_TIM15_CLK_ENABLE();
 	__HAL_RCC_TIM15_RELEASE_RESET();
 	Tim15_Cfg(u16ARR, u16PSC);
-	// register TIM_TypeDef *pInstance = TIM15;
+	// register TIM_TypeDef *TIMx = TIM15;
 	//TIM15->EGR = TIM_EGR_UG;
 }
 
@@ -304,6 +668,7 @@ static void Tim15_DeInit(void)
 	__HAL_RCC_TIM15_CLK_DISABLE();
 }
 
+
 /******************************************************************************/
 
 // Autoreload enable
@@ -312,28 +677,37 @@ static void Tim15_DeInit(void)
 #define	Tim1_CR2 TIM_TRGO_UPDATE
 // OC4 value
 #define	Tim1_CCR4 0
-// Trigger on ITR0, External Clock 1,
+// Trigger on ITR0, External Clock 1, (TIM15
 #define	Tim1_SMCR (TIM_TS_ITR0 | TIM_SLAVEMODE_EXTERNAL1)
+
+// Trigger on ITR1, External Clock 1, (TIM2
+#define	x_Tim1_SMCR (TIM_TS_ITR1 | TIM_SLAVEMODE_EXTERNAL1)
+
+
 // Channel 4 as Output, OC4 is in toggle mode
 #define	Tim1_CCMR2 (TIM_OCMODE_TOGGLE << 8) | TIM_CCMR2_OC4PE
 // Output Compare OC4 is enable
 #define	Tim1_CCER (TIM_OUTPUTSTATE_ENABLE << 12)
 
+// Possible output : (AF1)
+// CH2 PA9
+// CH3 PA10
+// CH4 PA11
 static void Tim1_Cfg(uint16_t u16ARR, uint16_t u16PSC)
 {
 	// Initialize TIM1
-	register TIM_TypeDef *pInstance = TIM1;
-	pInstance->CR1 = Tim1_CR1;
-	pInstance->CR2 = Tim1_CR2;
-	pInstance->ARR = u16ARR;
-	pInstance->PSC = u16PSC;
-	pInstance->CCR4 = Tim1_CCR4;
-	pInstance->SMCR = Tim1_SMCR;
-	pInstance->CCMR2 = Tim1_CCMR2;
-	pInstance->CCER = Tim1_CCER;
-	pInstance->OR2 = 0;
-	pInstance->OR3 = 0;
-	pInstance->BDTR |= (TIM_BDTR_MOE);
+	register TIM_TypeDef *TIMx = TIM1;
+	TIMx->CR1 = Tim1_CR1;
+	TIMx->CR2 = Tim1_CR2;
+	TIMx->ARR = u16ARR;
+	TIMx->PSC = u16PSC;
+	TIMx->CCR4 = Tim1_CCR4;
+	TIMx->SMCR = Tim1_SMCR;
+	TIMx->CCMR2 = Tim1_CCMR2;
+	TIMx->CCER = Tim1_CCER;
+	TIMx->OR2 = 0;
+	TIMx->OR3 = 0;
+	TIMx->BDTR |= (TIM_BDTR_MOE);
 }
 
 static void Tim1_Init(uint16_t u16ARR, uint16_t u16PSC)
@@ -343,7 +717,7 @@ static void Tim1_Init(uint16_t u16ARR, uint16_t u16PSC)
 	__HAL_RCC_TIM1_CLK_ENABLE();
 	__HAL_RCC_TIM1_RELEASE_RESET();
 	Tim1_Cfg(u16ARR, u16PSC);
-	// register TIM_TypeDef *pInstance = TIM1;
+	// register TIM_TypeDef *TIMx = TIM1;
 	//TIM1->EGR = TIM_EGR_UG;
 }
 
@@ -354,6 +728,7 @@ static void Tim1_DeInit(void)
 	__HAL_RCC_TIM1_CLK_DISABLE();
 }
 
+
 /******************************************************************************/
 
 // Autoreload disable
@@ -363,18 +738,21 @@ static void Tim1_DeInit(void)
 // Trigger on ITR0, External Clock 1,
 #define	Tim3_SMCR (TIM_SLAVEMODE_EXTERNAL1 | TIM_TS_ITR0)
 
+// Possible output : (AF2)
+// CH1 PB4
+// CH2 PB5
 static void Tim3_Cfg(uint16_t u16ARR, uint16_t u16PSC)
 {
 	// Initialize TIM3
-	register TIM_TypeDef *pInstance = TIM3;
-	pInstance->CR1 = Tim3_CR1;
-	pInstance->CR2 = Tim3_CR2;
-	pInstance->ARR = u16ARR;
-	pInstance->PSC = u16PSC;
-	pInstance->SMCR = Tim3_SMCR;
+	register TIM_TypeDef *TIMx = TIM3;
+	TIMx->CR1 = Tim3_CR1;
+	TIMx->CR2 = Tim3_CR2;
+	TIMx->ARR = u16ARR;
+	TIMx->PSC = u16PSC;
+	TIMx->SMCR = Tim3_SMCR;
 
-	pInstance->OR1 = 0;
-	pInstance->OR2 = 0;
+	TIMx->OR1 = 0;
+	TIMx->OR2 = 0;
 }
 
 static void Tim3_Init(uint16_t u16ARR, uint16_t u16PSC)
@@ -411,23 +789,26 @@ static void Tim3_DeInit(void)
 // Input Capture IC1 is enable
 #define	Tim2_CCER TIM_CCER_CC1E
 
-// Possible output for CH3 or CH4, on GPIO PB10 or PB11 (GPIO_AF1_TIM2)
-
+// Possible output : (AF1)
+// CH1 PA0, PA15
+// CH2 PA1, PB3
+// CH3 PB10
+// CH4 PB11
 static void Tim2_Cfg(uint16_t u16ARR, uint16_t u16PSC)
 {
 	(void)u16ARR;
 	// Initialize TIM2
-	register TIM_TypeDef *pInstance = TIM2;
-	pInstance->CR1 = Tim2_CR1;
-	pInstance->CR2 = Tim2_CR2;
-	//pInstance->ARR = u16ARR;
-	pInstance->PSC = u16PSC;
-	pInstance->SMCR = Tim2_SMCR;
-	pInstance->CCMR1 = Tim2_CCMR1;
+	register TIM_TypeDef *TIMx = TIM2;
+	TIMx->CR1 = Tim2_CR1;
+	TIMx->CR2 = Tim2_CR2;
+	//TIMx->ARR = u16ARR;
+	TIMx->PSC = u16PSC;
+	TIMx->SMCR = Tim2_SMCR;
+	TIMx->CCMR1 = Tim2_CCMR1;
 
-	pInstance->CCER = Tim2_CCER;
-	pInstance->OR1 = Tim2_OR1;
-	pInstance->OR2 = 0;
+	TIMx->CCER = Tim2_CCER;
+	TIMx->OR1 = Tim2_OR1;
+	TIMx->OR2 = 0;
 }
 
 static void Tim2_Init(uint16_t u16ARR, uint16_t u16PSC)

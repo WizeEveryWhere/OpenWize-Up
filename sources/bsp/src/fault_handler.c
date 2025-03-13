@@ -46,7 +46,7 @@ extern "C" {
  */
 
 #ifndef TRACE_DUMP_CORE
-#define TRACE_DUMP_CORE(...) fprintf (stderr, __VA_ARGS__ );
+#define TRACE_DUMP_CORE(...) fprintf (stdout, __VA_ARGS__ );
 #endif
 
 void __init_exception_handlers__(void)

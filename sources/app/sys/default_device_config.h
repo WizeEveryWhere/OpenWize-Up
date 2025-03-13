@@ -43,8 +43,8 @@ extern "C" {
 #include "platform.h"
 #include "adf7030-1__common.h"
 
-#include "pin_cfg.h"
-
+//#include "pin_cfg.h"
+#include <stm32l4xx_hal.h>
 /*!
    Define the PHY Radio main clock source.\n
    1 -  Use XTAL.\n

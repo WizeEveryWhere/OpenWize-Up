@@ -43,6 +43,32 @@ extern "C" {
 #include <stm32l4xx_hal.h>
 
 /******************************************************************************/
+/* RTC default config */
+
+// Divider for f(CK_APRE) = f(RTCCLCK) / (DIV_A + 1). Use by sub seconds.
+// @ 32768Hz (LSE) :
+// DIV_A = 31 : f(CK_APRE) = 1024 Hz (error +2.4%)
+// DIV_A = 32 : f(CK_APRE) =  992 Hz (error -0.8%)
+// @ 32000Hz (LSI) :
+// DIV_A = 31 : f(CK_APRE) = 1000 Hz
+// DIV_A = 32 : f(CK_APRE) =  969 Hz (error -3.1%)
+#define RTC_LSE_PREDIV_A 31
+#define RTC_LSI_PREDIV_A RTC_LSE_PREDIV_A
+
+// Divider for f(CK_SPRE) = f(RTCCLCK) / ( (DIV_S + 1) x (DIV_A + 1) )
+// Note that the f(CK_SPRE) MUST be 1Hz
+// @ 32768Hz (LSE) :
+// DIV_A = 31 : DIV_S = 1023 : f(CK_SPRE) = 1Hz
+// DIV_A = 32 : DIV_S = 991  : f(CK_SPRE) = 1.0009775Hz (error +0.097%)
+// DIV_A = 32 : DIV_S = 992  : f(CK_SPRE) = 0.9999694Hz (error -0.003%)
+// @ 32000Hz (LSI) :
+// DIV_A = 31 : DIV_S = 999  : f(CK_SPRE) = 1Hz
+// DIV_A = 32 : DIV_S = 968  : f(CK_SPRE) = 1.0007192Hz (error +0.071%)
+// DIV_A = 32 : DIV_S = 969  : f(CK_SPRE) = 0.9996875Hz (error -0.031%)
+#define RTC_LSE_PREDIV_S 1023
+#define RTC_LSI_PREDIV_S 999
+
+/******************************************************************************/
 /* Usefull  */
 /******************************************************************************/
 /*!
@@ -102,6 +128,8 @@ uint16_t hex2ascii(uint8_t u8Hex)
 //inline __attribute__((always_inline))
 void msleep(uint32_t milisecond) { HAL_Delay(milisecond); }
 
+#pragma GCC push_options
+#pragma GCC optimize("O1")
 /*!
   * @brief Wait for (inaccurate) microsecond
   *
@@ -109,10 +137,14 @@ void msleep(uint32_t milisecond) { HAL_Delay(milisecond); }
   */
 void usleep(uint32_t microsecond)
 {
-	uint32_t cnt = microsecond * ( SystemCoreClock / 1000000);
+#define _K_ 3000000 // 1000000
+	// From assembly : 6 instructions
+	uint32_t cnt = microsecond * ( SystemCoreClock / 3000000);
+
+	// From assembly : 3 instructions
 	while(cnt) { cnt--; }
 }
-
+#pragma GCC pop_options
 /*!
   * @brief Get the Unique Identifier (CPU ID)
   *
@@ -124,12 +156,12 @@ void usleep(uint32_t microsecond)
   */
 uint64_t BSP_GetUid(void)
 {
-	uint32_t uuid[2];
-	uuid[1] = HAL_GetUIDw1();
-	uuid[0] = HAL_GetUIDw0();
+	uint64_t uuid;
+	((uint32_t*)&uuid)[1] = HAL_GetUIDw1();
+	((uint32_t*)&uuid)[0] = HAL_GetUIDw0();
 	//uint32_t lot;
 	//lot = HAL_GetUIDw2();
-	return *(uint64_t*)(uuid);
+	return (uuid);
 }
 
 /******************************************************************************/
@@ -137,35 +169,6 @@ uint64_t BSP_GetUid(void)
 /******************************************************************************/
 
 /*! @cond INTERNAL @{ */
-
-extern uart_dev_t aDevUart[UART_ID_MAX];
-
-#ifdef USE_SEMIHOSTING
-#warning SEMIHOSTING is defined. 1) You should exclude "syscalls.c" from build.
-#warning SEMIHOSTING is defined. 2) Add "rdimon" in link.
-#warning SEMIHOSTING is defined. 2) Add "-specs=rdimon.specs" to compiler CFLAGS
-#warning SEMIHOSTING is defined. 3) For debugging : Select OpenOCD
-#warning SEMIHOSTING is defined. 3) For debugging : add "monitor arm semihosting enable" into "Startup", "Initalization Commands"
-
-extern void initialise_monitor_handles(void);
-#else
-int __io_putchar(int ch){
-	uint16_t nb = 1;
-	if ((uint8_t)ch == '\n'){
-		nb = 2;
-		((uint8_t *)&ch)[0] = '\r';
-		((uint8_t *)&ch)[1] = '\n';
-	}
-	HAL_UART_Transmit(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t *)&ch, nb, aDevUart[STDOUT_UART_ID].u32TxTmo);
-	return ch;
-}
-
-int __io_getchar(void){
-	int c;
-	HAL_UART_Receive(aDevUart[STDOUT_UART_ID].hHandle, (uint8_t*)&c, 1, aDevUart[STDOUT_UART_ID].u32RxTmo);
-	return c;
-}
-#endif
 
 extern void __init_exception_handlers__(void);
 extern void __init_sys_handlers__(void);
@@ -253,6 +256,10 @@ void BSP_UpdateInfo(void)
 	BSP_Boot_SetInfo(gBootInfo.info & 0xFFFF0000);
 }
 
+#ifdef USE_AUTOCLK
+extern void AutoClk_Init(void);
+#endif
+
 /*!
   * @brief This function initialize the bsp
   *
@@ -264,9 +271,35 @@ void BSP_Init(void)
 	__init_sys_handlers__();
 	__init_sys_calls__();
 
+	BSP_PwrLine_Init();
+
+	// FIXME
+	extern uint8_t BSP_Serial_Bind(uint8_t u8SerialId, uint32_t u32DevId);
+	BSP_Serial_Bind(SERIAL_ID_LOG, LOGGER_DEV_MAP);
+	BSP_Serial_Bind(SERIAL_ID_COM, CONSOLE_DEV_MAP);
+
+	extern uint8_t BSP_SpiBus_Bind(void);
+	BSP_SpiBus_Bind();
+
+#ifdef USE_AUTOCLK
+	AutoClk_Init();
+#else
+	BSP_Clk_Init();
+#endif
+
 	// Setup the RTC
-	//BSP_Rtc_Setup(255, 127);
-	BSP_Rtc_Setup(RTC_PREDIV_S, RTC_PREDIV_A);
+	switch (__HAL_RCC_GET_RTC_SOURCE())
+	{
+		case RCC_RTCCLKSOURCE_LSI:
+			BSP_Rtc_Setup(RTC_LSI_PREDIV_S, RTC_LSI_PREDIV_A);
+			break;
+		case RCC_RTCCLKSOURCE_LSE:
+			BSP_Rtc_Setup(RTC_LSE_PREDIV_S, RTC_LSE_PREDIV_A);
+			break;
+		default:
+			// Fatal error
+			break;
+	}
 
 	// Check the boot info
 	_bsp_check_boot_info_();

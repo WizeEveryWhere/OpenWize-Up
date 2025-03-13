@@ -74,10 +74,10 @@ static void _phy_sport_cpy_cb_(void *pCBParam, void *pArg)
 	uint8_t b_Level;
 	// copy clk
 	BSP_Gpio_Get((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, &b_Level);
-	BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, b_Level);
+	BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, b_Level);
 	// copy data
 	BSP_Gpio_Get((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, &b_Level);
-	BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, b_Level);
+	BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, b_Level);
 }
 
 /*!
@@ -106,20 +106,20 @@ static void _phy_sport_cb_(void *pCBParam, void *pArg)
 
 	if( (uint16_t)(sport_data & 0xFFFF) == PHY_WM2400_PREAMBLE_DATA)
 	{
-		BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 1);
-	}
-	else
-	{
-		BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 0);
-	}
-
-	if( (uint16_t)(sport_data & 0xFFFF) ==  PHY_WM2400_SYNC_WORD)
-	{
 		BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 1);
 	}
 	else
 	{
 		BSP_Gpio_Set((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 0);
+	}
+
+	if( (uint16_t)(sport_data & 0xFFFF) ==  PHY_WM2400_SYNC_WORD)
+	{
+		BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 1);
+	}
+	else
+	{
+		BSP_Gpio_Set((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 0);
 	}
 }
 
@@ -147,8 +147,8 @@ static void _test_set_io(uint8_t eType, uint8_t bEnable)
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_DATA_GPIO_PORT, ADF7030_1_SPORT_DATA_GPIO_PIN, 1);
 			BSP_Gpio_InputEnable((uint32_t)ADF7030_1_SPORT_CLK_GPIO_PORT, ADF7030_1_SPORT_CLK_GPIO_PIN, 1);
 			// reconfigure I2C pin as gpio output
-			BSP_Gpio_OutputEnable((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 1);
 			BSP_Gpio_OutputEnable((uint32_t)IOx1_GPIO_Port, IOx1_Pin, 1);
+			BSP_Gpio_OutputEnable((uint32_t)IOx0_GPIO_Port, IOx0_Pin, 1);
 #ifdef USE_I2C
 #ifdef I2C_HAS_POWER_LINE
 			// set external I2C power on
@@ -300,7 +300,7 @@ phy_test_mode_e EX_PHY_Test(test_mode_info_t eTestModeInfo)
 inline void EX_PHY_SetCpy(void)
 {
 #ifdef HAS_CPY_PIN
-	BSP_GpioIt_SetGpioCpy(BSP_GpioIt_GetLineId(ADF7030_1_INT0_GPIO_PIN), IOx0_GPIO_Port, IOx0_Pin);
+	BSP_GpioIt_SetGpioCpy(BSP_GpioIt_GetLineId(ADF7030_1_INT0_GPIO_PIN), IOx1_GPIO_Port, IOx1_Pin);
 #else
 #warning HAS_CPY_PIN not defined
 #endif
@@ -387,7 +387,6 @@ inline int32_t EX_PHY_AutoCalibrate(void)
 	return i32Ret;
 }
 
-
 /*!
  * @brief  This function set/change entry in power table
  *
@@ -416,6 +415,25 @@ inline int32_t EX_PHY_GetPowerEntry(phy_power_entry_t *pPhyPwrEntry)
 	return sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_GET_PWR_ENTRY, (uint32_t)pPhyPwrEntry);
 }
 
+/*!
+ * @brief  This function get the phy internal temperature
+ *
+ * @param [in] temperature Pointer will hold measured temperature
+ *
+ * @retval PHY_STATUS_OK (see phy_status_e::PHY_STATUS_OK)
+ * @retval PHY_STATUS_BUSY (see phy_status_e::PHY_STATUS_BUSY)
+ * @retval PHY_STATUS_ERROR (see phy_status_e::PHY_STATUS_ERROR)
+ */
+inline int32_t EX_PHY_GetTemperature(float *temperature)
+{
+	int32_t i32Ret;
+	EX_PHY_OnOff(1);
+	i32Ret = sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_READY, 0);
+	i32Ret |= sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CMD_TEMP, (uint32_t)temperature);
+	EX_PHY_OnOff(0);
+	return i32Ret;
+}
+
 inline int32_t EX_PHY_GetIhmRssi(int16_t *i16_IntPart, uint8_t *u8_DecPart)
 {
 	PHY_CONV_Signed11ToIhm(sPhyDev.u16_Rssi, i16_IntPart, u8_DecPart);
@@ -426,6 +444,38 @@ inline int32_t EX_PHY_GetIhmNoise(int16_t *i16_IntPart, uint8_t *u8_DecPart)
 {
 	PHY_CONV_Signed11ToIhm(sPhyDev.u16_Noise, i16_IntPart, u8_DecPart);
 	return 0;
+}
+
+
+uint32_t EX_PHY_SelfTest(void)
+{
+//#define DO_NEXT(_stage, _status) stage <<= 1; stage |= (eStatus)?(1):(0);
+
+#define DO_NEXT(_cmd) \
+{ \
+	eStatus = _cmd; \
+	stage <<= 1; \
+	stage |= (eStatus)?(1):(0); \
+}
+
+extern void Sys_PreInit(void);
+	Sys_PreInit();
+	uint32_t stage = 0;
+	int32_t eStatus;
+
+	DO_NEXT( sPhyDev.pIf->pfInit(&sPhyDev) );
+	//DO_NEXT( sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_READY, 0) )
+	//DO_NEXT( sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_SLEEP, 0) )
+	//DO_NEXT( sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_CMD_READY, 0) )
+
+
+	DO_NEXT( sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_TX_POWER, (uint32_t)PHY_PMAX_minus_0db))
+	DO_NEXT( sPhyDev.pIf->pfIoctl(&sPhyDev, PHY_CTL_SET_TX_FREQ_OFF, (uint32_t)0))
+
+	DO_NEXT( sPhyDev.pIf->pfNoise(&sPhyDev, PHY_CH120, PHY_WM2400) )
+
+	DO_NEXT( sPhyDev.pIf->pfUnInit(&sPhyDev) );
+	return stage;
 }
 
 #ifdef __cplusplus

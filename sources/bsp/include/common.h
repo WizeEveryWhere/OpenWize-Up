@@ -52,7 +52,7 @@ extern "C" {
  * @{
  */
 
-#define DEBUG_STDIO 1
+//#define DEBUG_STDIO 1
 #ifndef DEBUG_STDIO
 #   define DEBUG_STDIO 0
 #endif
@@ -93,6 +93,24 @@ typedef void (*pf_cb_t)(void *p_CbParam, void *p_Arg);
  * @}
  * @endcond
  */
+
+/*!
+ * @brief This enum define the device id
+ */
+typedef enum
+{
+	DEV_ID_0, /*!< Device id 0 */
+	DEV_ID_1, /*!< Device id 1 */
+	// ---
+	DEV_ID_2, /*!< Device id 2 */
+	DEV_ID_3, /*!< Device id 3 */
+	DEV_ID_4, /*!< Device id 4 */
+	// ---
+	DEV_ID_MAX,
+	// ---
+	DEV_ID_UNK = -1
+} dev_id_e;
+
 
 /*!
  * @brief This enum define the common return code from devices
