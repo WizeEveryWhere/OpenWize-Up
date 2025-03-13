@@ -53,9 +53,6 @@ extern "C" {
  * @{
  */
 
-// FIXME :
-extern int32_t Calib_WaitDone(uint32_t *pulse_cnt);
-
 /******************************************************************************/
 
 static void _format_stats_(uint8_t *pData, net_stats_t *pStats);
@@ -563,6 +560,9 @@ atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData)
 }
 
 /******************************************************************************/
+#if 0
+// FIXME :
+extern int32_t Calib_WaitDone(uint32_t *pulse_cnt);
 
 #define Calib_TMO 60000
 
@@ -811,7 +811,7 @@ atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData)
 	}
 	return eRet;
 }
-
+#endif
 /******************************************************************************/
 
 /*!

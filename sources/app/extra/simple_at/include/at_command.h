@@ -68,7 +68,10 @@ typedef enum
 	CMD_ATKEY,   /*!<  */
 	CMD_ATFC,    /*!<  */
 	CMD_ATTEST,  /*!<  */
+#if 0
 	CMD_ATCAL,   /*!<  */
+#endif
+	CMD_ATPHY,   /*!<  */
 	// ----
 	CMD_ATANN,   /*!<  */
 	CMD_ATBLK,   /*!<  */

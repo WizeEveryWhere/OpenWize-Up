@@ -46,6 +46,8 @@ extern "C" {
 #include "at_extend_cmd.h"
 #include "at_lo_update_cmd.h"
 
+#include "at_phy_cmd.h"
+
 /******************************************************************************/
 /*!
  * @cond INTERNAL
@@ -105,7 +107,11 @@ const struct at_desc_s aAtDescCmd[NB_UNS_CMD] =
 	GROUP1( CMD_ATKEY  , "ATKEY"  , Exec_ATKEY_Cmd)
 	GROUP1( CMD_ATFC   , "ATFC"   , Exec_ATFC_Cmd)
 	GROUP1( CMD_ATTEST , "ATTEST" , Exec_ATTEST_Cmd)
+#if 0
 	GROUP1( CMD_ATCAL  , "AT%CAL" , Exec_ATCAL_Cmd)
+#endif
+	GROUP1( CMD_ATPHY  , "AT%PHY" , Exec_ATPHY_Cmd)
+	//GROUP1( CMD_ATPHY  , "AT%PHY" , Exec_AT_Cmd)
 
 	// --- Group 2 : Action required to locally update internal FW
 	GROUP2( CMD_ATANN  , "ATANN"  , Exec_ATANN_Cmd)

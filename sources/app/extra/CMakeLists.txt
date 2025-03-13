@@ -16,6 +16,8 @@ target_sources(${MODULE_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_extend_cmd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_key_cmd.c
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_lo_update_cmd.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/simple_at/src/at_phy_cmd.c
+        # ----
         ${CMAKE_CURRENT_SOURCE_DIR}/itf/src/local_frm.c
         ${CMAKE_CURRENT_SOURCE_DIR}/itf/src/itf.c
         ${CMAKE_CURRENT_SOURCE_DIR}/itf/src/wize_app_itf.c
@@ -36,3 +38,19 @@ target_link_libraries(${MODULE_NAME}
         bsp 
         openwize 
     )
+    
+# ------------------------------------------------------------------------------
+# Add "auto_clk" sources to Build
+target_sources(${MODULE_NAME}
+    INTERFACE 
+        ${CMAKE_CURRENT_SOURCE_DIR}/auto_clk/src/auto_cal.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/auto_clk/src/auto_clk.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/auto_clk/src/ext_ref_clk.c
+    )
+
+target_include_directories(
+    ${MODULE_NAME} 
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/auto_clk/include
+    )   
+# ------------------------------------------------------------------------------

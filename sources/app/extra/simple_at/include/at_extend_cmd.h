@@ -163,8 +163,9 @@ atci_error_e Exec_Generic_Notify(atci_cmd_t *atciCmdData);
 atci_error_e Generic_Notify_SetCode(atci_cmd_t *atciCmdData, uint32_t ulEvent);
 
 
-
+#if 0
 atci_error_e Exec_ATCAL_Cmd(atci_cmd_t *atciCmdData);
+#endif
 
 #ifdef __cplusplus
 }

@@ -562,7 +562,7 @@ static int32_t _at_wize_WaitSesComplete_(ses_type_t eSesId)
 			}
 
 			ret = WizeApp_Common(ulEvent);
-			ulEvent &= mask & SES_FLG_SES_COMPLETE_MSK;
+			ulEvent &= mask & (SES_FLG_SES_COMPLETE_MSK | SES_FLG_SES_ERROR_MSK);
 		} while ( !(ulEvent) );
 
 		ulEvent &= mask & SES_FLG_SES_ERROR_MSK;
